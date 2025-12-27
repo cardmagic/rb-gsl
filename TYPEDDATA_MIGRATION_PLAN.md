@@ -38,21 +38,25 @@ ruby scripts/migrate_typeddata.rb --verify       # Check remaining legacy API
 
 ## Phase 2: Create Type Definitions Header
 
+**Status**: Complete
+
 **Goal**: Create `ext/gsl_native/include/rb_gsl_types.h` with all type definitions.
 
 ### Tasks
 
-- [ ] Create the header file with all `rb_data_type_t` definitions
-- [ ] Include header in `rb_gsl.h` (single include point)
-- [ ] Update `extconf.rb` if needed
-- [ ] Verify compilation succeeds
-- [ ] Run tests
+- [x] Create the header file with all `rb_data_type_t` definitions
+- [x] Include header in `rb_gsl.h` (single include point)
+- [x] Update `extconf.rb` if needed
+- [x] Verify compilation succeeds
+- [x] Run tests
 
 **Commit**: `feat: add rb_gsl_types.h with TypedData type definitions`
 
 ---
 
 ## Phase 3: Simple Files (No Special Patterns)
+
+**Status**: Complete
 
 **Goal**: Migrate files with only static class variables - no `klass`, `CLASS_OF`, or `VECROW`.
 
@@ -91,6 +95,8 @@ done
 ---
 
 ## Phase 4: CLASS_OF Only Files
+
+**Status**: Complete
 
 **Goal**: Migrate files with `CLASS_OF` patterns but no `klass` or `VECROW`.
 
@@ -131,6 +137,8 @@ done
 ---
 
 ## Phase 5: klass + CLASS_OF Files (Medium Complexity)
+
+**Status**: Complete
 
 **Goal**: Migrate files with both `klass` and `CLASS_OF` patterns.
 
@@ -206,6 +214,8 @@ done
 ---
 
 ## Phase 6: High Complexity Files
+
+**Status**: In Progress
 
 **Goal**: Migrate files with many patterns or high occurrence counts.
 
@@ -327,11 +337,11 @@ done
 | Phase | Description | Files | Status |
 |-------|-------------|-------|--------|
 | 1 | Setup scripts | 3 | Complete |
-| 2 | Type definitions header | 1 | Not started |
-| 3 | Simple files | 14 | Not started |
-| 4 | CLASS_OF only | 18 | Not started |
-| 5 | klass + CLASS_OF | 28 | Not started |
-| 6 | High complexity | 9 | Not started |
+| 2 | Type definitions header | 1 | Complete |
+| 3 | Simple files | 14 | Complete |
+| 4 | CLASS_OF only | 18 | Complete |
+| 5 | klass + CLASS_OF | 28 | Complete |
+| 6 | High complexity | 9 | In progress |
 | 7 | VECTOR_ROW_COL | 6 | Not started |
 | 8 | Verification | - | Not started |
 | 9 | Cleanup | - | Not started |
