@@ -771,6 +771,16 @@ const rb_data_type_t gsl_multifit_fdfsolver_data_type = {
     .flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
 
+const rb_data_type_t gsl_multifit_function_fdf_data_type = {
+    .wrap_struct_name = "GSL::MultiFit::Function_fdf",
+    .function = {
+        .dmark = NULL,
+        .dfree = NULL,  /* Not owned by Ruby - owned by solver */
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
 /* ============================================================
  * ODE Types
  * ============================================================ */
@@ -800,6 +810,16 @@ const rb_data_type_t gsl_odeiv_evolve_data_type = {
     .function = {
         .dmark = NULL,
         .dfree = (void (*)(void *))gsl_odeiv_evolve_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+const rb_data_type_t gsl_odeiv_system_data_type = {
+    .wrap_struct_name = "GSL::Odeiv::System",
+    .function = {
+        .dmark = NULL,
+        .dfree = NULL,  /* Not owned by Ruby - owned by solver */
         .dsize = NULL,
     },
     .flags = RUBY_TYPED_FREE_IMMEDIATELY,

@@ -39,14 +39,14 @@ static VALUE rb_gsl_permutation_calloc(VALUE klass, VALUE nn)
 static VALUE rb_gsl_permutation_size(VALUE obj)
 {
   gsl_permutation *p = NULL;
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   return INT2FIX(p->size);
 }
 
 static VALUE rb_gsl_permutation_init(VALUE obj)
 {
   gsl_permutation *p = NULL;
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   gsl_permutation_init(p);
   return obj;
 }
@@ -63,7 +63,7 @@ static VALUE rb_gsl_permutation_get(int argc, VALUE *argv, VALUE obj)
   long beg;
   int i;
   size_t n, j, k;
-  Data_Get_Struct(obj, gsl_permutation, b);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, b);
   switch (argc) {
   case 0:
     rb_raise(rb_eArgError, "too few arguments (%d for >= 1)", argc);
@@ -124,7 +124,7 @@ static VALUE rb_gsl_permutation_get(int argc, VALUE *argv, VALUE obj)
 static VALUE rb_gsl_permutation_clone(VALUE obj)
 {
   gsl_permutation *p, *p2 = NULL;
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   p2 = gsl_permutation_alloc(p->size);
   gsl_permutation_memcpy(p2, p);
   return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_permutation_free, p2);
@@ -136,8 +136,8 @@ static VALUE rb_gsl_permutation_memcpy(VALUE obj, VALUE pp1, VALUE pp2)
   gsl_permutation *p1, *p2 = NULL;
   CHECK_PERMUTATION(pp1);
   CHECK_PERMUTATION(pp2);
-  Data_Get_Struct(pp1, gsl_permutation, p1);
-  Data_Get_Struct(pp2, gsl_permutation, p2);
+  TypedData_Get_Struct(pp1, gsl_permutation, &gsl_permutation_data_type, p1);
+  TypedData_Get_Struct(pp2, gsl_permutation, &gsl_permutation_data_type, p2);
   gsl_permutation_memcpy(p1, p2);
   return pp1;
 }
@@ -146,7 +146,7 @@ static VALUE rb_gsl_permutation_swap(VALUE obj, VALUE i, VALUE j)
 {
   gsl_permutation *p = NULL;
   CHECK_FIXNUM(i); CHECK_FIXNUM(j);
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   gsl_permutation_swap(p, FIX2INT(i), FIX2INT(j));
   return obj;
 }
@@ -154,14 +154,14 @@ static VALUE rb_gsl_permutation_swap(VALUE obj, VALUE i, VALUE j)
 static VALUE rb_gsl_permutation_valid(VALUE obj)
 {
   gsl_permutation *p = NULL;
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   return INT2FIX(gsl_permutation_valid(p));
 }
 
 static VALUE rb_gsl_permutation_valid2(VALUE obj)
 {
   gsl_permutation *p = NULL;
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   if(gsl_permutation_valid(p)) return Qtrue;
   else return Qfalse;
 }
@@ -172,7 +172,7 @@ static VALUE rb_gsl_permutation_to_a(VALUE obj)
   gsl_permutation *p = NULL;
   size_t i;
   VALUE ary;
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   ary = rb_ary_new2(p->size);
   for (i = 0; i < p->size; i++) {
     rb_ary_store(ary, i, INT2FIX(gsl_permutation_get(p, i)));
@@ -187,19 +187,19 @@ static VALUE rb_gsl_permutation_to_v(VALUE obj)
   gsl_vector *v;
   size_t size;
   size_t i;
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   size = p->size;
   v = gsl_vector_alloc(size);
   for (i = 0; i < size; i++) {
     gsl_vector_set(v, i, gsl_permutation_get(p, i));
   }
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
 }
 
 static VALUE rb_gsl_permutation_reverse(VALUE obj)
 {
   gsl_permutation *p = NULL;
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   gsl_permutation_reverse(p);
   return obj;
 }
@@ -207,23 +207,23 @@ static VALUE rb_gsl_permutation_reverse(VALUE obj)
 static VALUE rb_gsl_permutation_inverse(VALUE obj)
 {
   gsl_permutation *p, *inv;
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   inv = gsl_permutation_alloc(p->size);
   gsl_permutation_inverse(inv, p);
-  return Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, inv);
+  return TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, inv);
 }
 
 static VALUE rb_gsl_permutation_next(VALUE obj)
 {
   gsl_permutation *p = NULL;
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   return INT2FIX(gsl_permutation_next(p));
 }
 
 static VALUE rb_gsl_permutation_prev(VALUE obj)
 {
   gsl_permutation *p = NULL;
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   return INT2FIX(gsl_permutation_prev(p));
 }
 
@@ -233,8 +233,8 @@ static VALUE rb_gsl_permutation_permute_vector(VALUE obj, VALUE vv)
   gsl_vector *v;
   int status;
   CHECK_VECTOR(vv);
-  Data_Get_Struct(obj, gsl_permutation, p);
-  Data_Get_Struct(vv, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
+  TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
   status = gsl_permute_vector(p, v);
   return INT2FIX(status);
 }
@@ -245,8 +245,8 @@ static VALUE rb_gsl_permutation_permute_vector_inverse(VALUE obj, VALUE vv)
   gsl_vector *v;
   int status;
   CHECK_VECTOR(vv);
-  Data_Get_Struct(obj, gsl_permutation, p);
-  Data_Get_Struct(vv, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
+  TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
   status = gsl_permute_vector_inverse(p, v);
   return INT2FIX(status);
 }
@@ -258,8 +258,8 @@ static VALUE rb_gsl_permute_vector(VALUE obj, VALUE pp, VALUE vv)
   gsl_vector *v;
   int status;
   CHECK_VECTOR(vv);
-  Data_Get_Struct(pp, gsl_permutation, p);
-  Data_Get_Struct(vv, gsl_vector, v);
+  TypedData_Get_Struct(pp, gsl_permutation, &gsl_permutation_data_type, p);
+  TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
   status = gsl_permute_vector(p, v);
   return INT2FIX(status);
 }
@@ -271,8 +271,8 @@ static VALUE rb_gsl_permute_vector_inverse(VALUE obj, VALUE pp, VALUE vv)
   gsl_vector *v;
   int status;
   CHECK_VECTOR(vv);
-  Data_Get_Struct(pp, gsl_permutation, p);
-  Data_Get_Struct(vv, gsl_vector, v);
+  TypedData_Get_Struct(pp, gsl_permutation, &gsl_permutation_data_type, p);
+  TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
   status = gsl_permute_vector_inverse(p, v);
   return INT2FIX(status);
 }
@@ -285,17 +285,17 @@ static VALUE rb_gsl_permutation_mul(VALUE obj, VALUE ppa, VALUE ppb)
   int flag = 0;
   CHECK_PERMUTATION(ppa);
   CHECK_PERMUTATION(ppb);
-  Data_Get_Struct(ppa, gsl_permutation, pa);
-  Data_Get_Struct(ppb, gsl_permutation, pb);
+  TypedData_Get_Struct(ppa, gsl_permutation, &gsl_permutation_data_type, pa);
+  TypedData_Get_Struct(ppb, gsl_permutation, &gsl_permutation_data_type, pb);
   if (rb_obj_is_kind_of(obj, cgsl_permutation)) {
-    Data_Get_Struct(obj, gsl_permutation, p);
+    TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
     flag = 1;
   } else {
     p = gsl_permutation_alloc(pa->size);
   }
   gsl_permutation_mul(p, pa, pb);
   if (flag == 1) return obj;
-  else return Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, p);
+  else return TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, p);
 }
 
 static VALUE rb_gsl_permutation_print(VALUE obj);
@@ -304,7 +304,7 @@ static VALUE rb_gsl_permutation_print(VALUE obj)
 {
   gsl_permutation *p = NULL;
   size_t size, i;
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   size = p->size;
   for (i = 0; i < size; i++) {
     printf("%3d ", (int) gsl_permutation_get(p, i));
@@ -320,7 +320,7 @@ static VALUE rb_gsl_permutation_to_s(VALUE obj)
   char buf[16];
   size_t i;
   VALUE str;
-  Data_Get_Struct(obj, gsl_permutation, v);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, v);
   str = rb_str_new2("[");
   for (i = 0; i < v->size; i++) {
     sprintf(buf,  " %d", (int) gsl_permutation_get(v, i));
@@ -346,7 +346,7 @@ static VALUE rb_gsl_permutation_fwrite(VALUE obj, VALUE io)
   FILE *f = NULL;
   int status, flag = 0;
 
-  Data_Get_Struct(obj, gsl_permutation, h);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, h);
   f = rb_gsl_open_writefile(io, &flag);
   status = gsl_permutation_fwrite(f, h);
   if (flag == 1) fclose(f);
@@ -359,7 +359,7 @@ static VALUE rb_gsl_permutation_fread(VALUE obj, VALUE io)
   FILE *f = NULL;
   int status, flag = 0;
 
-  Data_Get_Struct(obj, gsl_permutation, h);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, h);
   f = rb_gsl_open_readfile(io, &flag);
   status = gsl_permutation_fread(f, h);
   if (flag == 1) fclose(f);
@@ -374,7 +374,7 @@ static VALUE rb_gsl_permutation_fprintf(int argc, VALUE *argv, VALUE obj)
 
   if (argc != 1 && argc != 2) rb_raise(rb_eArgError,
                                        "wrong number of arguments (%d for 1 or 2)", argc);
-  Data_Get_Struct(obj, gsl_permutation, h);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, h);
   fp = rb_gsl_open_writefile(argv[0], &flag);
   if (argc == 1) {
     status = gsl_permutation_fprintf(fp, h, "%u\n");
@@ -391,7 +391,7 @@ static VALUE rb_gsl_permutation_printf(int argc, VALUE *argv, VALUE obj)
   gsl_permutation *h;
   int status;
 
-  Data_Get_Struct(obj, gsl_permutation, h);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, h);
   if (argc == 0) {
     status = gsl_permutation_fprintf(stdout, h, "%u\n");
   } else {
@@ -406,7 +406,7 @@ static VALUE rb_gsl_permutation_fscanf(VALUE obj, VALUE io)
   gsl_permutation *h;
   FILE *f = NULL;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_permutation, h);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, h);
   f = rb_gsl_open_readfile(io, &flag);
   status = gsl_permutation_fscanf(f, h);
   if (flag == 1) fclose(f);
@@ -417,16 +417,16 @@ static VALUE rb_gsl_permutation_linear_to_canonical(int argc, VALUE *argv, VALUE
 {
   gsl_permutation *p, *q;
 
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   switch (argc) {
   case 0:
     q = gsl_permutation_alloc(p->size);
     gsl_permutation_linear_to_canonical(q, p);
-    return Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, q);
+    return TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, q);
     break;
   case 1:
     CHECK_PERMUTATION(argv[0]);
-    Data_Get_Struct(argv[0], gsl_permutation, q);
+    TypedData_Get_Struct(argv[0], gsl_permutation, &gsl_permutation_data_type, q);
     gsl_permutation_linear_to_canonical(q, p);
     return obj;
     break;
@@ -440,16 +440,16 @@ static VALUE rb_gsl_permutation_canonical_to_linear(int argc, VALUE *argv, VALUE
 {
   gsl_permutation *p, *q;
 
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   switch (argc) {
   case 0:
     q = gsl_permutation_alloc(p->size);
     gsl_permutation_canonical_to_linear(q, p);
-    return Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, q);
+    return TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, q);
     break;
   case 1:
     CHECK_PERMUTATION(argv[0]);
-    Data_Get_Struct(argv[0], gsl_permutation, q);
+    TypedData_Get_Struct(argv[0], gsl_permutation, &gsl_permutation_data_type, q);
     gsl_permutation_canonical_to_linear(q, p);
     return obj;
     break;
@@ -462,21 +462,21 @@ static VALUE rb_gsl_permutation_canonical_to_linear(int argc, VALUE *argv, VALUE
 static VALUE rb_gsl_permutation_inversions(VALUE obj)
 {
   gsl_permutation *p = NULL;
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   return INT2FIX(gsl_permutation_inversions(p));
 }
 
 static VALUE rb_gsl_permutation_linear_cycles(VALUE obj)
 {
   gsl_permutation *p = NULL;
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   return INT2FIX(gsl_permutation_linear_cycles(p));
 }
 
 static VALUE rb_gsl_permutation_canonical_cycles(VALUE obj)
 {
   gsl_permutation *p = NULL;
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   return INT2FIX(gsl_permutation_canonical_cycles(p));
 }
 
@@ -486,8 +486,8 @@ static VALUE rb_gsl_vector_permute(VALUE obj, VALUE pp)
   gsl_vector *v = NULL;
   int status;
   CHECK_PERMUTATION(pp);
-  Data_Get_Struct(pp, gsl_permutation, p);
-  Data_Get_Struct(obj, gsl_vector, v);
+  TypedData_Get_Struct(pp, gsl_permutation, &gsl_permutation_data_type, p);
+  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
   status = gsl_permute_vector(p, v);
   return INT2FIX(status);
 }
@@ -498,8 +498,8 @@ static VALUE rb_gsl_vector_permute_inverse(VALUE obj, VALUE pp)
   gsl_vector *v = NULL;
   int status;
   CHECK_PERMUTATION(pp);
-  Data_Get_Struct(pp, gsl_permutation, p);
-  Data_Get_Struct(obj, gsl_vector, v);
+  TypedData_Get_Struct(pp, gsl_permutation, &gsl_permutation_data_type, p);
+  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
   status = gsl_permute_vector_inverse(p, v);
   return INT2FIX(status);
 }
@@ -509,7 +509,7 @@ static VALUE rb_gsl_permutation_set(VALUE obj, VALUE ii, VALUE val)
   gsl_permutation *p = NULL;
   CHECK_FIXNUM(ii);
   CHECK_FIXNUM(val);
-  Data_Get_Struct(obj, gsl_permutation, p);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   p->data[FIX2INT(ii)] = FIX2INT(val);
   return obj;
 }
@@ -519,8 +519,8 @@ static VALUE rb_gsl_permutation_equal(VALUE obj, VALUE other)
   gsl_permutation *p1 = NULL, *p2 = NULL;
   size_t i;
   CHECK_PERMUTATION(other);
-  Data_Get_Struct(obj, gsl_permutation, p1);
-  Data_Get_Struct(other, gsl_permutation, p2);
+  TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p1);
+  TypedData_Get_Struct(other, gsl_permutation, &gsl_permutation_data_type, p2);
   if (p1->size != p2->size) return Qfalse;
   for (i = 0; i < p1->size; i++)
     if (p1->data[i] != p2->data[i]) return Qfalse;

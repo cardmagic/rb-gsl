@@ -48,7 +48,7 @@ static VALUE sf_mathieu_array_eval(int argc, VALUE *argv,
   }
   v = gsl_vector_alloc(n2 - n1 + 1);
   (*f)(n1, n2, q, w, v->data);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
 }
 
 static VALUE sf_mathieu_array_eval2(int argc, VALUE *argv,
@@ -75,7 +75,7 @@ static VALUE sf_mathieu_array_eval2(int argc, VALUE *argv,
   }
   v = gsl_vector_alloc(n2 - n1 + 1);
   (*f)(n1, n2, q, x, w, v->data);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
 }
 static VALUE sf_mathieu_array_eval3(int argc, VALUE *argv,
                                     int (*f)(int, int, int, double, double, gsl_sf_mathieu_workspace*, double[]))
@@ -102,7 +102,7 @@ static VALUE sf_mathieu_array_eval3(int argc, VALUE *argv,
   }
   v = gsl_vector_alloc(n3 - n2 + 1);
   (*f)(n1, n2, n3, q, x, w, v->data);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
 }
 static VALUE sf_mathieu_eval_int_double2(VALUE order, VALUE qq, VALUE zz,
                                          int (*f)(int, double, double, gsl_sf_result*))

@@ -63,20 +63,20 @@ static VALUE rb_cqpminimizer_x(VALUE obj)
 {
   gsl_cqpminimizer *m;
   Data_Get_Struct(obj, gsl_cqpminimizer, m);
-  return Data_Wrap_Struct(cgsl_vector_view, 0, NULL, gsl_cqpminimizer_x(m));
+  return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, gsl_cqpminimizer_x(m));
 }
 
 static VALUE rb_cqpminimizer_lm_eq(VALUE obj)
 {
   gsl_cqpminimizer *m;
   Data_Get_Struct(obj, gsl_cqpminimizer, m);
-  return Data_Wrap_Struct(cgsl_vector_view, 0, NULL, gsl_cqpminimizer_lm_eq(m));
+  return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, gsl_cqpminimizer_lm_eq(m));
 }
 static VALUE rb_cqpminimizer_lm_ineq(VALUE obj)
 {
   gsl_cqpminimizer *m;
   Data_Get_Struct(obj, gsl_cqpminimizer, m);
-  return Data_Wrap_Struct(cgsl_vector_view, 0, NULL, gsl_cqpminimizer_lm_ineq(m));
+  return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, gsl_cqpminimizer_lm_ineq(m));
 }
 static VALUE rb_cqpminimizer_f(VALUE obj)
 {
@@ -128,42 +128,42 @@ static VALUE rb_cqp_data_Q(VALUE obj)
 {
   gsl_cqp_data *d;
   Data_Get_Struct(obj, gsl_cqp_data, d);
-  return Data_Wrap_Struct(cgsl_matrix_view, 0, NULL,   d->Q);
+  return TypedData_Wrap_Struct(cgsl_matrix_view, &gsl_matrix_view_data_type, d->Q);
 }
 
 static VALUE rb_cqp_data_q(VALUE obj)
 {
   gsl_cqp_data *d;
   Data_Get_Struct(obj, gsl_cqp_data, d);
-  return Data_Wrap_Struct(cgsl_vector_view, 0, NULL,   d->q);
+  return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, d->q);
 }
 
 static VALUE rb_cqp_data_A(VALUE obj)
 {
   gsl_cqp_data *d;
   Data_Get_Struct(obj, gsl_cqp_data, d);
-  return Data_Wrap_Struct(cgsl_matrix_view, 0, NULL,   d->A);
+  return TypedData_Wrap_Struct(cgsl_matrix_view, &gsl_matrix_view_data_type, d->A);
 }
 
 static VALUE rb_cqp_data_b(VALUE obj)
 {
   gsl_cqp_data *d;
   Data_Get_Struct(obj, gsl_cqp_data, d);
-  return Data_Wrap_Struct(cgsl_vector_view, 0, NULL,   d->b);
+  return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, d->b);
 }
 
 static VALUE rb_cqp_data_C(VALUE obj)
 {
   gsl_cqp_data *d;
   Data_Get_Struct(obj, gsl_cqp_data, d);
-  return Data_Wrap_Struct(cgsl_matrix_view, 0, NULL,   d->C);
+  return TypedData_Wrap_Struct(cgsl_matrix_view, &gsl_matrix_view_data_type, d->C);
 }
 
 static VALUE rb_cqp_data_d(VALUE obj)
 {
   gsl_cqp_data *d;
   Data_Get_Struct(obj, gsl_cqp_data, d);
-  return Data_Wrap_Struct(cgsl_vector_view, 0, NULL,   d->d);
+  return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, d->d);
 }
 
 static VALUE rb_cqp_data_set_Q(VALUE obj, VALUE mm)
@@ -172,7 +172,7 @@ static VALUE rb_cqp_data_set_Q(VALUE obj, VALUE mm)
   gsl_matrix *m;
   Data_Get_Struct(obj, gsl_cqp_data, d);
   CHECK_MATRIX(mm);
-  Data_Get_Struct(mm, gsl_matrix, m);
+  TypedData_Get_Struct(mm, gsl_matrix, &gsl_matrix_data_type, m);
   d->Q = m;
   return Qtrue;
 }
@@ -183,7 +183,7 @@ static VALUE rb_cqp_data_set_q(VALUE obj, VALUE vv)
   gsl_vector *v;
   Data_Get_Struct(obj, gsl_cqp_data, d);
   CHECK_VECTOR(vv);
-  Data_Get_Struct(vv, gsl_vector, v);
+  TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
   d->q = v;
   return Qtrue;
 }
@@ -194,7 +194,7 @@ static VALUE rb_cqp_data_set_A(VALUE obj, VALUE mm)
   gsl_matrix *m;
   Data_Get_Struct(obj, gsl_cqp_data, d);
   CHECK_MATRIX(mm);
-  Data_Get_Struct(mm, gsl_matrix, m);
+  TypedData_Get_Struct(mm, gsl_matrix, &gsl_matrix_data_type, m);
   d->A = m;
   return Qtrue;
 }
@@ -205,7 +205,7 @@ static VALUE rb_cqp_data_set_b(VALUE obj, VALUE vv)
   gsl_vector *v;
   Data_Get_Struct(obj, gsl_cqp_data, d);
   CHECK_VECTOR(vv);
-  Data_Get_Struct(vv, gsl_vector, v);
+  TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
   d->b = v;
   return Qtrue;
 }
@@ -216,7 +216,7 @@ static VALUE rb_cqp_data_set_C(VALUE obj, VALUE mm)
   gsl_matrix *m;
   Data_Get_Struct(obj, gsl_cqp_data, d);
   CHECK_MATRIX(mm);
-  Data_Get_Struct(mm, gsl_matrix, m);
+  TypedData_Get_Struct(mm, gsl_matrix, &gsl_matrix_data_type, m);
   d->C = m;
   return Qtrue;
 }
@@ -227,7 +227,7 @@ static VALUE rb_cqp_data_set_d(VALUE obj, VALUE vv)
   gsl_vector *v;
   Data_Get_Struct(obj, gsl_cqp_data, d);
   CHECK_VECTOR(vv);
-  Data_Get_Struct(vv, gsl_vector, v);
+  TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
   d->d = v;
   return Qtrue;
 }

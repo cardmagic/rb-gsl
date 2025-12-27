@@ -75,7 +75,7 @@ static VALUE rb_gsl_spline_init(VALUE obj, VALUE xxa, VALUE yya)
     ptr1 = xa->data;
     flagx = 1;
   } else if (VECTOR_P(xxa)) {
-    Data_Get_Struct(xxa, gsl_vector, xa);
+    TypedData_Get_Struct(xxa, gsl_vector, &gsl_vector_data_type, xa);
     size = xa->size;
     ptr1 = xa->data;
 #ifdef HAVE_NARRAY_H
@@ -115,7 +115,7 @@ static VALUE rb_gsl_spline_init(VALUE obj, VALUE xxa, VALUE yya)
     ptr2 = (double *) nmy->elements;
 #endif
   } else if (VECTOR_P(yya)) {
-    Data_Get_Struct(yya, gsl_vector, ya);
+    TypedData_Get_Struct(yya, gsl_vector, &gsl_vector_data_type, ya);
     ptr2 = ya->data;
   } else {
     rb_raise(rb_eTypeError, "not a vector");
@@ -130,7 +130,7 @@ static VALUE rb_gsl_spline_accel(VALUE obj)
 {
   rb_gsl_spline *rgi = NULL;
   Data_Get_Struct(obj, rb_gsl_spline, rgi);
-  return Data_Wrap_Struct(cgsl_interp_accel, 0, NULL, rgi->a);
+  return TypedData_Wrap_Struct(cgsl_interp_accel, &gsl_interp_accel_data_type, rgi->a);
 }
 
 static VALUE rb_gsl_spline_evaluate(VALUE obj, VALUE xx,
@@ -193,15 +193,15 @@ static VALUE rb_gsl_spline_evaluate(VALUE obj, VALUE xx,
     }
 #endif
     if (VECTOR_P(xx)) {
-      Data_Get_Struct(xx, gsl_vector, v);
+      TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, v);
       vnew = gsl_vector_alloc(v->size);
       for (i = 0; i < v->size; i++) {
         val = (*eval)(rgs->s, gsl_vector_get(v, i), rgs->a);
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     } else if (MATRIX_P(xx)) {
-      Data_Get_Struct(xx, gsl_matrix, m);
+      TypedData_Get_Struct(xx, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
         for (j = 0; j < m->size2; j++) {
@@ -209,7 +209,7 @@ static VALUE rb_gsl_spline_evaluate(VALUE obj, VALUE xx,
           gsl_matrix_set(mnew, i, j, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       rb_raise(rb_eTypeError, "wrong argument type %s", rb_class2name(CLASS_OF(xx)));
     }

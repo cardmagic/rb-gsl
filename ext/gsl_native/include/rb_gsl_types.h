@@ -112,11 +112,13 @@ extern const rb_data_type_t gsl_multiroot_fdfsolver_data_type;
 /* Fitting Types */
 extern const rb_data_type_t gsl_multifit_linear_workspace_data_type;
 extern const rb_data_type_t gsl_multifit_fdfsolver_data_type;
+extern const rb_data_type_t gsl_multifit_function_fdf_data_type;
 
 /* ODE Types */
 extern const rb_data_type_t gsl_odeiv_step_data_type;
 extern const rb_data_type_t gsl_odeiv_control_data_type;
 extern const rb_data_type_t gsl_odeiv_evolve_data_type;
+extern const rb_data_type_t gsl_odeiv_system_data_type;
 
 /* Summation Types */
 extern const rb_data_type_t gsl_sum_levin_u_workspace_data_type;

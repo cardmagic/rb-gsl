@@ -47,15 +47,15 @@ static VALUE rb_gsl_bspline_knots(VALUE obj, VALUE b)
     nm_bpts = NM_STORAGE_DENSE(b);
     v = gsl_vector_view_array((double*) nm_bpts->elements, NM_DENSE_COUNT(b));
     gsl_bspline_knots(&v.vector, w);
-    return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, w->knots);    
+    return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, w->knots);    
   }
 #endif
   
   gsl_vector *bpts;
   CHECK_VECTOR(b);
-  Data_Get_Struct(b, gsl_vector, bpts);
+  TypedData_Get_Struct(b, gsl_vector, &gsl_vector_data_type, bpts);
   gsl_bspline_knots(bpts, w);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, w->knots);    
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, w->knots);    
 }
 static VALUE rb_gsl_bspline_knots_uniform(int argc, VALUE *argv, VALUE obj)
 {
@@ -78,7 +78,7 @@ static VALUE rb_gsl_bspline_knots_uniform(int argc, VALUE *argv, VALUE obj)
   }
   if (argc2 != 2) rb_raise(rb_eArgError, "Wrong number of arguments.");
   gsl_bspline_knots_uniform(NUM2DBL(argv[0]), NUM2DBL(argv[1]), w);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, w->knots);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, w->knots);
 }
 static VALUE rb_gsl_bspline_eval(int argc, VALUE *argv, VALUE obj)
 {
@@ -92,14 +92,14 @@ static VALUE rb_gsl_bspline_eval(int argc, VALUE *argv, VALUE obj)
   switch (argc) {
   case 2:
     CHECK_VECTOR(argv[1]);
-    Data_Get_Struct(argv[1], gsl_vector, B);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, B);
     vB = argv[1];
     x = NUM2DBL(argv[0]);
     break;
   case 1:
     x = NUM2DBL(argv[0]);
     B = gsl_vector_alloc(gsl_bspline_ncontrol(w));
-    vB = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, B);
+    vB = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, B);
     break;
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments (%d for 1 or 2)", argc);

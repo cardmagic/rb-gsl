@@ -16,6 +16,17 @@ VALUE cgsl_rational;
 static gsl_rational* gsl_rational_div_poly(const gsl_rational *r1, const gsl_poly *p);
 
 static void gsl_rational_mark(gsl_rational *r);
+void gsl_rational_free(gsl_rational *r);
+
+static const rb_data_type_t gsl_rational_data_type = {
+    .wrap_struct_name = "GSL::Rational",
+    .function = {
+        .dmark = (void (*)(void *))gsl_rational_mark,
+        .dfree = (void (*)(void *))gsl_rational_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
 gsl_rational* gsl_rational_alloc()
 {
   gsl_rational *r = NULL;
@@ -31,8 +42,8 @@ gsl_rational* gsl_rational_new(const gsl_poly *num, const gsl_poly *den)
   r = gsl_rational_alloc();
   r->pnum = make_vector_clone(num);
   r->pden = make_vector_clone(den);
-  r->num = Data_Wrap_Struct(cgsl_poly, 0, gsl_vector_free, r->pnum);
-  r->den = Data_Wrap_Struct(cgsl_poly, 0, gsl_vector_free, r->pden);
+  r->num = TypedData_Wrap_Struct(cgsl_poly, &gsl_vector_data_type, r->pnum);
+  r->den = TypedData_Wrap_Struct(cgsl_poly, &gsl_vector_data_type, r->pden);
   return r;
 }
 
@@ -42,8 +53,8 @@ gsl_rational* gsl_rational_new2(const gsl_poly *num, const gsl_poly *den)
   r = gsl_rational_alloc();
   r->pnum = (gsl_poly *) num;
   r->pden = (gsl_poly *) den;
-  r->num = Data_Wrap_Struct(cgsl_poly, 0, gsl_vector_free, r->pnum);
-  r->den = Data_Wrap_Struct(cgsl_poly, 0, gsl_vector_free, r->pden);
+  r->num = TypedData_Wrap_Struct(cgsl_poly, &gsl_vector_data_type, r->pnum);
+  r->den = TypedData_Wrap_Struct(cgsl_poly, &gsl_vector_data_type, r->pden);
   return r;
 }
 
@@ -190,9 +201,9 @@ static VALUE rb_gsl_poly_make_rational(VALUE obj, VALUE other)
   gsl_rational *rnew = NULL;
   gsl_poly *p, *p2;
   size_t i;
-  Data_Get_Struct(obj, gsl_poly, p);
+  TypedData_Get_Struct(obj, gsl_poly, &gsl_vector_data_type, p);
   if (VECTOR_P(other)) {
-    Data_Get_Struct(other, gsl_vector, p2);
+    TypedData_Get_Struct(other, gsl_vector, &gsl_vector_data_type, p2);
     rnew = gsl_rational_new(p, p2);
   } else {
     switch (TYPE(other)) {
@@ -207,7 +218,7 @@ static VALUE rb_gsl_poly_make_rational(VALUE obj, VALUE other)
     case T_FIXNUM:
       p2 = make_vector_clone(p);
       gsl_vector_scale(p2, 1.0/NUM2DBL(other));
-      return Data_Wrap_Struct(cgsl_poly, 0, gsl_vector_free, p2);
+      return TypedData_Wrap_Struct(cgsl_poly, &gsl_vector_data_type, p2);
       break;
     default:
       rb_raise(rb_eTypeError, "wrong argument type %s",
@@ -215,13 +226,13 @@ static VALUE rb_gsl_poly_make_rational(VALUE obj, VALUE other)
       break;
     }
   }
-  return Data_Wrap_Struct(cgsl_rational, gsl_rational_mark, gsl_rational_free, rnew);
+  return TypedData_Wrap_Struct(cgsl_rational, &gsl_rational_data_type, rnew);
 }
 
 static VALUE rb_gsl_rational_print(VALUE obj)
 {
   gsl_rational *r = NULL;
-  Data_Get_Struct(obj, gsl_rational, r);
+  TypedData_Get_Struct(obj, gsl_rational, &gsl_rational_data_type, r);
   gsl_vector_print(r->pnum, cgsl_vector);
   gsl_vector_print(r->pden, cgsl_vector);
   return Qnil;
@@ -231,7 +242,7 @@ static VALUE rb_gsl_rational_to_s(VALUE obj)
 {
   gsl_rational *r = NULL;
   VALUE str;
-  Data_Get_Struct(obj, gsl_rational, r);
+  TypedData_Get_Struct(obj, gsl_rational, &gsl_rational_data_type, r);
   str = rb_gsl_vector_to_s(r->num);
   rb_str_concat(str, rb_str_new2("\n"));
   rb_str_concat(str, rb_gsl_vector_to_s(r->den));
@@ -252,22 +263,22 @@ static VALUE rb_gsl_rational_add(VALUE obj, VALUE other)
   gsl_rational *r = NULL, *r2 = NULL, *rnew = NULL;
   gsl_poly *p = NULL;
   int flag = 0;
-  Data_Get_Struct(obj, gsl_rational, r);
+  TypedData_Get_Struct(obj, gsl_rational, &gsl_rational_data_type, r);
   if (RATIONAL_P(other)) {
-    Data_Get_Struct(other, gsl_rational, r2);
+    TypedData_Get_Struct(other, gsl_rational, &gsl_rational_data_type, r2);
     rnew = gsl_rational_add(r, r2);
   } else {
     p = get_poly_get(other, &flag);
     rnew = gsl_rational_add_poly(r, p);
     if (flag == 1) gsl_vector_free(p);
   }
-  return Data_Wrap_Struct(cgsl_rational, gsl_rational_mark, gsl_rational_free, rnew);
+  return TypedData_Wrap_Struct(cgsl_rational, &gsl_rational_data_type, rnew);
 }
 
 static VALUE rb_gsl_rational_deconv(VALUE obj)
 {
   gsl_rational *r = NULL;
-  Data_Get_Struct(obj, gsl_rational, r);
+  TypedData_Get_Struct(obj, gsl_rational, &gsl_rational_data_type, r);
   return rb_gsl_poly_deconv(r->num, r->den);
 }
 
@@ -278,20 +289,20 @@ static VALUE rb_gsl_rational_uminus(VALUE obj)
   int flag = 0;
   size_t i;
   if (RATIONAL_P(obj)) {
-    Data_Get_Struct(obj, gsl_rational, r);
+    TypedData_Get_Struct(obj, gsl_rational, &gsl_rational_data_type, r);
     rnew = gsl_rational_new(r->pnum, r->pden);
     for (i = 0; i < rnew->pnum->size; i++)
       gsl_vector_set(rnew->pnum, i, -gsl_vector_get(r->pnum, i));
-    return Data_Wrap_Struct(cgsl_rational, gsl_rational_mark, gsl_rational_free, rnew);
+    return TypedData_Wrap_Struct(cgsl_rational, &gsl_rational_data_type, rnew);
   } else {
     if (POLY_P(obj)) {
-      Data_Get_Struct(obj, gsl_vector, ptmp);
+      TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, ptmp);
       p = make_vector_clone(ptmp);
     } else {
       p = get_poly_get(obj, &flag);
     }
     for (i = 0; i < p->size; i++) gsl_vector_set(p, i, -gsl_vector_get(p, i));
-    return Data_Wrap_Struct(cgsl_poly, 0, gsl_vector_free, p);
+    return TypedData_Wrap_Struct(cgsl_poly, &gsl_vector_data_type, p);
   }
 }
 
@@ -310,19 +321,19 @@ static VALUE rb_gsl_rational_mul(VALUE obj, VALUE other)
   gsl_rational *r = NULL, *r2 = NULL, *rnew = NULL;
   gsl_poly *p;
   int flag = 0;
-  Data_Get_Struct(obj, gsl_rational, r);
+  TypedData_Get_Struct(obj, gsl_rational, &gsl_rational_data_type, r);
   if (RATIONAL_P(other)) {
-    Data_Get_Struct(other, gsl_rational, r2);
+    TypedData_Get_Struct(other, gsl_rational, &gsl_rational_data_type, r2);
     rnew = gsl_rational_mul(r, r2);
   } else if (VECTOR_P(other)) {
-    Data_Get_Struct(other, gsl_vector, p);
+    TypedData_Get_Struct(other, gsl_vector, &gsl_vector_data_type, p);
     rnew = gsl_rational_mul_poly(r, p);
   } else {
     p = get_poly_get(other, &flag);
     rnew = gsl_rational_mul_poly(r, p);
     gsl_vector_free(p);
   }
-  return Data_Wrap_Struct(cgsl_rational, gsl_rational_mark, gsl_rational_free, rnew);
+  return TypedData_Wrap_Struct(cgsl_rational, &gsl_rational_data_type, rnew);
 }
 
 static VALUE rb_gsl_rational_div(VALUE obj, VALUE other)
@@ -330,12 +341,12 @@ static VALUE rb_gsl_rational_div(VALUE obj, VALUE other)
   gsl_rational *r = NULL, *r2 = NULL, *rnew = NULL;
   gsl_poly *p;
   size_t i;
-  Data_Get_Struct(obj, gsl_rational, r);
+  TypedData_Get_Struct(obj, gsl_rational, &gsl_rational_data_type, r);
   if (RATIONAL_P(other)) {
-    Data_Get_Struct(other, gsl_rational, r2);
+    TypedData_Get_Struct(other, gsl_rational, &gsl_rational_data_type, r2);
     rnew = gsl_rational_div(r, r2);
   } else if (VECTOR_P(other)) {
-    Data_Get_Struct(other, gsl_vector, p);
+    TypedData_Get_Struct(other, gsl_vector, &gsl_vector_data_type, p);
     rnew = gsl_rational_div_poly(r, p);
   } else {
     switch (TYPE(other)) {
@@ -357,28 +368,28 @@ static VALUE rb_gsl_rational_div(VALUE obj, VALUE other)
       break;
     }
   }
-  return Data_Wrap_Struct(cgsl_rational, gsl_rational_mark, gsl_rational_free, rnew);
+  return TypedData_Wrap_Struct(cgsl_rational, &gsl_rational_data_type, rnew);
 }
 
 static VALUE rb_gsl_rational_inverse(VALUE obj)
 {
   gsl_rational *r = NULL, *rnew = NULL;
-  Data_Get_Struct(obj, gsl_rational, r);
+  TypedData_Get_Struct(obj, gsl_rational, &gsl_rational_data_type, r);
   rnew = gsl_rational_inverse(r);
-  return Data_Wrap_Struct(cgsl_rational, gsl_rational_mark, gsl_rational_free, rnew);
+  return TypedData_Wrap_Struct(cgsl_rational, &gsl_rational_data_type, rnew);
 }
 
 static VALUE rb_gsl_rational_den(VALUE obj)
 {
   gsl_rational *r = NULL;
-  Data_Get_Struct(obj, gsl_rational, r);
+  TypedData_Get_Struct(obj, gsl_rational, &gsl_rational_data_type, r);
   return r->den;
 }
 
 static VALUE rb_gsl_rational_num(VALUE obj)
 {
   gsl_rational *r = NULL;
-  Data_Get_Struct(obj, gsl_rational, r);
+  TypedData_Get_Struct(obj, gsl_rational, &gsl_rational_data_type, r);
   return r->num;
 }
 
@@ -400,7 +411,7 @@ static VALUE rb_gsl_rational_coerce(VALUE obj, VALUE other)
     break;
   default:
     CHECK_VECTOR(other);
-    Data_Get_Struct(other, gsl_vector, ptmp);
+    TypedData_Get_Struct(other, gsl_vector, &gsl_vector_data_type, ptmp);
     p = make_vector_clone(ptmp);
     break;
   }
@@ -408,20 +419,20 @@ static VALUE rb_gsl_rational_coerce(VALUE obj, VALUE other)
   gsl_vector_set(ptmp, 0, 1.0);
   r = gsl_rational_new2(p, ptmp);
   return rb_ary_new3(2,
-                     Data_Wrap_Struct(cgsl_rational, gsl_rational_mark, gsl_rational_free, r), obj);
+                     TypedData_Wrap_Struct(cgsl_rational, &gsl_rational_data_type, r), obj);
 }
 
 static VALUE rb_gsl_rational_zero(VALUE obj)
 {
   gsl_rational *r = NULL;
-  Data_Get_Struct(obj, gsl_rational, r);
+  TypedData_Get_Struct(obj, gsl_rational, &gsl_rational_data_type, r);
   return rb_gsl_poly_complex_solve(1, &(r->num), cgsl_rational);
 }
 
 static VALUE rb_gsl_rational_pole(VALUE obj)
 {
   gsl_rational *r = NULL;
-  Data_Get_Struct(obj, gsl_rational, r);
+  TypedData_Get_Struct(obj, gsl_rational, &gsl_rational_data_type, r);
   return rb_gsl_poly_complex_solve(1, &(r->den), cgsl_rational);
 }
 
@@ -429,12 +440,12 @@ static VALUE rb_gsl_poly_inverse(VALUE obj)
 {
   gsl_poly *p = NULL, *ptmp = NULL;
   gsl_rational *r = NULL;
-  Data_Get_Struct(obj, gsl_poly, p);
+  TypedData_Get_Struct(obj, gsl_poly, &gsl_vector_data_type, p);
   ptmp = gsl_vector_alloc(1);
   gsl_vector_set(ptmp, 0, 1.0);
   r = gsl_rational_new(ptmp, p);
   gsl_vector_free(ptmp);
-  return Data_Wrap_Struct(cgsl_rational, gsl_rational_mark, gsl_rational_free, r);
+  return TypedData_Wrap_Struct(cgsl_rational, &gsl_rational_data_type, r);
 }
 
 void Init_gsl_rational(VALUE module)

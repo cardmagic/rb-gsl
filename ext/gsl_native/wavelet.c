@@ -202,7 +202,7 @@ static VALUE rb_gsl_wavelet_transform0(int argc, VALUE *argv, VALUE obj,
     }
     if (VECTOR_P(argv[1])) {
       Data_Get_Struct(argv[0], gsl_wavelet, w);
-      Data_Get_Struct(argv[1], gsl_vector, v);
+      TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, v);
       ret = argv[1];
       ptr1 = v->data;
       n = v->size;
@@ -230,7 +230,7 @@ static VALUE rb_gsl_wavelet_transform0(int argc, VALUE *argv, VALUE obj,
     if (VECTOR_P(obj)) {
       CHECK_WAVELET(argv[0]);
       Data_Get_Struct(argv[0], gsl_wavelet, w);
-      Data_Get_Struct(obj, gsl_vector, v);
+      TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
       ret = obj;
       ptr1 = v->data;
       n = v->size;
@@ -239,7 +239,7 @@ static VALUE rb_gsl_wavelet_transform0(int argc, VALUE *argv, VALUE obj,
 
       CHECK_WAVELET(obj);
       Data_Get_Struct(obj, gsl_wavelet, w);
-      Data_Get_Struct(argv[0], gsl_vector, v);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
       ret = argv[0];
       ptr1 = v->data;
       n = v->size;
@@ -300,7 +300,7 @@ static VALUE rb_gsl_wavelet_transform0(int argc, VALUE *argv, VALUE obj,
     if (sss == RB_GSL_DWT_COPY) {
       vnew = gsl_vector_alloc(v->size);
       gsl_vector_memcpy(vnew, v);
-      ary = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      ary = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
       ptr2 = vnew->data;
     } else {
       ary = ret;
@@ -369,7 +369,7 @@ static VALUE rb_gsl_wavelet_trans(int argc, VALUE *argv, VALUE obj,
     }
     if (VECTOR_P(argv[1])) {
       Data_Get_Struct(argv[0], gsl_wavelet, w);
-      Data_Get_Struct(argv[1], gsl_vector, v);
+      TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, v);
       ret = argv[1];
       ptr1 = v->data;
       n = v->size;
@@ -402,7 +402,7 @@ static VALUE rb_gsl_wavelet_trans(int argc, VALUE *argv, VALUE obj,
     if (VECTOR_P(obj)) {
       CHECK_WAVELET(argv[0]);
       Data_Get_Struct(argv[0], gsl_wavelet, w);
-      Data_Get_Struct(obj, gsl_vector, v);
+      TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
       ret = obj;
       ptr1 = v->data;
       n = v->size;
@@ -410,7 +410,7 @@ static VALUE rb_gsl_wavelet_trans(int argc, VALUE *argv, VALUE obj,
     } else if (VECTOR_P(argv[0])) {
       CHECK_WAVELET(obj);
       Data_Get_Struct(obj, gsl_wavelet, w);
-      Data_Get_Struct(argv[0], gsl_vector, v);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
       ret = argv[0];
       ptr1 = v->data;
       n = v->size;
@@ -458,7 +458,7 @@ static VALUE rb_gsl_wavelet_trans(int argc, VALUE *argv, VALUE obj,
     if (sss == RB_GSL_DWT_COPY) {
       vnew = gsl_vector_alloc(v->size);
       gsl_vector_memcpy(vnew, v);
-      ary = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      ary = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
       ptr2 = vnew->data;
     } else {
       ptr2 = ptr1;
@@ -529,7 +529,7 @@ static VALUE rb_gsl_wavelet2d(int argc, VALUE *argv, VALUE obj,
     CHECK_MATRIX(argv[1]);
     ret = argv[1];
     Data_Get_Struct(argv[0], gsl_wavelet, w);
-    Data_Get_Struct(argv[1], gsl_matrix, m);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, m);
     itmp = 2;
     break;
   default:
@@ -537,12 +537,12 @@ static VALUE rb_gsl_wavelet2d(int argc, VALUE *argv, VALUE obj,
     if (MATRIX_P(obj)) {
       CHECK_WAVELET(argv[0]);
       Data_Get_Struct(argv[0], gsl_wavelet, w);
-      Data_Get_Struct(obj, gsl_matrix, m);
+      TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
       ret = obj;
     } else {
       CHECK_MATRIX(argv[0]);
       Data_Get_Struct(obj, gsl_wavelet, w);
-      Data_Get_Struct(argv[0], gsl_matrix, m);
+      TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, m);
       ret = argv[0];
     }
     itmp = 1;
@@ -576,7 +576,7 @@ static VALUE rb_gsl_wavelet2d(int argc, VALUE *argv, VALUE obj,
   }
   if (sss == RB_GSL_DWT_COPY) {
     mnew = make_matrix_clone(m);
-    ary = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+    ary = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
   } else {
     mnew = m;
     ary = ret;
@@ -619,7 +619,7 @@ static VALUE rb_gsl_wavelet2d_trans(int argc, VALUE *argv, VALUE obj,
     CHECK_WAVELET(argv[0]);
     CHECK_MATRIX(argv[1]);
     Data_Get_Struct(argv[0], gsl_wavelet, w);
-    Data_Get_Struct(argv[1], gsl_matrix, m);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, m);
     ret = argv[1];
     itmp = 2;
     break;
@@ -628,12 +628,12 @@ static VALUE rb_gsl_wavelet2d_trans(int argc, VALUE *argv, VALUE obj,
     if (MATRIX_P(obj)) {
       CHECK_WAVELET(argv[0]);
       Data_Get_Struct(argv[0], gsl_wavelet, w);
-      Data_Get_Struct(obj, gsl_matrix, m);
+      TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
       ret = obj;
     } else {
       CHECK_MATRIX(argv[0]);
       Data_Get_Struct(obj, gsl_wavelet, w);
-      Data_Get_Struct(argv[0], gsl_matrix, m);
+      TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, m);
       ret = argv[0];
     }
     itmp = 1;
@@ -654,7 +654,7 @@ static VALUE rb_gsl_wavelet2d_trans(int argc, VALUE *argv, VALUE obj,
   }
   if (sss == RB_GSL_DWT_COPY) {
     mnew = make_matrix_clone(m);
-    ary = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+    ary = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
   } else {
     mnew = m;
     ary = ret;

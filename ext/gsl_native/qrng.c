@@ -124,12 +124,12 @@ static VALUE rb_gsl_qrng_get(int argc, VALUE *argv, VALUE obj)
   if (argc == 0) {
     v = gsl_vector_alloc(q->dimension);
     gsl_qrng_get(q, v->data);
-    return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+    return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
   } else {
     if (!rb_obj_is_kind_of(argv[0], cgsl_vector)) {
       rb_raise(rb_eArgError, "wrong type argument (GSL_Vector required)");
     }
-    Data_Get_Struct(argv[0], gsl_vector, v);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
     return INT2FIX(gsl_qrng_get(q, v->data));
   }
 }

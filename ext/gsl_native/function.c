@@ -169,7 +169,7 @@ static VALUE rb_gsl_function_eval(VALUE obj, VALUE x)
     }
 #endif
     if (VECTOR_P(x)) {
-      Data_Get_Struct(x, gsl_vector, v);
+      TypedData_Get_Struct(x, gsl_vector, &gsl_vector_data_type, v);
       vnew = gsl_vector_alloc(v->size);
       for (i = 0; i < v->size; i++) {
         x2 = rb_float_new(gsl_vector_get(v, i));
@@ -177,9 +177,9 @@ static VALUE rb_gsl_function_eval(VALUE obj, VALUE x)
         else result = rb_funcall(proc, RBGSL_ID_call, 2, x2, params);
         gsl_vector_set(vnew, i, NUM2DBL(result));
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     } else if (MATRIX_P(x)) {
-      Data_Get_Struct(x, gsl_matrix, m);
+      TypedData_Get_Struct(x, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
         for (j = 0; j < m->size2; j++) {
@@ -189,7 +189,7 @@ static VALUE rb_gsl_function_eval(VALUE obj, VALUE x)
           gsl_matrix_set(mnew, i, j, NUM2DBL(result));
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       rb_raise(rb_eTypeError, "wrong argument type");
     }
@@ -266,7 +266,7 @@ static VALUE rb_gsl_function_graph(int argc, VALUE *argv, VALUE obj)
       for (i = 0; i < n; i++)
         gsl_vector_set(v, i, NUM2DBL(rb_ary_entry(argv[0], i)));
     } else if (rb_obj_is_kind_of(argv[0], cgsl_vector)) {
-      Data_Get_Struct(argv[0], gsl_vector, v);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
       n = v->size;
       flag = 0;
     } else {

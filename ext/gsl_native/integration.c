@@ -588,7 +588,7 @@ static VALUE rb_gsl_integration_qaws_table_set(int argc, VALUE *argv, VALUE obj)
   if (argc != 1 && argc != 4)
     rb_raise(rb_eArgError, "wrong number of argument (%d for 1 or 3)", argc);
   type = TYPE(argv[0]);
-  Data_Get_Struct(obj, gsl_integration_qaws_table, t);
+  TypedData_Get_Struct(obj, gsl_integration_qaws_table, &gsl_integration_qaws_table_data_type, t);
 
   if (type == T_FIXNUM || type == T_BIGNUM || type == T_FLOAT) {
     alpha = NUM2DBL(argv[0]);
@@ -611,7 +611,7 @@ static VALUE rb_gsl_integration_qaws_table_to_a(VALUE obj)
 {
   gsl_integration_qaws_table *t = NULL;
   VALUE ary;
-  Data_Get_Struct(obj, gsl_integration_qaws_table, t);
+  TypedData_Get_Struct(obj, gsl_integration_qaws_table, &gsl_integration_qaws_table_data_type, t);
   ary = rb_ary_new2(4);
   rb_ary_store(ary, 0, rb_float_new(t->alpha));
   rb_ary_store(ary, 1, rb_float_new(t->beta));
@@ -625,8 +625,7 @@ static VALUE rb_gsl_ary_to_integration_qaws_table(VALUE ary)
 {
   gsl_integration_qaws_table *t = NULL;
   t = make_qaws_table(ary);
-  return Data_Wrap_Struct(cgsl_integration_qaws_table,
-                          0, gsl_integration_qaws_table_free, t);
+  return TypedData_Wrap_Struct(cgsl_integration_qaws_table, &gsl_integration_qaws_table_data_type, t);
 }
 
 static gsl_integration_qaws_table* make_qaws_table(VALUE ary)
@@ -671,7 +670,7 @@ static VALUE rb_gsl_integration_qaws(int argc, VALUE *argv, VALUE obj)
     flagt = 0;
     if (!rb_obj_is_kind_of(argv[itmp], cgsl_integration_qaws_table))
       rb_raise(rb_eTypeError, "Integration::QAWS_Table expected");
-    Data_Get_Struct(argv[itmp], gsl_integration_qaws_table, t);
+    TypedData_Get_Struct(argv[itmp], gsl_integration_qaws_table, &gsl_integration_qaws_table_data_type, t);
   }
   flag = get_epsabs_epsrel_limit_workspace(argc, argv, itmp+1, &epsabs, &epsrel,
                                            &limit, &w);
@@ -714,7 +713,7 @@ static VALUE rb_gsl_integration_qawo_table_to_a(VALUE obj)
 {
   gsl_integration_qawo_table *t = NULL;
   VALUE ary;
-  Data_Get_Struct(obj, gsl_integration_qawo_table, t);
+  TypedData_Get_Struct(obj, gsl_integration_qawo_table, &gsl_integration_qawo_table_data_type, t);
   ary = rb_ary_new2(4);
   rb_ary_store(ary, 0, rb_float_new(t->omega));
   rb_ary_store(ary, 1, rb_float_new(t->L));
@@ -727,8 +726,7 @@ static VALUE rb_gsl_ary_to_integration_qawo_table(VALUE ary)
 {
   gsl_integration_qawo_table *t = NULL;
   t = make_qawo_table(ary);
-  return Data_Wrap_Struct(cgsl_integration_qawo_table,
-                          0, gsl_integration_qawo_table_free, t);
+  return TypedData_Wrap_Struct(cgsl_integration_qawo_table, &gsl_integration_qawo_table_data_type, t);
 }
 
 static gsl_integration_qawo_table* make_qawo_table(VALUE ary)
@@ -752,7 +750,7 @@ static VALUE rb_gsl_integration_qawo_table_set(int argc, VALUE *argv, VALUE obj)
   if (argc != 1 && argc != 3)
     rb_raise(rb_eArgError, "wrong number of argument (%d for 1 or 3)", argc);
   type = TYPE(argv[0]);
-  Data_Get_Struct(obj, gsl_integration_qawo_table, t);
+  TypedData_Get_Struct(obj, gsl_integration_qawo_table, &gsl_integration_qawo_table_data_type, t);
   if (type == T_FIXNUM || type == T_BIGNUM || type == T_FLOAT) {
     omega = NUM2DBL(argv[0]);
     L     = NUM2DBL(argv[1]);
@@ -772,7 +770,7 @@ static VALUE rb_gsl_integration_qawo_table_set_length(VALUE obj, VALUE L)
 {
   gsl_integration_qawo_table *t = NULL;
   Need_Float(L);
-  Data_Get_Struct(obj, gsl_integration_qawo_table, t);
+  TypedData_Get_Struct(obj, gsl_integration_qawo_table, &gsl_integration_qawo_table_data_type, t);
   gsl_integration_qawo_table_set_length(t, NUM2DBL(L));
   return obj;
 }
@@ -826,7 +824,7 @@ static int get_qawo_table(VALUE tt,
     flagt = 0;
     if (!rb_obj_is_kind_of(tt, cgsl_integration_qawo_table))
       rb_raise(rb_eTypeError, "Integration::QAWO_Table expected");
-    Data_Get_Struct(tt, gsl_integration_qawo_table, *t);
+    TypedData_Get_Struct(tt, gsl_integration_qawo_table, &gsl_integration_qawo_table_data_type, *t);
   }
   return flagt;
 }
@@ -980,7 +978,7 @@ static VALUE rb_gsl_integration_workspace_alist(VALUE obj)
   gsl_vector_view *v = NULL;
   Data_Get_Struct(obj, gsl_integration_workspace, w);
   v = rb_gsl_make_vector_view(w->alist, w->limit, 1);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, v);
 }
 
 static VALUE rb_gsl_integration_workspace_blist(VALUE obj)
@@ -990,7 +988,7 @@ static VALUE rb_gsl_integration_workspace_blist(VALUE obj)
 
   Data_Get_Struct(obj, gsl_integration_workspace, w);
   v = rb_gsl_make_vector_view(w->blist, w->limit, 1);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, v);
 }
 
 static VALUE rb_gsl_integration_workspace_rlist(VALUE obj)
@@ -999,7 +997,7 @@ static VALUE rb_gsl_integration_workspace_rlist(VALUE obj)
   gsl_vector_view *v = NULL;
   Data_Get_Struct(obj, gsl_integration_workspace, w);
   v = rb_gsl_make_vector_view(w->rlist, w->limit, 1);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, v);
 }
 
 static VALUE rb_gsl_integration_workspace_elist(VALUE obj)
@@ -1008,14 +1006,14 @@ static VALUE rb_gsl_integration_workspace_elist(VALUE obj)
   gsl_vector_view *v = NULL;
   Data_Get_Struct(obj, gsl_integration_workspace, w);
   v = rb_gsl_make_vector_view(w->elist, w->limit, 1);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, v);
 }
 
 static VALUE rb_gsl_integration_glfixed_table_alloc(VALUE klass, VALUE n)
 {
   gsl_integration_glfixed_table *t;
   t = gsl_integration_glfixed_table_alloc(FIX2INT(n));
-  return Data_Wrap_Struct(cgsl_integration_glfixed_table, 0, gsl_integration_glfixed_table_free, t);
+  return TypedData_Wrap_Struct(cgsl_integration_glfixed_table, &gsl_integration_glfixed_table_data_type, t);
 }
 
 static VALUE rb_gsl_integration_glfixed(VALUE obj, VALUE aa, VALUE bb, VALUE tt)
@@ -1028,7 +1026,7 @@ static VALUE rb_gsl_integration_glfixed(VALUE obj, VALUE aa, VALUE bb, VALUE tt)
     rb_raise(rb_eTypeError, "Wrong arugment type (%s for GSL::Integration::Glfixed_table)",
              rb_class2name(CLASS_OF(tt)));
   }
-  Data_Get_Struct(tt, gsl_integration_glfixed_table, t);
+  TypedData_Get_Struct(tt, gsl_integration_glfixed_table, &gsl_integration_glfixed_table_data_type, t);
   a = NUM2DBL(aa);
   b = NUM2DBL(bb);
   Data_Get_Struct(obj, gsl_function, f);

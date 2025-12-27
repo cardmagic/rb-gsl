@@ -167,7 +167,7 @@ VALUE rb_gsl_multiset_data(VALUE mm)
   p = gsl_multiset_data(m);
   v = gsl_vector_int_alloc(m->k);
   for (i = 0; i < v->size; i++) gsl_vector_int_set(v, i, p[i]);
-  return Data_Wrap_Struct(cgsl_vector_int, 0, gsl_vector_int_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_int, &gsl_vector_int_data_type, v);
 }
 
 VALUE rb_gsl_multiset_data2(VALUE mm, VALUE i)

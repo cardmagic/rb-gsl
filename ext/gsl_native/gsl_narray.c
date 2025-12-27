@@ -22,7 +22,7 @@ static VALUE rb_gsl_vector_to_narray(VALUE obj, VALUE klass)
   gsl_vector *v = NULL;
   VALUE nary;
   int shape[1];
-  Data_Get_Struct(obj, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
   shape[0] = v->size;
   nary = na_make_object(NA_DFLOAT, 1, shape, klass);
   if (v->stride == 1) {
@@ -41,7 +41,7 @@ static VALUE rb_gsl_vector_complex_to_narray(VALUE obj, VALUE klass)
   gsl_vector_complex *v = NULL;
   VALUE nary;
   int shape[1];
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   shape[0] = v->size;
   nary = na_make_object(NA_DCOMPLEX, 1, shape, klass);
   if (v->stride == 1) {
@@ -114,7 +114,7 @@ static VALUE rb_gsl_vector_to_narray_ref(VALUE obj, VALUE klass)
   VALUE nary;
   struct NARRAY *na;
   if (VECTOR_P(obj)) {
-    Data_Get_Struct(obj, gsl_vector, v);
+    TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
     if (v->stride != 1) {
       rb_raise(rb_eRuntimeError, "Cannot make a reference obj: stride!=1");
     }
@@ -122,7 +122,7 @@ static VALUE rb_gsl_vector_to_narray_ref(VALUE obj, VALUE klass)
     na->shape[0] = v->size;
     na->ptr = (char *) v->data;
   } else if (VECTOR_INT_P(obj)) {
-    Data_Get_Struct(obj, gsl_vector_int, vi);
+    TypedData_Get_Struct(obj, gsl_vector_int, &gsl_vector_int_data_type, vi);
     if (vi->stride != 1) {
       rb_raise(rb_eRuntimeError, "Cannot make a reference obj: stride!=1");
     }
@@ -130,7 +130,7 @@ static VALUE rb_gsl_vector_to_narray_ref(VALUE obj, VALUE klass)
     na->shape[0] = vi->size;
     na->ptr = (char *) vi->data;
   } else if (VECTOR_COMPLEX_P(obj)) {
-    Data_Get_Struct(obj, gsl_vector_complex, vc);
+    TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, vc);
     if (vc->stride != 1) {
       rb_raise(rb_eRuntimeError, "Cannot make a reference obj: stride!=1");
     }
@@ -160,7 +160,7 @@ static VALUE rb_gsl_vector_int_to_narray(VALUE obj, VALUE klass)
   gsl_vector_int *v = NULL;
   VALUE nary;
   int shape[1];
-  Data_Get_Struct(obj, gsl_vector_int, v);
+  TypedData_Get_Struct(obj, gsl_vector_int, &gsl_vector_int_data_type, v);
   shape[0] = v->size;
   nary = na_make_object(NA_LINT, 1, shape, klass);
   if (v->stride == 1) {
@@ -187,38 +187,32 @@ static VALUE rb_gsl_vector_int_to_nvector(VALUE obj)
 /* singleton method */
 static VALUE rb_gsl_na_to_gsl_vector(VALUE obj, VALUE na)
 {
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free,
-                          na_to_gv(na));
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, na_to_gv(na));
 }
 
 static VALUE rb_gsl_na_to_gsl_vector_view(VALUE obj, VALUE na)
 {
-  return Data_Wrap_Struct(cgsl_vector_view, 0, gsl_vector_view_free,
-                          na_to_gv_view(na));
+  return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, na_to_gv_view(na));
 }
 
 static VALUE rb_gsl_na_to_gsl_vector_complex(VALUE obj, VALUE na)
 {
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free,
-                          na_to_gv_complex(na));
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, na_to_gv_complex(na));
 }
 
 static VALUE rb_gsl_na_to_gsl_vector_complex_view(VALUE obj, VALUE na)
 {
-  return Data_Wrap_Struct(cgsl_vector_complex_view, 0, gsl_vector_complex_view_free,
-                          na_to_gv_complex_view(na));
+  return TypedData_Wrap_Struct(cgsl_vector_complex_view, &gsl_vector_complex_view_data_type, na_to_gv_complex_view(na));
 }
 
 static VALUE rb_gsl_na_to_gsl_vector_int(VALUE obj, VALUE na)
 {
-  return Data_Wrap_Struct(cgsl_vector_int, 0, gsl_vector_int_free,
-                          na_to_gv_int(na));
+  return TypedData_Wrap_Struct(cgsl_vector_int, &gsl_vector_int_data_type, na_to_gv_int(na));
 }
 
 static VALUE rb_gsl_na_to_gsl_vector_int_view(VALUE obj, VALUE na)
 {
-  return Data_Wrap_Struct(cgsl_vector_int_view, 0, rb_gsl_vector_int_view_free,
-                          na_to_gv_int_view(na));
+  return TypedData_Wrap_Struct(cgsl_vector_int_view, &gsl_vector_int_view_data_type, na_to_gv_int_view(na));
 }
 
 static VALUE rb_gsl_na_to_gsl_vector_method(VALUE na)
@@ -226,11 +220,9 @@ static VALUE rb_gsl_na_to_gsl_vector_method(VALUE na)
   VALUE v;
 
   if(NA_TYPE(na) == NA_SCOMPLEX || NA_TYPE(na) == NA_DCOMPLEX)
-    v = Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free,
-                         na_to_gv_complex(na));
+    v = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, na_to_gv_complex(na));
   else
-    v = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free,
-                         na_to_gv(na));
+    v = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, na_to_gv(na));
   return v;
 }
 
@@ -239,24 +231,20 @@ VALUE rb_gsl_na_to_gsl_vector_view_method(VALUE na)
   VALUE v;
 
   if(NA_TYPE(na) == NA_SCOMPLEX || NA_TYPE(na) == NA_DCOMPLEX)
-    v = Data_Wrap_Struct(cgsl_vector_complex_view, 0, gsl_vector_complex_view_free,
-                         na_to_gv_complex_view(na));
+    v = TypedData_Wrap_Struct(cgsl_vector_complex_view, &gsl_vector_complex_view_data_type, na_to_gv_complex_view(na));
   else
-    v = Data_Wrap_Struct(cgsl_vector_view, 0, gsl_vector_view_free,
-                         na_to_gv_view(na));
+    v = TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, na_to_gv_view(na));
   return v;
 }
 
 static VALUE rb_gsl_na_to_gsl_vector_int_method(VALUE na)
 {
-  return Data_Wrap_Struct(cgsl_vector_int, 0, gsl_vector_int_free,
-                          na_to_gv_int(na));
+  return TypedData_Wrap_Struct(cgsl_vector_int, &gsl_vector_int_data_type, na_to_gv_int(na));
 }
 
 static VALUE rb_gsl_na_to_gsl_vector_int_view_method(VALUE na)
 {
-  return Data_Wrap_Struct(cgsl_vector_int_view, 0, rb_gsl_vector_int_view_free,
-                          na_to_gv_int_view(na));
+  return TypedData_Wrap_Struct(cgsl_vector_int_view, &gsl_vector_int_view_data_type, na_to_gv_int_view(na));
 }
 
 gsl_vector* na_to_gv(VALUE na)
@@ -346,7 +334,7 @@ static VALUE rb_gsl_matrix_to_narray(VALUE obj, VALUE klass)
   VALUE nary;
   int shape[2];
   size_t i;
-  Data_Get_Struct(obj, gsl_matrix, m);
+  TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
   shape[0] = m->size2;
   shape[1] = m->size1;
   nary = na_make_object(NA_DFLOAT, 2, shape, klass);
@@ -373,7 +361,7 @@ static VALUE rb_gsl_matrix_int_to_narray(VALUE obj, VALUE klass)
   VALUE nary;
   int shape[2];
   size_t i;
-  Data_Get_Struct(obj, gsl_matrix_int, m);
+  TypedData_Get_Struct(obj, gsl_matrix_int, &gsl_matrix_int_data_type, m);
   shape[0] = m->size2;
   shape[1] = m->size1;
   nary = na_make_object(NA_LINT, 2, shape, klass);
@@ -399,7 +387,7 @@ static VALUE rb_gsl_matrix_to_narray_ref(VALUE obj, VALUE klass)
   gsl_matrix *m = NULL;
   VALUE nary;
   struct NARRAY *na;
-  Data_Get_Struct(obj, gsl_matrix, m);
+  TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
   if (m->tda != m->size2) {
     rb_raise(rb_eRuntimeError, "Cannot make a reference obj: non-contiguous");
   }
@@ -426,7 +414,7 @@ static VALUE rb_gsl_matrix_int_to_narray_ref(VALUE obj, VALUE klass)
   gsl_matrix_int *m = NULL;
   VALUE nary;
   struct NARRAY *na;
-  Data_Get_Struct(obj, gsl_matrix_int, m);
+  TypedData_Get_Struct(obj, gsl_matrix_int, &gsl_matrix_int_data_type, m);
   if (m->tda != m->size2) {
     rb_raise(rb_eRuntimeError, "Cannot make a reference obj: non-contiguous");
   }
@@ -453,56 +441,56 @@ VALUE rb_gsl_na_to_gsl_matrix(VALUE obj, VALUE nna)
 {
   gsl_matrix *m = NULL;
   m = na_to_gm(nna);
-  return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, m);
+  return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, m);
 }
 
 VALUE rb_gsl_na_to_gsl_matrix_view(VALUE obj, VALUE nna)
 {
   gsl_matrix_view *m = NULL;
   m = na_to_gm_view(nna);
-  return Data_Wrap_Struct(cgsl_matrix_view, 0, gsl_matrix_view_free, m);
+  return TypedData_Wrap_Struct(cgsl_matrix_view, &gsl_matrix_view_data_type, m);
 }
 
 VALUE rb_gsl_na_to_gsl_matrix_int(VALUE obj, VALUE nna)
 {
   gsl_matrix_int *m = NULL;
   m = na_to_gm_int(nna);
-  return Data_Wrap_Struct(cgsl_matrix_int, 0, gsl_matrix_int_free, m);
+  return TypedData_Wrap_Struct(cgsl_matrix_int, &gsl_matrix_int_data_type, m);
 }
 
 VALUE rb_gsl_na_to_gsl_matrix_int_view(VALUE obj, VALUE nna)
 {
   gsl_matrix_int_view *m = NULL;
   m = na_to_gm_int_view(nna);
-  return Data_Wrap_Struct(cgsl_matrix_int_view, 0, rb_gsl_matrix_int_view_free, m);
+  return TypedData_Wrap_Struct(cgsl_matrix_int_view, &gsl_matrix_int_view_data_type, m);
 }
 
 static VALUE rb_gsl_na_to_gsl_matrix_method(VALUE nna)
 {
   gsl_matrix *m = NULL;
   m = na_to_gm(nna);
-  return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, m);
+  return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, m);
 }
 
 static VALUE rb_gsl_na_to_gsl_matrix_view_method(VALUE nna)
 {
   gsl_matrix_view *m = NULL;
   m = na_to_gm_view(nna);
-  return Data_Wrap_Struct(cgsl_matrix_view, 0, gsl_matrix_view_free, m);
+  return TypedData_Wrap_Struct(cgsl_matrix_view, &gsl_matrix_view_data_type, m);
 }
 
 static VALUE rb_gsl_na_to_gsl_matrix_int_method(VALUE nna)
 {
   gsl_matrix_int *m = NULL;
   m = na_to_gm_int(nna);
-  return Data_Wrap_Struct(cgsl_matrix_int, 0, gsl_matrix_int_free, m);
+  return TypedData_Wrap_Struct(cgsl_matrix_int, &gsl_matrix_int_data_type, m);
 }
 
 static VALUE rb_gsl_na_to_gsl_matrix_int_view_method(VALUE nna)
 {
   gsl_matrix_int_view *m = NULL;
   m = na_to_gm_int_view(nna);
-  return Data_Wrap_Struct(cgsl_matrix_int_view, 0, rb_gsl_matrix_int_view_free, m);
+  return TypedData_Wrap_Struct(cgsl_matrix_int_view, &gsl_matrix_int_view_data_type, m);
 }
 
 gsl_matrix* na_to_gm(VALUE nna)
@@ -603,7 +591,7 @@ static VALUE rb_gsl_narray_histogram(int argc, VALUE *argv, VALUE obj)
       break;
     default:
       if (VECTOR_P(argv[0])) {
-        Data_Get_Struct(argv[0], gsl_vector, ranges);
+        TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, ranges);
         n = ranges->size - 1;
         h = gsl_histogram_alloc(n);
         gsl_histogram_set_ranges(h, ranges->data, ranges->size);
@@ -642,7 +630,7 @@ static VALUE rb_gsl_narray_histogram(int argc, VALUE *argv, VALUE obj)
   }
   for (i = 0; i < size; i++)
     gsl_histogram_increment(h, ptr[i*stride]);
-  return Data_Wrap_Struct(cgsl_histogram, 0, gsl_histogram_free, h);
+  return TypedData_Wrap_Struct(cgsl_histogram, &gsl_histogram_data_type, h);
 }
 
 /*void rb_gsl_with_narray_define_methods()*/

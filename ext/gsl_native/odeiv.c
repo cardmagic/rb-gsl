@@ -98,8 +98,8 @@ static int calc_func(double t, const double y[], double dydt[], void *data)
   dydttmp.vector.data = dydt;
   dydttmp.vector.stride = 1;
   dydttmp.vector.size = dim;
-  vy = Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, &ytmp);
-  vdydt = Data_Wrap_Struct(cgsl_vector_view, 0, NULL, &dydttmp);
+  vy = TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, &ytmp);
+  vdydt = TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, &dydttmp);
 
   if (NIL_P(params)) /*result =*/ rb_funcall((VALUE) proc, RBGSL_ID_call, 3, rb_float_new(t),
                                              vy, vdydt);
@@ -131,9 +131,9 @@ static int calc_jac(double t, const double y[], double *dfdy, double dfdt[], voi
   dfdttmp.vector.size = dim;
   dfdttmp.vector.stride = 1;
   mv = gsl_matrix_view_array(dfdy, dim, dim);
-  vy = Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, &ytmp);
-  vmjac = Data_Wrap_Struct(cgsl_matrix_view, 0, NULL, &mv);
-  vdfdt = Data_Wrap_Struct(cgsl_vector_view, 0, NULL, &dfdttmp);
+  vy = TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, &ytmp);
+  vmjac = TypedData_Wrap_Struct(cgsl_matrix_view, &gsl_matrix_view_data_type, &mv);
+  vdfdt = TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, &dfdttmp);
   if (NIL_P(params)) /*result =*/ rb_funcall((VALUE) proc, RBGSL_ID_call, 4, rb_float_new(t),
                                              vy, vmjac, vdfdt);
   else /*result =*/ rb_funcall((VALUE) proc, RBGSL_ID_call, 5, rb_float_new(t),
@@ -161,7 +161,7 @@ static VALUE rb_gsl_odeiv_system_new(int argc, VALUE *argv, VALUE klass)
 static VALUE rb_gsl_odeiv_system_set(int argc, VALUE *argv, VALUE obj)
 {
   gsl_odeiv_system *sys = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_system, sys);
+  TypedData_Get_Struct(obj, gsl_odeiv_system, &gsl_odeiv_system_data_type, sys);
   set_sys(argc, argv, sys);
   return obj;
 }
@@ -236,7 +236,7 @@ static VALUE rb_gsl_odeiv_system_set_params(int argc, VALUE *argv, VALUE obj)
   VALUE vparams, ary;
   gsl_odeiv_system *sys = NULL;
   size_t i;
-  Data_Get_Struct(obj, gsl_odeiv_system, sys);
+  TypedData_Get_Struct(obj, gsl_odeiv_system, &gsl_odeiv_system_data_type, sys);
 
   ary = (VALUE) sys->params;
   switch (argc) {
@@ -259,7 +259,7 @@ static VALUE rb_gsl_odeiv_system_params(VALUE obj)
 {
   VALUE ary;
   gsl_odeiv_system *sys = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_system, sys);
+  TypedData_Get_Struct(obj, gsl_odeiv_system, &gsl_odeiv_system_data_type, sys);
   ary = (VALUE) sys->params;
   return rb_ary_entry(ary, 3);
 }
@@ -268,7 +268,7 @@ static VALUE rb_gsl_odeiv_system_function(VALUE obj)
 {
   VALUE ary;
   gsl_odeiv_system *sys = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_system, sys);
+  TypedData_Get_Struct(obj, gsl_odeiv_system, &gsl_odeiv_system_data_type, sys);
   ary = (VALUE) sys->params;
   return rb_ary_entry(ary, 0);
 }
@@ -277,7 +277,7 @@ static VALUE rb_gsl_odeiv_system_jacobian(VALUE obj)
 {
   VALUE ary;
   gsl_odeiv_system *sys = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_system, sys);
+  TypedData_Get_Struct(obj, gsl_odeiv_system, &gsl_odeiv_system_data_type, sys);
   ary = (VALUE) sys->params;
   return rb_ary_entry(ary, 1);
 }
@@ -285,7 +285,7 @@ static VALUE rb_gsl_odeiv_system_jacobian(VALUE obj)
 static VALUE rb_gsl_odeiv_system_dimension(VALUE obj)
 {
   gsl_odeiv_system *sys = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_system, sys);
+  TypedData_Get_Struct(obj, gsl_odeiv_system, &gsl_odeiv_system_data_type, sys);
   return INT2FIX(sys->dimension);
 }
 
@@ -372,28 +372,28 @@ static const gsl_odeiv_step_type* rb_gsl_odeiv_step_type_get(VALUE tt)
 static VALUE rb_gsl_odeiv_step_reset(VALUE obj)
 {
   gsl_odeiv_step *s = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_step, s);
+  TypedData_Get_Struct(obj, gsl_odeiv_step, &gsl_odeiv_step_data_type, s);
   return INT2FIX(gsl_odeiv_step_reset(s));
 }
 
 static VALUE rb_gsl_odeiv_step_name(VALUE obj)
 {
   gsl_odeiv_step *s = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_step, s);
+  TypedData_Get_Struct(obj, gsl_odeiv_step, &gsl_odeiv_step_data_type, s);
   return rb_str_new2(gsl_odeiv_step_name(s));
 }
 
 static VALUE rb_gsl_odeiv_step_order(VALUE obj)
 {
   gsl_odeiv_step *s = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_step, s);
+  TypedData_Get_Struct(obj, gsl_odeiv_step, &gsl_odeiv_step_data_type, s);
   return INT2FIX(gsl_odeiv_step_order(s));
 }
 
 static VALUE rb_gsl_odeiv_step_dimension(VALUE obj)
 {
   gsl_odeiv_step *s = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_step, s);
+  TypedData_Get_Struct(obj, gsl_odeiv_step, &gsl_odeiv_step_data_type, s);
   return INT2FIX(s->dimension);
 }
 
@@ -410,13 +410,13 @@ static VALUE rb_gsl_odeiv_step_apply(int argc, VALUE *argv, VALUE obj)
     break;
   case 7:
     if (VECTOR_P(argv[5])) {
-      Data_Get_Struct(argv[5], gsl_vector, vtmp2);
+      TypedData_Get_Struct(argv[5], gsl_vector, &gsl_vector_data_type, vtmp2);
       if (vtmp2) dydt_out = vtmp2->data;
     }
   /* no break */
   case 6:
     if (VECTOR_P(argv[4])) {
-      Data_Get_Struct(argv[4], gsl_vector, vtmp1);
+      TypedData_Get_Struct(argv[4], gsl_vector, &gsl_vector_data_type, vtmp1);
       if (vtmp1) dydt_in = vtmp1->data;
     }
     break;
@@ -427,12 +427,12 @@ static VALUE rb_gsl_odeiv_step_apply(int argc, VALUE *argv, VALUE obj)
   Need_Float(argv[0]); Need_Float(argv[1]);
   CHECK_VECTOR(argv[2]); CHECK_VECTOR(argv[3]);
   CHECK_SYSTEM(argv[argc-1]);
-  Data_Get_Struct(obj, gsl_odeiv_step, s);
+  TypedData_Get_Struct(obj, gsl_odeiv_step, &gsl_odeiv_step_data_type, s);
   t = NUM2DBL(argv[0]);
   h = NUM2DBL(argv[1]);
-  Data_Get_Struct(argv[2], gsl_vector, y);
-  Data_Get_Struct(argv[3], gsl_vector, yerr);
-  Data_Get_Struct(argv[argc-1], gsl_odeiv_system, sys);
+  TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, y);
+  TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, yerr);
+  TypedData_Get_Struct(argv[argc-1], gsl_odeiv_system, &gsl_odeiv_system_data_type, sys);
   return INT2FIX(gsl_odeiv_step_apply(s, t, h, y->data, yerr->data,
                                       dydt_in, dydt_out, sys));
 }
@@ -441,7 +441,7 @@ static VALUE rb_gsl_odeiv_step_info(VALUE obj)
 {
   gsl_odeiv_step *s;
   char buf[256];
-  Data_Get_Struct(obj, gsl_odeiv_step, s);
+  TypedData_Get_Struct(obj, gsl_odeiv_step, &gsl_odeiv_step_data_type, s);
   sprintf(buf, "Class:      %s\n", rb_class2name(CLASS_OF(obj)));
   sprintf(buf, "%sSuperClass: %s\n", buf, rb_class2name(RCLASS_SUPER(CLASS_OF(obj))));
   sprintf(buf, "%sType:       %s\n", buf, gsl_odeiv_step_name(s));
@@ -506,7 +506,7 @@ static VALUE rb_gsl_odeiv_control_scaled_new(VALUE klass, VALUE epsabs,
   Need_Float(ay);   Need_Float(adydt);
   CHECK_FIXNUM(dd);
   CHECK_VECTOR(sc);
-  Data_Get_Struct(sc, gsl_vector, v);
+  TypedData_Get_Struct(sc, gsl_vector, &gsl_vector_data_type, v);
   c = gsl_odeiv_control_scaled_new(NUM2DBL(epsabs), NUM2DBL(epsrel),
                                    NUM2DBL(ay), NUM2DBL(adydt), v->data,
                                    FIX2INT(dd));
@@ -520,7 +520,7 @@ static VALUE rb_gsl_odeiv_control_init(VALUE obj, VALUE epsabs,
   gsl_odeiv_control *c = NULL;
   Need_Float(epsabs); Need_Float(epsrel);
   Need_Float(ay);   Need_Float(adydt);
-  Data_Get_Struct(obj, gsl_odeiv_control, c);
+  TypedData_Get_Struct(obj, gsl_odeiv_control, &gsl_odeiv_control_data_type, c);
   gsl_odeiv_control_init(c, NUM2DBL(epsabs), NUM2DBL(epsrel),
                          NUM2DBL(ay), NUM2DBL(adydt));
   return obj;
@@ -529,7 +529,7 @@ static VALUE rb_gsl_odeiv_control_init(VALUE obj, VALUE epsabs,
 static VALUE rb_gsl_odeiv_control_name(VALUE obj)
 {
   gsl_odeiv_control *c = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_control, c);
+  TypedData_Get_Struct(obj, gsl_odeiv_control, &gsl_odeiv_control_data_type, c);
   return rb_str_new2(gsl_odeiv_control_name(c));
 }
 
@@ -544,11 +544,11 @@ static VALUE rb_gsl_odeiv_control_hadjust(VALUE obj, VALUE ss, VALUE yy0,
   CHECK_VECTOR(yy0);
   CHECK_VECTOR(yyerr);
   CHECK_VECTOR(ddydt);
-  Data_Get_Struct(obj, gsl_odeiv_control, c);
-  Data_Get_Struct(ss, gsl_odeiv_step, s);
-  Data_Get_Struct(yy0, gsl_vector, y0);
-  Data_Get_Struct(yyerr, gsl_vector, yerr);
-  Data_Get_Struct(ddydt, gsl_vector, dydt);
+  TypedData_Get_Struct(obj, gsl_odeiv_control, &gsl_odeiv_control_data_type, c);
+  TypedData_Get_Struct(ss, gsl_odeiv_step, &gsl_odeiv_step_data_type, s);
+  TypedData_Get_Struct(yy0, gsl_vector, &gsl_vector_data_type, y0);
+  TypedData_Get_Struct(yyerr, gsl_vector, &gsl_vector_data_type, yerr);
+  TypedData_Get_Struct(ddydt, gsl_vector, &gsl_vector_data_type, dydt);
   h = NUM2DBL(hh);
   status = gsl_odeiv_control_hadjust(c, s, y0->data, yerr->data,
                                      dydt->data, &h);
@@ -571,35 +571,35 @@ static gsl_odeiv_evolve* make_evolve(VALUE dim)
 static VALUE rb_gsl_odeiv_evolve_reset(VALUE obj)
 {
   gsl_odeiv_evolve *e = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_evolve, e);
+  TypedData_Get_Struct(obj, gsl_odeiv_evolve, &gsl_odeiv_evolve_data_type, e);
   return INT2FIX(gsl_odeiv_evolve_reset(e));
 }
 
 static VALUE rb_gsl_odeiv_evolve_count(VALUE obj)
 {
   gsl_odeiv_evolve *e = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_evolve, e);
+  TypedData_Get_Struct(obj, gsl_odeiv_evolve, &gsl_odeiv_evolve_data_type, e);
   return INT2FIX(e->count);
 }
 
 static VALUE rb_gsl_odeiv_evolve_dimension(VALUE obj)
 {
   gsl_odeiv_evolve *e = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_evolve, e);
+  TypedData_Get_Struct(obj, gsl_odeiv_evolve, &gsl_odeiv_evolve_data_type, e);
   return INT2FIX(e->dimension);
 }
 
 static VALUE rb_gsl_odeiv_evolve_failed_steps(VALUE obj)
 {
   gsl_odeiv_evolve *e = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_evolve, e);
+  TypedData_Get_Struct(obj, gsl_odeiv_evolve, &gsl_odeiv_evolve_data_type, e);
   return INT2FIX(e->failed_steps);
 }
 
 static VALUE rb_gsl_odeiv_evolve_last_step(VALUE obj)
 {
   gsl_odeiv_evolve *e = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_evolve, e);
+  TypedData_Get_Struct(obj, gsl_odeiv_evolve, &gsl_odeiv_evolve_data_type, e);
   return rb_float_new(e->last_step);
 }
 
@@ -607,26 +607,26 @@ static VALUE rb_gsl_odeiv_evolve_y0(VALUE obj)
 {
   gsl_odeiv_evolve *e = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_evolve, e);
+  TypedData_Get_Struct(obj, gsl_odeiv_evolve, &gsl_odeiv_evolve_data_type, e);
   v = gsl_vector_view_alloc();
   v->vector.data = e->y0;
   v->vector.size = e->dimension;
   v->vector.stride = 1;
   v->vector.owner = 0;
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, gsl_vector_view_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, v);
 }
 
 static VALUE rb_gsl_odeiv_evolve_yerr(VALUE obj)
 {
   gsl_odeiv_evolve *e = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_evolve, e);
+  TypedData_Get_Struct(obj, gsl_odeiv_evolve, &gsl_odeiv_evolve_data_type, e);
   v = gsl_vector_view_alloc();
   v->vector.data = e->yerr;
   v->vector.size = e->dimension;
   v->vector.stride = 1;
   v->vector.owner = 0;
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, gsl_vector_view_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, v);
 }
 
 static VALUE rb_gsl_odeiv_evolve_apply(VALUE obj, VALUE cc, VALUE ss, VALUE sss,
@@ -641,16 +641,16 @@ static VALUE rb_gsl_odeiv_evolve_apply(VALUE obj, VALUE cc, VALUE ss, VALUE sss,
   int status;
   CHECK_STEP(ss); CHECK_SYSTEM(sss);
   CHECK_VECTOR(yy);
-  Data_Get_Struct(obj, gsl_odeiv_evolve, e);
+  TypedData_Get_Struct(obj, gsl_odeiv_evolve, &gsl_odeiv_evolve_data_type, e);
   if (NIL_P(cc)) {
     c = NULL;
   } else {
     CHECK_CONTROL(cc);
-    Data_Get_Struct(cc, gsl_odeiv_control, c);
+    TypedData_Get_Struct(cc, gsl_odeiv_control, &gsl_odeiv_control_data_type, c);
   }
-  Data_Get_Struct(ss, gsl_odeiv_step, s);
-  Data_Get_Struct(sss, gsl_odeiv_system, sys);
-  Data_Get_Struct(yy, gsl_vector, y);
+  TypedData_Get_Struct(ss, gsl_odeiv_step, &gsl_odeiv_step_data_type, s);
+  TypedData_Get_Struct(sss, gsl_odeiv_system, &gsl_odeiv_system_data_type, sys);
+  TypedData_Get_Struct(yy, gsl_vector, &gsl_vector_data_type, y);
   /*  if (TYPE(tt) != T_FLOAT) rb_raise(rb_eTypeError, "argument 4 Float expected");
       if (TYPE(hh) != T_FLOAT) rb_raise(rb_eTypeError, "argument 6 Float expected");*/
   t = NUM2DBL(tt);
@@ -711,7 +711,7 @@ static VALUE rb_gsl_odeiv_solver_evolve(VALUE obj)
 {
   gsl_odeiv_solver *gos = NULL;
   Data_Get_Struct(obj, gsl_odeiv_solver, gos);
-  return Data_Wrap_Struct(cgsl_odeiv_evolve, 0, NULL, gos->e);
+  return TypedData_Wrap_Struct(cgsl_odeiv_evolve, &gsl_odeiv_evolve_data_type, gos->e);
 }
 
 static VALUE rb_gsl_odeiv_solver_set_evolve(VALUE obj, VALUE ee)
@@ -720,7 +720,7 @@ static VALUE rb_gsl_odeiv_solver_set_evolve(VALUE obj, VALUE ee)
   gsl_odeiv_evolve *e = NULL;
   CHECK_EVOLVE(ee);
   Data_Get_Struct(obj, gsl_odeiv_solver, gos);
-  Data_Get_Struct(ee, gsl_odeiv_evolve, e);
+  TypedData_Get_Struct(ee, gsl_odeiv_evolve, &gsl_odeiv_evolve_data_type, e);
   gos->e = e;
   return obj;
 }
@@ -729,7 +729,7 @@ static VALUE rb_gsl_odeiv_solver_step(VALUE obj)
 {
   gsl_odeiv_solver *gos = NULL;
   Data_Get_Struct(obj, gsl_odeiv_solver, gos);
-  return Data_Wrap_Struct(cgsl_odeiv_step, 0, NULL,gos->s);
+  return TypedData_Wrap_Struct(cgsl_odeiv_step, &gsl_odeiv_step_data_type, gos->s);
 }
 
 static VALUE rb_gsl_odeiv_solver_set_step(VALUE obj, VALUE ss)
@@ -738,7 +738,7 @@ static VALUE rb_gsl_odeiv_solver_set_step(VALUE obj, VALUE ss)
   gsl_odeiv_step *s = NULL;
   CHECK_STEP(ss);
   Data_Get_Struct(obj, gsl_odeiv_solver, gos);
-  Data_Get_Struct(ss, gsl_odeiv_step, s);
+  TypedData_Get_Struct(ss, gsl_odeiv_step, &gsl_odeiv_step_data_type, s);
   gos->s = s;
   return obj;
 }
@@ -747,7 +747,7 @@ static VALUE rb_gsl_odeiv_solver_control(VALUE obj)
 {
   gsl_odeiv_solver *gos = NULL;
   Data_Get_Struct(obj, gsl_odeiv_solver, gos);
-  return Data_Wrap_Struct(cgsl_odeiv_control, 0, NULL, gos->c);
+  return TypedData_Wrap_Struct(cgsl_odeiv_control, &gsl_odeiv_control_data_type, gos->c);
 }
 
 static VALUE rb_gsl_odeiv_solver_set_control(VALUE obj, VALUE cc)
@@ -756,7 +756,7 @@ static VALUE rb_gsl_odeiv_solver_set_control(VALUE obj, VALUE cc)
   gsl_odeiv_control *c = NULL;
   CHECK_CONTROL(cc);
   Data_Get_Struct(obj, gsl_odeiv_solver, gos);
-  Data_Get_Struct(cc, gsl_odeiv_control, c);
+  TypedData_Get_Struct(cc, gsl_odeiv_control, &gsl_odeiv_control_data_type, c);
   gos->c = c;
   return obj;
 }
@@ -765,7 +765,7 @@ static VALUE rb_gsl_odeiv_solver_sys(VALUE obj)
 {
   gsl_odeiv_solver *gos = NULL;
   Data_Get_Struct(obj, gsl_odeiv_solver, gos);
-  return Data_Wrap_Struct(cgsl_odeiv_system, 0, NULL, gos->sys);
+  return TypedData_Wrap_Struct(cgsl_odeiv_system, &gsl_odeiv_system_data_type, gos->sys);
 }
 
 static VALUE rb_gsl_odeiv_solver_set_sys(VALUE obj, VALUE ss)
@@ -774,7 +774,7 @@ static VALUE rb_gsl_odeiv_solver_set_sys(VALUE obj, VALUE ss)
   gsl_odeiv_system *sys = NULL;
   CHECK_SYSTEM(ss);
   Data_Get_Struct(obj, gsl_odeiv_solver, gos);
-  Data_Get_Struct(ss, gsl_odeiv_system, sys);
+  TypedData_Get_Struct(ss, gsl_odeiv_system, &gsl_odeiv_system_data_type, sys);
   gos->sys = sys;
   return obj;
 }
@@ -789,7 +789,7 @@ static VALUE rb_gsl_odeiv_solver_apply(VALUE obj, VALUE tt, VALUE tt1, VALUE hh,
   CHECK_VECTOR(yy);
   Need_Float(tt1);
   Data_Get_Struct(obj, gsl_odeiv_solver, gos);
-  Data_Get_Struct(yy, gsl_vector, y);
+  TypedData_Get_Struct(yy, gsl_vector, &gsl_vector_data_type, y);
   /*  if (TYPE(tt) != T_FLOAT) rb_raise(rb_eTypeError, "argument 0 Float expected");
       if (TYPE(hh) != T_FLOAT) rb_raise(rb_eTypeError, "argument 2 Float expected");*/
   t = NUM2DBL(tt);
@@ -828,7 +828,7 @@ static VALUE rb_gsl_odeiv_solver_set_params(int argc, VALUE *argv, VALUE obj)
   gsl_odeiv_solver *gos = NULL;
   Data_Get_Struct(obj, gsl_odeiv_solver, gos);
   rb_gsl_odeiv_system_set_params(argc, argv,
-                                 Data_Wrap_Struct(cgsl_odeiv_system, 0, NULL, gos->sys));
+                                 TypedData_Wrap_Struct(cgsl_odeiv_system, &gsl_odeiv_system_data_type, gos->sys));
   return obj;
 }
 

@@ -45,7 +45,7 @@ static VALUE rb_gsl_multifit_workspace_new(VALUE klass, VALUE n, VALUE p)
   gsl_multifit_linear_workspace *w = NULL;
   CHECK_FIXNUM(n); CHECK_FIXNUM(p);
   w = gsl_multifit_linear_alloc(FIX2INT(n), FIX2INT(p));
-  return Data_Wrap_Struct(cgsl_multifit_workspace, 0, gsl_multifit_linear_free, w);
+  return TypedData_Wrap_Struct(cgsl_multifit_workspace, &gsl_multifit_linear_workspace_data_type, w);
 }
 
 static VALUE rb_gsl_multifit_linear(int argc, VALUE *argv, VALUE obj)
@@ -62,7 +62,7 @@ static VALUE rb_gsl_multifit_linear(int argc, VALUE *argv, VALUE obj)
   Data_Get_Vector(argv[1], y);
   if (argc == 3) {
     CHECK_WORKSPACE(argv[2]);
-    Data_Get_Struct(argv[2], gsl_multifit_linear_workspace, space);
+    TypedData_Get_Struct(argv[2], gsl_multifit_linear_workspace, &gsl_multifit_linear_workspace_data_type, space);
   } else {
     space = gsl_multifit_linear_alloc(x->size1, x->size2);
     flag = 1;
@@ -71,8 +71,8 @@ static VALUE rb_gsl_multifit_linear(int argc, VALUE *argv, VALUE obj)
   c = gsl_vector_alloc(x->size2);
   status = gsl_multifit_linear(x, y, c, cov, &chisq, space);
   if (flag == 1) gsl_multifit_linear_free(space);
-  vc = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, c);
-  vcov = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, cov);
+  vc = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, c);
+  vcov = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, cov);
   return rb_ary_new3(4, vc, vcov, rb_float_new(chisq), INT2FIX(status));
 }
 
@@ -91,7 +91,7 @@ static VALUE rb_gsl_multifit_wlinear(int argc, VALUE *argv, VALUE obj)
   Data_Get_Vector(argv[2], y);
   if (argc == 4) {
     CHECK_WORKSPACE(argv[3]);
-    Data_Get_Struct(argv[3], gsl_multifit_linear_workspace, space);
+    TypedData_Get_Struct(argv[3], gsl_multifit_linear_workspace, &gsl_multifit_linear_workspace_data_type, space);
   } else {
     space = gsl_multifit_linear_alloc(x->size1, x->size2);
     flag = 1;
@@ -100,8 +100,8 @@ static VALUE rb_gsl_multifit_wlinear(int argc, VALUE *argv, VALUE obj)
   c = gsl_vector_alloc(x->size2);
   status = gsl_multifit_wlinear(x, w, y, c, cov, &chisq, space);
   if (flag == 1) gsl_multifit_linear_free(space);
-  vc = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, c);
-  vcov = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, cov);
+  vc = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, c);
+  vcov = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, cov);
   return rb_ary_new3(4, vc, vcov, rb_float_new(chisq), INT2FIX(status));
 }
 
@@ -166,7 +166,7 @@ static VALUE rb_gsl_multifit_XXXfit(int argc, VALUE *argv, VALUE obj,
     flagw = 0;
   }
   if (rb_obj_is_kind_of(argv[argc-1], cgsl_multifit_workspace)) {
-    Data_Get_Struct(argv[argc-1], gsl_multifit_linear_workspace, space);
+    TypedData_Get_Struct(argv[argc-1], gsl_multifit_linear_workspace, &gsl_multifit_linear_workspace_data_type, space);
   } else {
     space = gsl_multifit_linear_alloc(x->size, order + 1);
     flag = 1;
@@ -179,8 +179,8 @@ static VALUE rb_gsl_multifit_XXXfit(int argc, VALUE *argv, VALUE obj,
   else   status = gsl_multifit_wlinear(X, w, y, c, cov, &chisq, space);
   if (flag == 1) gsl_multifit_linear_free(space);
   err = gsl_vector_alloc(order + 1);
-  vc = Data_Wrap_Struct(cgsl_poly, 0, gsl_vector_free, c);
-  verr = Data_Wrap_Struct(cgsl_poly, 0, gsl_vector_free, err);
+  vc = TypedData_Wrap_Struct(cgsl_poly, &gsl_vector_data_type, c);
+  verr = TypedData_Wrap_Struct(cgsl_poly, &gsl_vector_data_type, err);
   for (i = 0; i < err->size; i++)
     gsl_vector_set(err, i, sqrt(chisq/((double)x->size-err->size)*gsl_matrix_get(cov, i, i)));
   gsl_matrix_free(X);
@@ -265,7 +265,7 @@ static VALUE rb_gsl_multifit_fdfsolver_set(VALUE obj, VALUE ff, VALUE xx)
   int status;
   CHECK_MULTIFIT_FUNCTION_FDF(ff);
   Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
-  Data_Get_Struct(ff, gsl_multifit_function_fdf, f);
+  TypedData_Get_Struct(ff, gsl_multifit_function_fdf, &gsl_multifit_function_fdf_data_type, f);
   Data_Get_Vector(xx, x);
   status = gsl_multifit_fdfsolver_set(solver, f, x);
   return INT2FIX(status);
@@ -291,7 +291,7 @@ static VALUE rb_gsl_multifit_fdfsolver_position(VALUE obj)
   gsl_vector *x = NULL;
   Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
   x = gsl_multifit_fdfsolver_position(solver);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, x);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, x);
 }
 
 static VALUE rb_gsl_multifit_fdfsolver_print_state(VALUE obj, VALUE i)
@@ -309,7 +309,7 @@ static VALUE rb_gsl_multifit_fdfsolver_fdf(VALUE obj)
 {
   gsl_multifit_fdfsolver *solver = NULL;
   Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
-  return Data_Wrap_Struct(cgsl_multifit_function_fdf, 0, NULL, solver->fdf);
+  return TypedData_Wrap_Struct(cgsl_multifit_function_fdf, &gsl_multifit_function_fdf_data_type, solver->fdf);
 }
 
 static VALUE rb_gsl_multifit_fdfsolver_test_delta(VALUE obj, VALUE r, VALUE a)
@@ -392,7 +392,7 @@ static VALUE rb_gsl_multifit_fdfsolver_gradient(int argc, VALUE *argv, VALUE obj
     /*status =*/ gsl_multifit_gradient(J, solver->f, g);
     gsl_matrix_free(J);
 #endif
-    return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, g);
+    return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, g);
   }
 }
 
@@ -423,7 +423,7 @@ static VALUE rb_gsl_multifit_fdfsolver_covar(int argc, VALUE *argv, VALUE obj)
     /*status =*/ gsl_multifit_covar(J, epsrel, covar);
     gsl_matrix_free(J);
 #endif
-    return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, covar);
+    return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, covar);
     break;
   case 2:
     Data_Get_Matrix(argv[1], covar);
@@ -445,21 +445,21 @@ static VALUE rb_gsl_multifit_fdfsolver_x(VALUE obj)
 {
   gsl_multifit_fdfsolver *solver = NULL;
   Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, solver->x);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, solver->x);
 }
 
 static VALUE rb_gsl_multifit_fdfsolver_dx(VALUE obj)
 {
   gsl_multifit_fdfsolver *solver = NULL;
   Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, solver->dx);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, solver->dx);
 }
 
 static VALUE rb_gsl_multifit_fdfsolver_f(VALUE obj)
 {
   gsl_multifit_fdfsolver *solver = NULL;
   Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, solver->f);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, solver->f);
 }
 
 static VALUE rb_gsl_multifit_fdfsolver_J(VALUE obj)
@@ -467,11 +467,11 @@ static VALUE rb_gsl_multifit_fdfsolver_J(VALUE obj)
   gsl_multifit_fdfsolver *solver = NULL;
   Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
 #ifdef HAVE_GSL_MULTIFIT_FDFSOLVER_J
-  return Data_Wrap_Struct(cgsl_matrix_view_ro, 0, NULL, solver->J);
+  return TypedData_Wrap_Struct(cgsl_matrix_view_ro, &gsl_matrix_view_data_type, solver->J);
 #else
   gsl_matrix *J = gsl_matrix_alloc(solver->f->size, solver->x->size);
   gsl_multifit_fdfsolver_jac(solver, J);
-  return Data_Wrap_Struct(cgsl_matrix_view_ro, 0, gsl_matrix_free, J);
+  return TypedData_Wrap_Struct(cgsl_matrix_view_ro, &gsl_matrix_view_data_type, J);
 #endif
 }
 
@@ -505,7 +505,7 @@ static VALUE rb_gsl_multifit_gradient(int argc, VALUE *argv, VALUE obj)
     Data_Get_Vector(argv[1], f);
     g = gsl_vector_alloc(f->size);
     /*status =*/ gsl_multifit_gradient(J, f, g);
-    return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, g);
+    return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, g);
     break;
   case 3:
     Data_Get_Matrix(argv[0], J);
@@ -531,7 +531,7 @@ static VALUE rb_gsl_multifit_covar(int argc, VALUE *argv, VALUE obj)
     epsrel = NUM2DBL(argv[1]);
     covar = gsl_matrix_alloc(J->size2, J->size2);
     /*status =*/ gsl_multifit_covar(J, epsrel, covar);
-    return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, covar);
+    return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, covar);
     break;
   case 3:
     Need_Float(argv[1]);
@@ -610,7 +610,7 @@ static VALUE rb_gsl_multifit_function_fdf_set_procs(int argc, VALUE *argv, VALUE
 {
   gsl_multifit_function_fdf *func = NULL;
   VALUE ary;
-  Data_Get_Struct(obj, gsl_multifit_function_fdf, func);
+  TypedData_Get_Struct(obj, gsl_multifit_function_fdf, &gsl_multifit_function_fdf_data_type, func);
   if (func->params == NULL) {
     ary = rb_ary_new2(4);
     /*    (VALUE) func->params = ary;*/
@@ -649,7 +649,7 @@ static VALUE rb_gsl_multifit_function_fdf_set_data(int argc, VALUE *argv, VALUE 
 {
   VALUE ary, ary2;
   gsl_multifit_function_fdf *func = NULL;
-  Data_Get_Struct(obj, gsl_multifit_function_fdf, func);
+  TypedData_Get_Struct(obj, gsl_multifit_function_fdf, &gsl_multifit_function_fdf_data_type, func);
   if (func->params == NULL) {
     ary = rb_ary_new2(4);
     /*    (VALUE) func->params = ary;*/
@@ -680,8 +680,8 @@ static int gsl_multifit_function_fdf_f(const gsl_vector *x, void *params,
   ary = (VALUE) params;
   vt_y_sigma = rb_ary_entry(ary, 3);
   proc = rb_ary_entry(ary, 0);
-  vx = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector *) x);
-  vf = Data_Wrap_Struct(cgsl_vector, 0, NULL, f);
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
+  vf = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, f);
   switch (RARRAY_LEN(vt_y_sigma)) {
   case 2:
     vt = rb_ary_entry(vt_y_sigma, 0);
@@ -708,8 +708,8 @@ static int gsl_multifit_function_fdf_df(const gsl_vector *x, void *params,
   ary = (VALUE) params;
   vt_y_sigma = rb_ary_entry(ary, 3);
   proc = rb_ary_entry(ary, 1);
-  vx = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector *) x);
-  vJ = Data_Wrap_Struct(cgsl_matrix, 0, NULL, J);
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
+  vJ = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, J);
   switch (RARRAY_LEN(vt_y_sigma)) {
   case 2:
     vt = rb_ary_entry(vt_y_sigma, 0);
@@ -739,9 +739,9 @@ static int gsl_multifit_function_fdf_fdf(const gsl_vector *x, void *params,
   proc_f = rb_ary_entry(ary, 0);
   proc_df = rb_ary_entry(ary, 1);
   proc_fdf = rb_ary_entry(ary, 2);
-  vx = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector *) x);
-  vf = Data_Wrap_Struct(cgsl_vector, 0, NULL, f);
-  vJ = Data_Wrap_Struct(cgsl_matrix, 0, NULL, J);
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
+  vf = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, f);
+  vJ = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, J);
   switch (RARRAY_LEN(vt_y_sigma)) {
   case 2:
     vt = rb_ary_entry(vt_y_sigma, 0);
@@ -772,21 +772,21 @@ static int gsl_multifit_function_fdf_fdf(const gsl_vector *x, void *params,
 static VALUE rb_gsl_multifit_function_fdf_params(VALUE obj)
 {
   gsl_multifit_function_fdf *f = NULL;
-  Data_Get_Struct(obj, gsl_multifit_function_fdf, f);
+  TypedData_Get_Struct(obj, gsl_multifit_function_fdf, &gsl_multifit_function_fdf_data_type, f);
   return (VALUE) f->params;
 }
 
 static VALUE rb_gsl_multifit_function_fdf_n(VALUE obj)
 {
   gsl_multifit_function_fdf *f = NULL;
-  Data_Get_Struct(obj, gsl_multifit_function_fdf, f);
+  TypedData_Get_Struct(obj, gsl_multifit_function_fdf, &gsl_multifit_function_fdf_data_type, f);
   return INT2FIX(f->n);
 }
 
 static VALUE rb_gsl_multifit_function_fdf_set_n(VALUE obj, VALUE n)
 {
   gsl_multifit_function_fdf *f = NULL;
-  Data_Get_Struct(obj, gsl_multifit_function_fdf, f);
+  TypedData_Get_Struct(obj, gsl_multifit_function_fdf, &gsl_multifit_function_fdf_data_type, f);
   f->n = FIX2INT(n);
   return obj;
 }
@@ -794,7 +794,7 @@ static VALUE rb_gsl_multifit_function_fdf_set_n(VALUE obj, VALUE n)
 static VALUE rb_gsl_multifit_function_fdf_p(VALUE obj)
 {
   gsl_multifit_function_fdf *f = NULL;
-  Data_Get_Struct(obj, gsl_multifit_function_fdf, f);
+  TypedData_Get_Struct(obj, gsl_multifit_function_fdf, &gsl_multifit_function_fdf_data_type, f);
   return INT2FIX(f->p);
 }
 
@@ -1767,8 +1767,8 @@ static VALUE rb_gsl_multifit_fit(int argc, VALUE *argv, VALUE klass)
   if (flag == 1) gsl_vector_free(v);
   gsl_multifit_fdfsolver_free(solver);
   return rb_ary_new3(4,
-                     Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vout),
-                     Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, verr),
+                     TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vout),
+                     TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, verr),
                      rb_float_new(chi2), INT2FIX(dof));
 }
 
@@ -1796,7 +1796,7 @@ static VALUE rb_gsl_multifit_linear_residuals(int argc, VALUE argv[], VALUE modu
     Data_Get_Vector(argv[1], y);
     Data_Get_Vector(argv[2], c);
     r = gsl_vector_alloc(y->size);
-    ret = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, r);
+    ret = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, r);
     break;
   case 4:
     Data_Get_Matrix(argv[0], X);

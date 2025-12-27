@@ -385,7 +385,7 @@ static VALUE rb_gsl_rng_set(VALUE obj, VALUE s)
   gsl_rng *r = NULL;
   unsigned long seed;
   seed = NUM2UINT(s);
-  Data_Get_Struct(obj, gsl_rng, r);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
   gsl_rng_set(r, seed);
   return obj;
 }
@@ -403,7 +403,7 @@ static VALUE rb_gsl_rng_get(int argc, VALUE *argv, VALUE obj)
   gsl_rng *r = NULL;
   gsl_vector_int *v;
   size_t n, i;
-  Data_Get_Struct(obj, gsl_rng, r);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
   switch (argc) {
   case 0:
     return UINT2NUM(gsl_rng_get(r));
@@ -412,7 +412,7 @@ static VALUE rb_gsl_rng_get(int argc, VALUE *argv, VALUE obj)
     n = NUM2INT(argv[0]);
     v = gsl_vector_int_alloc(n);
     for (i = 0; i < n; i++) gsl_vector_int_set(v, i, (int) gsl_rng_get(r));
-    return Data_Wrap_Struct(cgsl_vector_int, 0, gsl_vector_int_free, v);
+    return TypedData_Wrap_Struct(cgsl_vector_int, &gsl_vector_int_data_type, v);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 0 or 1)", argc);
@@ -425,7 +425,7 @@ static VALUE rb_gsl_rng_uniform(int argc, VALUE *argv, VALUE obj)
   gsl_rng *r = NULL;
   gsl_vector *v;
   size_t n, i;
-  Data_Get_Struct(obj, gsl_rng, r);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
   switch (argc) {
   case 0:
     return rb_float_new(gsl_rng_uniform(r));
@@ -434,7 +434,7 @@ static VALUE rb_gsl_rng_uniform(int argc, VALUE *argv, VALUE obj)
     n = NUM2INT(argv[0]);
     v = gsl_vector_alloc(n);
     for (i = 0; i < n; i++) gsl_vector_set(v, i, gsl_rng_uniform(r));
-    return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+    return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 0 or 1)", argc);
@@ -445,7 +445,7 @@ static VALUE rb_gsl_rng_uniform(int argc, VALUE *argv, VALUE obj)
 static VALUE rb_gsl_rng_uniform_pos(VALUE obj)
 {
   gsl_rng *r = NULL;
-  Data_Get_Struct(obj, gsl_rng, r);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
   return rb_float_new(gsl_rng_uniform_pos(r));
 }
 
@@ -454,35 +454,35 @@ static VALUE rb_gsl_rng_uniform_int(VALUE obj, VALUE n)
   gsl_rng *r = NULL;
   unsigned long int nn;
   nn = NUM2UINT(n);
-  Data_Get_Struct(obj, gsl_rng, r);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
   return UINT2NUM(gsl_rng_uniform_int(r, nn));
 }
 
 static VALUE rb_gsl_rng_name(VALUE obj)
 {
   gsl_rng *r = NULL;
-  Data_Get_Struct(obj, gsl_rng, r);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
   return rb_str_new2(gsl_rng_name(r));
 }
 
 static VALUE rb_gsl_rng_max(VALUE obj)
 {
   gsl_rng *r = NULL;
-  Data_Get_Struct(obj, gsl_rng, r);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
   return UINT2NUM(gsl_rng_max(r));
 }
 
 static VALUE rb_gsl_rng_min(VALUE obj)
 {
   gsl_rng *r = NULL;
-  Data_Get_Struct(obj, gsl_rng, r);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
   return UINT2NUM(gsl_rng_min(r));
 }
 
 static VALUE rb_gsl_rng_size(VALUE obj)
 {
   gsl_rng *r = NULL;
-  Data_Get_Struct(obj, gsl_rng, r);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
   return UINT2NUM(gsl_rng_size(r));
 }
 
@@ -508,7 +508,7 @@ static VALUE rb_gsl_rng_env_setup(VALUE obj)
 static VALUE rb_gsl_rng_clone(VALUE obj)
 {
   gsl_rng *r = NULL, *rnew = NULL;
-  Data_Get_Struct(obj, gsl_rng, r);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
   rnew = gsl_rng_clone(r);
   return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_rng_free, rnew);
 }
@@ -516,7 +516,7 @@ static VALUE rb_gsl_rng_clone(VALUE obj)
 static VALUE rb_gsl_rng_print_state(VALUE obj)
 {
   gsl_rng *r = NULL;
-  Data_Get_Struct(obj, gsl_rng, r);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
   gsl_rng_print_state(r);
   return obj;
 }
@@ -526,7 +526,7 @@ static VALUE rb_gsl_rng_fwrite(VALUE obj, VALUE io)
   gsl_rng *h = NULL;
   FILE *f = NULL;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_rng, h);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, h);
   f = rb_gsl_open_writefile(io, &flag);
   status = gsl_rng_fwrite(f, h);
   if (flag == 1) fclose(f);
@@ -538,7 +538,7 @@ static VALUE rb_gsl_rng_fread(VALUE obj, VALUE io)
   gsl_rng *h = NULL;
   FILE *f = NULL;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_rng, h);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, h);
   f = rb_gsl_open_readfile(io, &flag);
   status = gsl_rng_fread(f, h);
   if (flag == 1) fclose(f);
@@ -549,8 +549,8 @@ static VALUE rb_gsl_rng_memcpy(VALUE obj, VALUE dst, VALUE org)
 {
   gsl_rng *dest, *src;
   CHECK_RNG(dst); CHECK_RNG(org);
-  Data_Get_Struct(dst, gsl_rng, dest);
-  Data_Get_Struct(org, gsl_rng, src);
+  TypedData_Get_Struct(dst, gsl_rng, &gsl_rng_data_type, dest);
+  TypedData_Get_Struct(org, gsl_rng, &gsl_rng_data_type, src);
   gsl_rng_memcpy(dest, src);
   return dst;
 }

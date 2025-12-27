@@ -116,7 +116,7 @@ static VALUE rb_gsl_multimin_function_n(VALUE obj)
 static double rb_gsl_multimin_function_f(const gsl_vector *x, void *p)
 {
   VALUE vx, vp, proc, result;
-  vx = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector *) x);
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
   proc = rb_ary_entry((VALUE) p, 0);
   vp = rb_ary_entry((VALUE) p, 1);
   if (NIL_P(vp)) result = rb_funcall(proc, RBGSL_ID_call, 1, vx);
@@ -369,7 +369,7 @@ static VALUE rb_gsl_multimin_function_fdf_set(int argc, VALUE *argv, VALUE obj)
 double rb_gsl_multimin_function_fdf_f(const gsl_vector *x, void *p)
 {
   VALUE vx, proc, vp, result, ary;
-  vx = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector *) x);
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
   ary = (VALUE) p;
   proc = rb_ary_entry(ary, 0);
   vp = rb_ary_entry(ary, RARRAY_LEN(ary)-1);
@@ -382,8 +382,8 @@ void rb_gsl_multimin_function_fdf_df(const gsl_vector *x, void *p,
                                      gsl_vector *g)
 {
   VALUE vx, vg, proc, vp, ary;
-  vx = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector *) x);
-  vg = Data_Wrap_Struct(cgsl_vector, 0, NULL, g);
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
+  vg = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, g);
   ary = (VALUE) p;
   proc = rb_ary_entry(ary, 1);
   vp = rb_ary_entry(ary, RARRAY_LEN(ary)-1);
@@ -398,8 +398,8 @@ void rb_gsl_multimin_function_fdf_fdf(const gsl_vector *x, void *p,
                                       double *f, gsl_vector *g)
 {
   VALUE vx, vg, proc_f, proc_df, vp, ary, result;
-  vx = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector *) x);
-  vg = Data_Wrap_Struct(cgsl_vector, 0, NULL, g);
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
+  vg = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, g);
   ary = (VALUE) p;
   proc_f = rb_ary_entry(ary, 0);
   proc_df = rb_ary_entry(ary, 1);
@@ -531,7 +531,7 @@ static VALUE rb_gsl_fdfminimizer_x(VALUE obj)
   gsl_vector *x = NULL;
   Data_Get_Struct(obj, gsl_multimin_fdfminimizer, gmf);
   x = gsl_multimin_fdfminimizer_x(gmf);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, x);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, x);
 }
 
 static VALUE rb_gsl_fdfminimizer_gradient(VALUE obj)
@@ -540,7 +540,7 @@ static VALUE rb_gsl_fdfminimizer_gradient(VALUE obj)
   gsl_vector *gradient = NULL;
   Data_Get_Struct(obj, gsl_multimin_fdfminimizer, gmf);
   gradient = gsl_multimin_fdfminimizer_gradient(gmf);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, gradient);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, gradient);
 }
 
 static VALUE rb_gsl_fdfminimizer_minimum(VALUE obj)
@@ -660,7 +660,7 @@ static VALUE rb_gsl_fminimizer_x(VALUE obj)
   gsl_vector *x = NULL;
   Data_Get_Struct(obj, gsl_multimin_fminimizer, gmf);
   x = gsl_multimin_fminimizer_x(gmf);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, x);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, x);
 }
 
 static VALUE rb_gsl_fminimizer_minimum(VALUE obj)

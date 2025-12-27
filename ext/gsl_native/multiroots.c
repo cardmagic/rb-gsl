@@ -107,8 +107,8 @@ static int rb_gsl_multiroot_function_f(const gsl_vector *x, void *p, gsl_vector 
 {
   VALUE vx, vf;
   VALUE vp, proc;
-  vx = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector *) x);
-  vf = Data_Wrap_Struct(cgsl_vector, 0, NULL, f);
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
+  vf = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, f);
   proc = rb_ary_entry((VALUE) p, 0);
   vp = rb_ary_entry((VALUE) p, 1);
   if (NIL_P(vp)) rb_funcall(proc, RBGSL_ID_call, 2, vx, vf);
@@ -124,7 +124,7 @@ static VALUE rb_gsl_multiroot_function_eval(VALUE obj, VALUE vx)
   Data_Get_Struct(obj, gsl_multiroot_function, F);
   ary = (VALUE) F->params;
   f = gsl_vector_alloc(F->n);
-  vf = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, f);
+  vf = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, f);
   proc = rb_ary_entry(ary, 0);
   vp = rb_ary_entry(ary, 1);
   if (NIL_P(vp)) rb_funcall(proc, RBGSL_ID_call, 2, vx, vf);
@@ -341,8 +341,8 @@ static int rb_gsl_multiroot_function_fdf_f(const gsl_vector *x, void *p,
 {
   VALUE vx, vf, ary;
   VALUE proc, vp;
-  vx = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector *) x);
-  vf = Data_Wrap_Struct(cgsl_vector, 0, NULL, f);
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
+  vf = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, f);
   ary = (VALUE) p;
   proc = rb_ary_entry(ary, 0);
   vp = rb_ary_entry(ary, 3);
@@ -356,8 +356,8 @@ static int rb_gsl_multiroot_function_fdf_df(const gsl_vector *x, void *p,
 {
   VALUE vx, vJ, ary;
   VALUE proc, vp;
-  vx = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector *) x);
-  vJ = Data_Wrap_Struct(cgsl_matrix, 0, NULL, J);
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
+  vJ = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, J);
   ary = (VALUE) p;
   proc = rb_ary_entry(ary, 1);
   vp = rb_ary_entry(ary, 3);
@@ -371,9 +371,9 @@ static int rb_gsl_multiroot_function_fdf_fdf(const gsl_vector *x, void *p,
 {
   VALUE vx, vf, vJ, ary;
   VALUE proc_f, proc_df, proc_fdf, vp;
-  vx = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector *) x);
-  vf = Data_Wrap_Struct(cgsl_vector, 0, NULL, f);
-  vJ = Data_Wrap_Struct(cgsl_matrix, 0, NULL, J);
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
+  vf = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, f);
+  vJ = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, J);
   ary = (VALUE) p;
   proc_f = rb_ary_entry(ary, 0);
   proc_df = rb_ary_entry(ary, 1);
@@ -532,28 +532,28 @@ static VALUE rb_gsl_multiroot_fsolver_root(VALUE obj)
 {
   gsl_multiroot_fsolver *s = NULL;
   Data_Get_Struct(obj, gsl_multiroot_fsolver, s);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, gsl_multiroot_fsolver_root(s));
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, gsl_multiroot_fsolver_root(s));
 }
 
 static VALUE rb_gsl_multiroot_fsolver_x(VALUE obj)
 {
   gsl_multiroot_fsolver *s = NULL;
   Data_Get_Struct(obj, gsl_multiroot_fsolver, s);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, s->x);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, s->x);
 }
 
 static VALUE rb_gsl_multiroot_fsolver_dx(VALUE obj)
 {
   gsl_multiroot_fsolver *s = NULL;
   Data_Get_Struct(obj, gsl_multiroot_fsolver, s);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, s->dx);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, s->dx);
 }
 
 static VALUE rb_gsl_multiroot_fsolver_f(VALUE obj)
 {
   gsl_multiroot_fsolver *s = NULL;
   Data_Get_Struct(obj, gsl_multiroot_fsolver, s);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, s->f);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, s->f);
 }
 
 static VALUE rb_gsl_multiroot_fsolver_test_delta(VALUE obj, VALUE ea, VALUE er)
@@ -624,35 +624,35 @@ static VALUE rb_gsl_multiroot_fdfsolver_root(VALUE obj)
 {
   gsl_multiroot_fdfsolver *s = NULL;
   Data_Get_Struct(obj, gsl_multiroot_fdfsolver, s);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, gsl_multiroot_fdfsolver_root(s));
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, gsl_multiroot_fdfsolver_root(s));
 }
 
 static VALUE rb_gsl_multiroot_fdfsolver_x(VALUE obj)
 {
   gsl_multiroot_fdfsolver *s = NULL;
   Data_Get_Struct(obj, gsl_multiroot_fdfsolver, s);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, s->x);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, s->x);
 }
 
 static VALUE rb_gsl_multiroot_fdfsolver_dx(VALUE obj)
 {
   gsl_multiroot_fdfsolver *s = NULL;
   Data_Get_Struct(obj, gsl_multiroot_fdfsolver, s);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, s->dx);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, s->dx);
 }
 
 static VALUE rb_gsl_multiroot_fdfsolver_f(VALUE obj)
 {
   gsl_multiroot_fdfsolver *s = NULL;
   Data_Get_Struct(obj, gsl_multiroot_fdfsolver, s);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, s->f);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, s->f);
 }
 
 static VALUE rb_gsl_multiroot_fdfsolver_J(VALUE obj)
 {
   gsl_multiroot_fdfsolver *s = NULL;
   Data_Get_Struct(obj, gsl_multiroot_fdfsolver, s);
-  return Data_Wrap_Struct(cgsl_matrix_view_ro, 0, NULL, s->J);
+  return TypedData_Wrap_Struct(cgsl_matrix_view_ro, &gsl_matrix_view_data_type, s->J);
 }
 
 static VALUE rb_gsl_multiroot_fdfsolver_test_delta(VALUE obj, VALUE ea, VALUE er)
@@ -676,8 +676,8 @@ static VALUE rb_gsl_multiroot_test_delta(VALUE obj, VALUE vdx, VALUE vx,
 {
   gsl_vector *dx = NULL, *x = NULL;
   Need_Float(ea); Need_Float(er);
-  Data_Get_Struct(vdx, gsl_vector, dx);
-  Data_Get_Struct(vx, gsl_vector, x);
+  TypedData_Get_Struct(vdx, gsl_vector, &gsl_vector_data_type, dx);
+  TypedData_Get_Struct(vx, gsl_vector, &gsl_vector_data_type, x);
   return INT2FIX(gsl_multiroot_test_delta(dx, x, NUM2DBL(ea), NUM2DBL(er)));
 }
 
@@ -685,7 +685,7 @@ static VALUE rb_gsl_multiroot_test_residual(VALUE obj, VALUE vf, VALUE ea)
 {
   gsl_vector *f = NULL;
   Need_Float(ea);
-  Data_Get_Struct(vf, gsl_vector, f);
+  TypedData_Get_Struct(vf, gsl_vector, &gsl_vector_data_type, f);
   return INT2FIX(gsl_multiroot_test_residual(f, NUM2DBL(ea)));
 }
 
@@ -730,7 +730,7 @@ static VALUE rb_gsl_multiroot_fsolver_fsolve(int argc, VALUE *argv, VALUE obj)
   xnew = gsl_vector_alloc(s->x->size);
   gsl_vector_memcpy(xnew, gsl_multiroot_fsolver_root(s));
   return rb_ary_new3(3,
-                     Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, xnew),
+                     TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, xnew),
                      INT2FIX(iter), INT2FIX(status));
 }
 
@@ -763,10 +763,10 @@ static VALUE rb_gsl_multiroot_fdjacobian(int argc, VALUE *argv, VALUE obj)
   if (argc == 4) {
     J = gsl_matrix_alloc(F->n, F->n);
     status = gsl_multiroot_fdjacobian(F, x, f, eps, J);
-    return rb_ary_new3(2, Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, J),
+    return rb_ary_new3(2, TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, J),
                        INT2FIX(status));
   } else {
-    Data_Get_Struct(argv[4], gsl_matrix, J);
+    TypedData_Get_Struct(argv[4], gsl_matrix, &gsl_matrix_data_type, J);
     status = gsl_multiroot_fdjacobian(F, x, f, eps, J);
     return rb_ary_new3(2, argv[4], INT2FIX(status));
   }
@@ -854,7 +854,7 @@ static VALUE rb_gsl_multiroot_function_solve(int argc, VALUE *argv, VALUE obj)
   gsl_vector_memcpy(xnew, s->x);
   gsl_multiroot_fsolver_free (s);
   if (flag == 1) gsl_vector_free(x0);
-  return rb_ary_new3(3, Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, xnew),
+  return rb_ary_new3(3, TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, xnew),
                      INT2FIX(iter), INT2FIX(status));
 }
 

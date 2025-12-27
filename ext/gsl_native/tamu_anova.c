@@ -10,7 +10,7 @@ VALUE rb_tamu_anova_alloc(int argc, VALUE *argv, VALUE klass)
   switch (argc) {
   case 3:
   case 4:
-    Data_Get_Struct(argv[0], gsl_vector, data);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, data);
     Data_Get_Struct(argv[1], gsl_vector_long, factor);
     if (argc == 3) {
       I = data->size;

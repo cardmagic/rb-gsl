@@ -95,7 +95,7 @@ static VALUE rb_gsl_interp_bsearch(int argc, VALUE *argv, VALUE obj)
     case 2:
       CHECK_VECTOR(argv[0]);
       Need_Float(argv[1]);
-      Data_Get_Struct(argv[0], gsl_vector, v);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
       x = NUM2DBL(argv[1]);
       indexl = gsl_vector_get(v, 0);
       indexh = gsl_vector_get(v, v->size-1);
@@ -103,7 +103,7 @@ static VALUE rb_gsl_interp_bsearch(int argc, VALUE *argv, VALUE obj)
     case 4:
       CHECK_VECTOR(argv[0]);
       Need_Float(argv[1]); Need_Float(argv[2]); Need_Float(argv[3]);
-      Data_Get_Struct(argv[0], gsl_vector, v);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
       x = NUM2DBL(argv[1]);
       indexl = NUM2DBL(argv[2]);
       indexh = NUM2DBL(argv[3]);
@@ -114,7 +114,7 @@ static VALUE rb_gsl_interp_bsearch(int argc, VALUE *argv, VALUE obj)
     }
     break;
   default:
-    Data_Get_Struct(obj, gsl_vector, v);
+    TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
     switch (argc) {
     case 1:
       Need_Float(argv[0]);
@@ -141,7 +141,7 @@ static VALUE rb_gsl_interp_accel(VALUE obj)
 {
   rb_gsl_interp *rgi = NULL;
   Data_Get_Struct(obj, rb_gsl_interp, rgi);
-  return Data_Wrap_Struct(cgsl_interp_accel, 0, NULL, rgi->a);
+  return TypedData_Wrap_Struct(cgsl_interp_accel, &gsl_interp_accel_data_type, rgi->a);
 }
 
 static VALUE rb_gsl_interp_find(VALUE obj, VALUE vv, VALUE xx)
@@ -162,7 +162,7 @@ static VALUE rb_gsl_interp_accel_find(VALUE obj, VALUE vv, VALUE xx)
   double x, *ptr = NULL;
   size_t size, stride;
   Need_Float(xx);
-  Data_Get_Struct(obj, gsl_interp_accel, a);
+  TypedData_Get_Struct(obj, gsl_interp_accel, &gsl_interp_accel_data_type, a);
   ptr = get_vector_ptr(vv, &stride, &size);
   Need_Float(xx);
   x = NUM2DBL(xx);
@@ -237,15 +237,15 @@ static VALUE rb_gsl_interp_evaluate(VALUE obj, VALUE xxa, VALUE yya, VALUE xx,
     }
 #endif
     if (VECTOR_P(xx)) {
-      Data_Get_Struct(xx, gsl_vector, v);
+      TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, v);
       vnew = gsl_vector_alloc(v->size);
       for (i = 0; i < v->size; i++) {
         val = (*eval)(rgi->p, ptrx, ptry, gsl_vector_get(v, i), rgi->a);
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     } else if (MATRIX_P(xx)) {
-      Data_Get_Struct(xx, gsl_matrix, m);
+      TypedData_Get_Struct(xx, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
         for (j = 0; j < m->size2; j++) {
@@ -253,7 +253,7 @@ static VALUE rb_gsl_interp_evaluate(VALUE obj, VALUE xxa, VALUE yya, VALUE xx,
           gsl_matrix_set(mnew, i, j, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       rb_raise(rb_eTypeError, "wrong argument type %s", rb_class2name(CLASS_OF(xx)));
     }

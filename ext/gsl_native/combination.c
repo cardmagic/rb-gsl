@@ -116,7 +116,7 @@ static VALUE rb_gsl_combination_data(VALUE obj)
   p = ALLOC(gsl_permutation);
   p->size = c->k;
   p->data = c->data;
-  return Data_Wrap_Struct(cgsl_combination_data, 0, free, p);
+  return TypedData_Wrap_Struct(cgsl_combination_data, &gsl_combination_data_type, p);
 }
 
 static VALUE rb_gsl_combination_valid(VALUE obj)

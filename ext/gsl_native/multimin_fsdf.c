@@ -73,7 +73,7 @@ static VALUE rb_gsl_fsdfminimizer_x(VALUE obj)
   gsl_vector *x = NULL;
   Data_Get_Struct(obj, gsl_multimin_fsdfminimizer, gmf);
   x = gsl_multimin_fsdfminimizer_x(gmf);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, x);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, x);
 }
 
 static VALUE rb_gsl_fsdfminimizer_subgradient(VALUE obj)
@@ -82,7 +82,7 @@ static VALUE rb_gsl_fsdfminimizer_subgradient(VALUE obj)
   gsl_vector *gradient = NULL;
   Data_Get_Struct(obj, gsl_multimin_fsdfminimizer, gmf);
   gradient = gsl_multimin_fsdfminimizer_subgradient(gmf);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, NULL, gradient);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, gradient);
 }
 
 static VALUE rb_gsl_fsdfminimizer_minimum(VALUE obj)

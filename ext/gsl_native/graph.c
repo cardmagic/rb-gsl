@@ -1191,7 +1191,7 @@ static VALUE rb_gsl_graph_graph(int argc, VALUE *argv, VALUE obj)
     } else if (VECTOR_P(argv[0])) {
       g->xdata = argv[0];
     } else if (HISTOGRAM_P(argv[0])) {
-      Data_Get_Struct(argv[0], gsl_histogram, h);
+      TypedData_Get_Struct(argv[0], gsl_histogram, &gsl_histogram_data_type, h);
     } else {
       rb_raise(rb_eTypeError, "wrong argument type %s (Vector or String expected)",
                rb_class2name(CLASS_OF(argv[0])));
@@ -1201,8 +1201,8 @@ static VALUE rb_gsl_graph_graph(int argc, VALUE *argv, VALUE obj)
     rb_raise(rb_eArgError, "wrong number of argumeuts (%d for 1-3)", argc);
     break;
   }
-  if (VECTOR_P(g->xdata)) Data_Get_Struct(g->xdata, gsl_vector, x);
-  if (VECTOR_P(g->ydata)) Data_Get_Struct(g->ydata, gsl_vector, y);
+  if (VECTOR_P(g->xdata)) TypedData_Get_Struct(g->xdata, gsl_vector, &gsl_vector_data_type, x);
+  if (VECTOR_P(g->ydata)) TypedData_Get_Struct(g->ydata, gsl_vector, &gsl_vector_data_type, y);
   if (x == NULL && h == NULL)
     rb_raise(rb_eRuntimeError, "data is not given");
   if (h) size = h->n;
@@ -1267,8 +1267,8 @@ static VALUE rb_gsl_graph_step(int argc, VALUE *argv, VALUE obj)
     rb_raise(rb_eArgError, "wrong number of argumeuts (%d for 1-3)", argc);
     break;
   }
-  if (VECTOR_P(g->xdata)) Data_Get_Struct(g->xdata, gsl_vector, x);
-  if (VECTOR_P(g->ydata)) Data_Get_Struct(g->ydata, gsl_vector, y);
+  if (VECTOR_P(g->xdata)) TypedData_Get_Struct(g->xdata, gsl_vector, &gsl_vector_data_type, x);
+  if (VECTOR_P(g->ydata)) TypedData_Get_Struct(g->ydata, gsl_vector, &gsl_vector_data_type, y);
   if (x == NULL)
     rb_raise(rb_eRuntimeError, "data is not given");
   size = x->size;

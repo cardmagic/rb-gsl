@@ -109,7 +109,7 @@ static VALUE rb_ool_conmin_minimizer_set(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eTypeError, "Wrong argument type 2 (GSL::Vector expected)");
     Data_Get_Struct(argv[0], ool_conmin_function, F);
     Data_Get_Struct(argv[1], ool_conmin_constraint, C);
-    Data_Get_Struct(argv[2], gsl_vector, v);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, v);
     P = get_parameter(m->type, &Pp, &Ps, &Pg, Qnil);
     ool_conmin_minimizer_set(m, F, C, v, P);
     break;
@@ -124,7 +124,7 @@ static VALUE rb_ool_conmin_minimizer_set(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eTypeError, "Wrong argument type 3 (Array expected)");
     Data_Get_Struct(argv[0], ool_conmin_function, F);
     Data_Get_Struct(argv[1], ool_conmin_constraint, C);
-    Data_Get_Struct(argv[2], gsl_vector, v);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, v);
     P = get_parameter(m->type, &Pp, &Ps, &Pg, argv[3]);
     ool_conmin_minimizer_set(m, F, C, v, P);
     break;
@@ -318,13 +318,13 @@ static VALUE rb_ool_conmin_minimizer_x(VALUE obj)
 {
   ool_conmin_minimizer *m;
   Data_Get_Struct(obj, ool_conmin_minimizer, m);
-  return Data_Wrap_Struct(cgsl_vector, 0, NULL, m->x);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, m->x);
 }
 static VALUE rb_ool_conmin_minimizer_gradient(VALUE obj)
 {
   ool_conmin_minimizer *m;
   Data_Get_Struct(obj, ool_conmin_minimizer, m);
-  return Data_Wrap_Struct(cgsl_vector, 0, NULL, m->gradient);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, m->gradient);
 }
 static VALUE rb_ool_conmin_minimizer_minimum(VALUE obj)
 {
@@ -336,7 +336,7 @@ static VALUE rb_ool_conmin_minimizer_dx(VALUE obj)
 {
   ool_conmin_minimizer *m;
   Data_Get_Struct(obj, ool_conmin_minimizer, m);
-  return Data_Wrap_Struct(cgsl_vector, 0, NULL, m->dx);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, m->dx);
 }
 static VALUE rb_ool_conmin_minimizer_size(VALUE obj)
 {
@@ -507,7 +507,7 @@ static VALUE rb_ool_conmin_function_n(VALUE obj)
 static double rb_ool_conmin_function_f(const gsl_vector *x, void *p)
 {
   VALUE vx, proc, vp, result, ary;
-  vx = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector *) x);
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
   ary = (VALUE) p;
   proc = rb_ary_entry(ary, 0);
   vp = rb_ary_entry(ary, RARRAY_LEN(ary)-1);
@@ -519,8 +519,8 @@ static double rb_ool_conmin_function_f(const gsl_vector *x, void *p)
 static void rb_ool_conmin_function_df(const gsl_vector *x, void *p, gsl_vector *g)
 {
   VALUE vx, vg, proc, vp, ary;
-  vx = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector *) x);
-  vg = Data_Wrap_Struct(cgsl_vector, 0, NULL, g);
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
+  vg = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, g);
   ary = (VALUE) p;
   proc = rb_ary_entry(ary, 1);
   vp = rb_ary_entry(ary, RARRAY_LEN(ary)-1);
@@ -535,8 +535,8 @@ static void rb_ool_conmin_function_fdf(const gsl_vector *x, void *p,
                                        double *f, gsl_vector *g)
 {
   VALUE vx, vf, vg, proc_fdf, proc_f, proc_df, vp, ary, result;
-  vx = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector *) x);
-  vg = Data_Wrap_Struct(cgsl_vector, 0, NULL, g);
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
+  vg = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, g);
   vf = rb_float_new(*f);
   ary = (VALUE) p;
   proc_f = rb_ary_entry(ary, 0);
@@ -557,9 +557,9 @@ static void rb_ool_conmin_function_Hv(const gsl_vector *X, void *params,
                                       const gsl_vector *V, gsl_vector *hv)
 {
   VALUE vX, vV, vHv, ary, proc_Hv, vp;
-  vX = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector*) X);
-  vV = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector*) V);
-  vHv = Data_Wrap_Struct(cgsl_vector, 0, NULL, (gsl_vector*) hv);
+  vX = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector*) X);
+  vV = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector*) V);
+  vHv = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector*) hv);
   ary = (VALUE) params;
   proc_Hv = rb_ary_entry(ary, 3);
   vp = rb_ary_entry(ary, RARRAY_LEN(ary)-1);
@@ -718,7 +718,7 @@ static VALUE rb_ool_conmin_constraint_set_L(VALUE obj, VALUE vL)
   gsl_vector *L;
   CHECK_VECTOR(vL);
   Data_Get_Struct(obj, ool_conmin_constraint, C);
-  Data_Get_Struct(vL, gsl_vector, L);
+  TypedData_Get_Struct(vL, gsl_vector, &gsl_vector_data_type, L);
   C->L = L;
   return vL;
 }
@@ -729,7 +729,7 @@ static VALUE rb_ool_conmin_constraint_set_U(VALUE obj, VALUE vU)
   gsl_vector *U;
   CHECK_VECTOR(vU);
   Data_Get_Struct(obj, ool_conmin_constraint, C);
-  Data_Get_Struct(vU, gsl_vector, U);
+  TypedData_Get_Struct(vU, gsl_vector, &gsl_vector_data_type, U);
   C->U = U;
   return vU;
 }

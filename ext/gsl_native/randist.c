@@ -30,7 +30,7 @@ static VALUE rb_gsl_ran_eval0(int argc, VALUE *argv, VALUE obj,
     switch (argc) {
     case 1:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)", argc);
@@ -45,7 +45,7 @@ static VALUE rb_gsl_ran_eval0(int argc, VALUE *argv, VALUE obj,
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 0)", argc);
       break;
     }
-    Data_Get_Struct(obj, gsl_rng, r);
+    TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
     break;
   }
   return rb_float_new((*f)(r));
@@ -65,15 +65,15 @@ static VALUE rb_gsl_ran_eval1(int argc, VALUE *argv, VALUE obj,
       n = NUM2INT(argv[2]);
       a = NUM2DBL(argv[1]);
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       v = gsl_vector_alloc(n);
       for (i = 0; i < n; i++)
         gsl_vector_set(v, i, (*f)(r, a));
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
       break;
     case 2:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       a = NUM2DBL(argv[1]);
       break;
     default:
@@ -86,11 +86,11 @@ static VALUE rb_gsl_ran_eval1(int argc, VALUE *argv, VALUE obj,
     case 2:
       n = NUM2INT(argv[1]);
       a = NUM2DBL(argv[0]);
-      Data_Get_Struct(obj, gsl_rng, r);
+      TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
       v = gsl_vector_alloc(n);
       for (i = 0; i < n; i++)
         gsl_vector_set(v, i, (*f)(r, a));
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
       break;
     case 1:
       a = NUM2DBL(argv[0]);
@@ -99,7 +99,7 @@ static VALUE rb_gsl_ran_eval1(int argc, VALUE *argv, VALUE obj,
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)", argc);
       break;
     }
-    Data_Get_Struct(obj, gsl_rng, r);
+    TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
     break;
   }
   return rb_float_new((*f)(r, a));
@@ -119,15 +119,15 @@ static VALUE rb_gsl_ran_eval1_uint(int argc, VALUE *argv, VALUE obj,
       n = NUM2INT(argv[2]);
       a = NUM2DBL(argv[1]);
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       v = gsl_vector_int_alloc(n);
       for (i = 0; i < n; i++)
         gsl_vector_int_set(v, i, (int) (*f)(r, a));
-      return Data_Wrap_Struct(cgsl_vector_int, 0, gsl_vector_int_free, v);
+      return TypedData_Wrap_Struct(cgsl_vector_int, &gsl_vector_int_data_type, v);
       break;
     case 2:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       a = NUM2DBL(argv[1]);
       break;
     default:
@@ -140,11 +140,11 @@ static VALUE rb_gsl_ran_eval1_uint(int argc, VALUE *argv, VALUE obj,
     case 2:
       n = NUM2INT(argv[1]);
       a = NUM2DBL(argv[0]);
-      Data_Get_Struct(obj, gsl_rng, r);
+      TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
       v = gsl_vector_int_alloc(n);
       for (i = 0; i < n; i++)
         gsl_vector_int_set(v, i, (*f)(r, a));
-      return Data_Wrap_Struct(cgsl_vector_int, 0, gsl_vector_int_free, v);
+      return TypedData_Wrap_Struct(cgsl_vector_int, &gsl_vector_int_data_type, v);
       break;
     case 1:
       a = NUM2DBL(argv[0]);
@@ -153,7 +153,7 @@ static VALUE rb_gsl_ran_eval1_uint(int argc, VALUE *argv, VALUE obj,
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)", argc);
       break;
     }
-    Data_Get_Struct(obj, gsl_rng, r);
+    TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
     break;
   }
   return INT2FIX((*f)(r, a));
@@ -171,16 +171,16 @@ static VALUE rb_gsl_ran_eval2(int argc, VALUE *argv, VALUE obj,
     switch (argc) {
     case 4:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       a = NUM2DBL(argv[1]); b = NUM2DBL(argv[2]);
       n = NUM2INT(argv[3]);
       v = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) gsl_vector_set(v, i, (*f)(r, a, b));
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
       break;
     case 3:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       a = NUM2DBL(argv[1]); b = NUM2DBL(argv[2]);
       break;
     default:
@@ -191,12 +191,12 @@ static VALUE rb_gsl_ran_eval2(int argc, VALUE *argv, VALUE obj,
   default:
     switch (argc) {
     case 3:
-      Data_Get_Struct(obj, gsl_rng, r);
+      TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
       a = NUM2DBL(argv[0]); b = NUM2DBL(argv[1]);
       n = NUM2INT(argv[2]);
       v = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) gsl_vector_set(v, i, (*f)(r, a, b));
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
       break;
     case 2:
       a = NUM2DBL(argv[0]); b = NUM2DBL(argv[1]);
@@ -205,7 +205,7 @@ static VALUE rb_gsl_ran_eval2(int argc, VALUE *argv, VALUE obj,
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)", argc);
       break;
     }
-    Data_Get_Struct(obj, gsl_rng, r);
+    TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
     break;
   }
   return rb_float_new((*f)(r, a, b));
@@ -223,16 +223,16 @@ static VALUE rb_gsl_ran_eval3(int argc, VALUE *argv, VALUE obj,
     switch (argc) {
     case 5:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       a = NUM2DBL(argv[1]); b = NUM2DBL(argv[2]); c = NUM2DBL(argv[3]);
       n = NUM2INT(argv[4]);
       v = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) gsl_vector_set(v, i, (*f)(r, a, b, c));
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
       break;
     case 4:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       a = NUM2DBL(argv[1]); b = NUM2DBL(argv[2]); c = NUM2DBL(argv[3]);
       break;
     default:
@@ -243,12 +243,12 @@ static VALUE rb_gsl_ran_eval3(int argc, VALUE *argv, VALUE obj,
   default:
     switch (argc) {
     case 4:
-      Data_Get_Struct(obj, gsl_rng, r);
+      TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
       a = NUM2DBL(argv[0]); b = NUM2DBL(argv[1]); c = NUM2DBL(argv[2]);
       n = NUM2INT(argv[3]);
       v = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) gsl_vector_set(v, i, (*f)(r, a, b, c));
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
       break;
     case 3:
       a = NUM2DBL(argv[0]); b = NUM2DBL(argv[1]); c = NUM2DBL(argv[2]);
@@ -257,7 +257,7 @@ static VALUE rb_gsl_ran_eval3(int argc, VALUE *argv, VALUE obj,
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 3)", argc);
       break;
     }
-    Data_Get_Struct(obj, gsl_rng, r);
+    TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
     break;
   }
   return rb_float_new((*f)(r, a, b, c));
@@ -276,18 +276,18 @@ static VALUE rb_gsl_ran_gaussian(int argc, VALUE *argv, VALUE obj)
       n = NUM2INT(argv[2]);
       sigma = NUM2DBL(argv[1]);
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       v = gsl_vector_alloc(n);
       for (i = 0; i < n; i++)
         gsl_vector_set(v, i, gsl_ran_gaussian(r, sigma));
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
       break;
     case 2:
       sigma = NUM2DBL(argv[1]);
     /* no break */
     case 1:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       return rb_float_new(gsl_ran_gaussian(r, sigma));
       break;
     default:
@@ -297,7 +297,7 @@ static VALUE rb_gsl_ran_gaussian(int argc, VALUE *argv, VALUE obj)
     }
     break;
   default:
-    Data_Get_Struct(obj, gsl_rng, r);
+    TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
     switch (argc) {
     case 2:
       n = NUM2INT(argv[1]);
@@ -305,7 +305,7 @@ static VALUE rb_gsl_ran_gaussian(int argc, VALUE *argv, VALUE obj)
       v = gsl_vector_alloc(n);
       for (i = 0; i < n; i++)
         gsl_vector_set(v, i, gsl_ran_gaussian(r, sigma));
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
       break;
     case 1:
       sigma = NUM2DBL(argv[0]);
@@ -335,7 +335,7 @@ static VALUE rb_gsl_ran_gaussian_ratio_method(int argc, VALUE *argv, VALUE obj)
     /* no break */
     case 1:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       return rb_float_new(gsl_ran_gaussian_ratio_method(r, sigma));
       break;
     default:
@@ -344,7 +344,7 @@ static VALUE rb_gsl_ran_gaussian_ratio_method(int argc, VALUE *argv, VALUE obj)
     }
     break;
   default:
-    Data_Get_Struct(obj, gsl_rng, r);
+    TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
     switch (argc) {
     case 1:
       sigma = NUM2DBL(argv[0]);
@@ -386,18 +386,18 @@ static VALUE rb_gsl_ran_gaussian_tail(int argc, VALUE *argv, VALUE obj)
       sigma = NUM2DBL(argv[2]);
       a = NUM2DBL(argv[1]);
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       v = gsl_vector_alloc(n);
       for (i = 0; i < n; i++)
         gsl_vector_set(v, i, gsl_ran_gaussian_tail(r, a, sigma));
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
       break;
     case 3:
       sigma = NUM2DBL(argv[2]);
     /* no break */
     case 2:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       a = NUM2DBL(argv[1]);
       return rb_float_new(gsl_ran_gaussian_tail(r, a, sigma));
       break;
@@ -407,7 +407,7 @@ static VALUE rb_gsl_ran_gaussian_tail(int argc, VALUE *argv, VALUE obj)
     }
     break;
   default:
-    Data_Get_Struct(obj, gsl_rng, r);
+    TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
     switch (argc) {
     case 3:
       n = NUM2INT(argv[2]);
@@ -416,7 +416,7 @@ static VALUE rb_gsl_ran_gaussian_tail(int argc, VALUE *argv, VALUE obj)
       v = gsl_vector_alloc(n);
       for (i = 0; i < n; i++)
         gsl_vector_set(v, i, gsl_ran_gaussian_tail(r, a, sigma));
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
       break;
     case 2:
       sigma = NUM2DBL(argv[1]);
@@ -457,7 +457,7 @@ static VALUE rb_gsl_ran_bivariate_gaussian(int argc, VALUE *argv, VALUE obj)
     switch (argc) {
     case 4:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       sigmax = NUM2DBL(argv[1]); sigmay = NUM2DBL(argv[2]);
       rho = NUM2DBL(argv[3]);
       break;
@@ -469,7 +469,7 @@ static VALUE rb_gsl_ran_bivariate_gaussian(int argc, VALUE *argv, VALUE obj)
   default:
     switch (argc) {
     case 3:
-      Data_Get_Struct(obj, gsl_rng, r);
+      TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
       sigmax = NUM2DBL(argv[0]); sigmay = NUM2DBL(argv[1]);
       rho = NUM2DBL(argv[2]);
       break;
@@ -720,7 +720,7 @@ static VALUE rb_gsl_ran_binomial(int argc, VALUE *argv, VALUE obj)
     switch (argc) {
     case 3:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       p = NUM2DBL(argv[1]);
       n = FIX2UINT(argv[2]);
       break;
@@ -739,7 +739,7 @@ static VALUE rb_gsl_ran_binomial(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)", argc);
       break;
     }
-    Data_Get_Struct(obj, gsl_rng, r);
+    TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
     break;
   }
   return UINT2NUM(gsl_ran_binomial(r, p, n));
@@ -755,7 +755,7 @@ static VALUE rb_gsl_ran_binomial_tpe(int argc, VALUE *argv, VALUE obj)
     switch (argc) {
     case 3:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       p = NUM2DBL(argv[1]);
       n = FIX2UINT(argv[2]);
       break;
@@ -774,7 +774,7 @@ static VALUE rb_gsl_ran_binomial_tpe(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)", argc);
       break;
     }
-    Data_Get_Struct(obj, gsl_rng, r);
+    TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
     break;
   }
   return UINT2NUM(gsl_ran_binomial_tpe(r, p, n));
@@ -795,7 +795,7 @@ static VALUE rb_gsl_ran_negative_binomial(int argc, VALUE *argv, VALUE obj)
     switch (argc) {
     case 3:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       p = NUM2DBL(argv[1]);
       n = FIX2UINT(argv[2]);
       break;
@@ -814,7 +814,7 @@ static VALUE rb_gsl_ran_negative_binomial(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)", argc);
       break;
     }
-    Data_Get_Struct(obj, gsl_rng, r);
+    TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
     break;
   }
   return UINT2NUM(gsl_ran_negative_binomial(r, p, n));
@@ -835,7 +835,7 @@ static VALUE rb_gsl_ran_pascal(int argc, VALUE *argv, VALUE obj)
     switch (argc) {
     case 3:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       p = NUM2DBL(argv[1]);
       n = FIX2UINT(argv[2]);
       break;
@@ -854,7 +854,7 @@ static VALUE rb_gsl_ran_pascal(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)", argc);
       break;
     }
-    Data_Get_Struct(obj, gsl_rng, r);
+    TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
     break;
   }
   return UINT2NUM(gsl_ran_pascal(r, p, n));
@@ -884,7 +884,7 @@ static VALUE rb_gsl_ran_hypergeometric(int argc, VALUE *argv, VALUE obj)
     switch (argc) {
     case 4:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       n1 = FIX2UINT(argv[1]);
       n2 = FIX2UINT(argv[2]);
       t = FIX2UINT(argv[3]);
@@ -905,7 +905,7 @@ static VALUE rb_gsl_ran_hypergeometric(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 3)", argc);
       break;
     }
-    Data_Get_Struct(obj, gsl_rng, r);
+    TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
     break;
   }
   return UINT2NUM(gsl_ran_hypergeometric(r, n1, n2, t));
@@ -935,7 +935,7 @@ static VALUE rb_gsl_ran_dir_2d(int argc, VALUE *argv, VALUE obj)
     switch (argc) {
     case 1:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)", argc);
@@ -945,7 +945,7 @@ static VALUE rb_gsl_ran_dir_2d(int argc, VALUE *argv, VALUE obj)
   default:
     switch (argc) {
     case 0:
-      Data_Get_Struct(obj, gsl_rng, r);
+      TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 0)", argc);
@@ -965,7 +965,7 @@ static VALUE rb_gsl_ran_dir_2d_trig_method(int argc, VALUE *argv, VALUE obj)
     switch (argc) {
     case 1:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)", argc);
@@ -975,7 +975,7 @@ static VALUE rb_gsl_ran_dir_2d_trig_method(int argc, VALUE *argv, VALUE obj)
   default:
     switch (argc) {
     case 0:
-      Data_Get_Struct(obj, gsl_rng, r);
+      TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 0)", argc);
@@ -995,7 +995,7 @@ static VALUE rb_gsl_ran_dir_3d(int argc, VALUE *argv, VALUE obj)
     switch (argc) {
     case 1:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)", argc);
@@ -1005,7 +1005,7 @@ static VALUE rb_gsl_ran_dir_3d(int argc, VALUE *argv, VALUE obj)
   default:
     switch (argc) {
     case 0:
-      Data_Get_Struct(obj, gsl_rng, r);
+      TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 0)", argc);
@@ -1026,7 +1026,7 @@ static VALUE rb_gsl_ran_dir_nd(int argc, VALUE *argv, VALUE obj)
     switch (argc) {
     case 2:
       CHECK_RNG(argv[0]); CHECK_FIXNUM(argv[1]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       n = FIX2INT(argv[1]);
       break;
     default:
@@ -1039,7 +1039,7 @@ static VALUE rb_gsl_ran_dir_nd(int argc, VALUE *argv, VALUE obj)
     case 1:
       CHECK_FIXNUM(argv[0]);
       n = FIX2INT(argv[0]);
-      Data_Get_Struct(obj, gsl_rng, r);
+      TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 0)", argc);
@@ -1048,7 +1048,7 @@ static VALUE rb_gsl_ran_dir_nd(int argc, VALUE *argv, VALUE obj)
   }
   v = gsl_vector_alloc(n);
   gsl_ran_dir_nd(r, n, v->data);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
 }
 
 static VALUE rb_gsl_ran_shuffle(int argc, VALUE *argv, VALUE obj)
@@ -1063,12 +1063,12 @@ static VALUE rb_gsl_ran_shuffle(int argc, VALUE *argv, VALUE obj)
     switch (argc) {
     case 2:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       if (VECTOR_P(argv[1])) {
-        Data_Get_Struct(argv[1], gsl_vector, v);
+        TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, v);
         gsl_ran_shuffle(r, v->data, v->size, sizeof(double));
       } else if (PERMUTATION_P(argv[1])) {
-        Data_Get_Struct(argv[1], gsl_permutation, p);
+        TypedData_Get_Struct(argv[1], gsl_permutation, &gsl_permutation_data_type, p);
         gsl_ran_shuffle(r, p->data, p->size, sizeof(size_t));
       } else {
         rb_raise(rb_eTypeError, "wrong argument type %s (Vector or Permutation expected)", rb_class2name(CLASS_OF(argv[1])));
@@ -1077,12 +1077,12 @@ static VALUE rb_gsl_ran_shuffle(int argc, VALUE *argv, VALUE obj)
     case 3:
       CHECK_RNG(argv[0]);
       CHECK_FIXNUM(argv[2]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       if (VECTOR_P(argv[1])) {
-        Data_Get_Struct(argv[1], gsl_vector, v);
+        TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, v);
         gsl_ran_shuffle(r, v->data, FIX2INT(argv[2]), sizeof(double));
       } else if (PERMUTATION_P(argv[1])) {
-        Data_Get_Struct(argv[1], gsl_permutation, p);
+        TypedData_Get_Struct(argv[1], gsl_permutation, &gsl_permutation_data_type, p);
         gsl_ran_shuffle(r, p->data, FIX2INT(argv[2]), sizeof(size_t));
       } else {
         rb_raise(rb_eTypeError,
@@ -1096,14 +1096,14 @@ static VALUE rb_gsl_ran_shuffle(int argc, VALUE *argv, VALUE obj)
     }
     break;
   default:
-    Data_Get_Struct(obj, gsl_rng, r);
+    TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
     switch (argc) {
     case 1:
       if (VECTOR_P(argv[0])) {
-        Data_Get_Struct(argv[0], gsl_vector, v);
+        TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
         gsl_ran_shuffle(r, v->data, v->size, sizeof(double));
       } else if (PERMUTATION_P(argv[0])) {
-        Data_Get_Struct(argv[0], gsl_permutation, p);
+        TypedData_Get_Struct(argv[0], gsl_permutation, &gsl_permutation_data_type, p);
         gsl_ran_shuffle(r, p->data, p->size, sizeof(size_t));
       } else {
         rb_raise(rb_eTypeError, "wrong argument type %s (Vector or Permutation expected)", rb_class2name(CLASS_OF(argv[0])));
@@ -1112,10 +1112,10 @@ static VALUE rb_gsl_ran_shuffle(int argc, VALUE *argv, VALUE obj)
     case 2:
       CHECK_FIXNUM(argv[1]);
       if (VECTOR_P(argv[0])) {
-        Data_Get_Struct(argv[0], gsl_vector, v);
+        TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
         gsl_ran_shuffle(r, v->data, FIX2INT(argv[1]), sizeof(double));
       } else if (PERMUTATION_P(argv[0])) {
-        Data_Get_Struct(argv[0], gsl_permutation, p);
+        TypedData_Get_Struct(argv[0], gsl_permutation, &gsl_permutation_data_type, p);
         gsl_ran_shuffle(r, p->data, FIX2INT(argv[1]), sizeof(size_t));
       } else {
         rb_raise(rb_eTypeError,
@@ -1136,28 +1136,28 @@ static VALUE rb_gsl_ran_choose(int argc, VALUE *argv, VALUE obj)
   gsl_rng *r = NULL;
   gsl_vector *v = NULL, *v2 = NULL;
   size_t k, n;
-  Data_Get_Struct(obj, gsl_rng, r);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
   switch (argc) {
   case 2:
     CHECK_VECTOR(argv[0]);
     CHECK_FIXNUM(argv[1]);
-    Data_Get_Struct(argv[0], gsl_vector, v);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
     n = v->size;
     k = FIX2INT(argv[1]);
     if (k > n) rb_raise(rb_eArgError, "the argument 1 must be less than or equal to the size of the vector.");
     v2 = gsl_vector_alloc(k);
     gsl_ran_choose(r, v2->data, k, v->data, n, sizeof(double));
-    return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v2);
+    return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v2);
     break;
   case 1:
     CHECK_VECTOR(argv[0]);
-    Data_Get_Struct(argv[0], gsl_vector, v);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
     n = v->size;
     k = v->size;
     if (k > n) rb_raise(rb_eArgError, "the argument 1 must be less than or equal to the size of the vector.");
     v2 = gsl_vector_alloc(k);
     gsl_ran_choose(r, v2->data, k, v->data, n, sizeof(double));
-    return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v2);
+    return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v2);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 2)", argc);
@@ -1175,26 +1175,26 @@ static VALUE rb_gsl_ran_choose_singleton(int argc, VALUE *argv, VALUE obj)
     CHECK_RNG(argv[0]);
     CHECK_VECTOR(argv[1]);
     CHECK_FIXNUM(argv[2]);
-    Data_Get_Struct(argv[0], gsl_rng, r);
-    Data_Get_Struct(argv[1], gsl_vector, v);
+    TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, v);
     n = v->size;
     k = FIX2INT(argv[2]);
     if (k > n) rb_raise(rb_eArgError, "the argument 1 must be less than or equal to the size of the vector.");
     v2 = gsl_vector_alloc(k);
     gsl_ran_choose(r, v2->data, k, v->data, n, sizeof(double));
-    return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v2);
+    return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v2);
     break;
   case 2:
     CHECK_RNG(argv[0]);
     CHECK_VECTOR(argv[1]);
-    Data_Get_Struct(argv[0], gsl_rng, r);
-    Data_Get_Struct(argv[1], gsl_vector, v);
+    TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, v);
     n = v->size;
     k = v->size;
     if (k > n) rb_raise(rb_eArgError, "the argument 1 must be less than or equal to the size of the vector.");
     v2 = gsl_vector_alloc(k);
     gsl_ran_choose(r, v2->data, k, v->data, n, sizeof(double));
-    return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v2);
+    return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v2);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2 or 3)", argc);
@@ -1207,28 +1207,28 @@ static VALUE rb_gsl_ran_sample(VALUE obj, VALUE vv, VALUE kk)
   gsl_rng *r = NULL;
   gsl_vector *v = NULL, *v2 = NULL;
   size_t k, n;
-  Data_Get_Struct(obj, gsl_rng, r);
-  Data_Get_Struct(vv, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
+  TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
   n = v->size;
   k = FIX2INT(kk);
   v2 = gsl_vector_alloc(k);
   gsl_ran_sample(r, v2->data, k, v->data, n, sizeof(double));
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v2);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v2);
 }
 
 static VALUE rb_gsl_ran_dirichlet(int argc, VALUE *argv, VALUE obj)
 {
   gsl_rng *r = NULL;
   gsl_vector *v = NULL, *v2 = NULL;
-  Data_Get_Struct(obj, gsl_rng, r);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
   if (argc == 1) {
-    Data_Get_Struct(argv[0], gsl_vector, v);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
     v2 = gsl_vector_alloc(v->size);
     gsl_ran_dirichlet(r, v->size, v->data, v2->data);
-    return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v2);
+    return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v2);
   } else if (argc == 2) {
-    Data_Get_Struct(argv[0], gsl_vector, v);
-    Data_Get_Struct(argv[1], gsl_vector, v2);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, v2);
     gsl_ran_dirichlet(r, v->size, v->data, v2->data);
     return obj;
   } else {
@@ -1239,15 +1239,15 @@ static VALUE rb_gsl_ran_dirichlet(int argc, VALUE *argv, VALUE obj)
 static VALUE rb_gsl_ran_dirichlet_pdf(VALUE obj, VALUE a, VALUE t)
 {
   gsl_vector *alpha = NULL, *theta = NULL;
-  Data_Get_Struct(a, gsl_vector, alpha);
-  Data_Get_Struct(t, gsl_vector, theta);
+  TypedData_Get_Struct(a, gsl_vector, &gsl_vector_data_type, alpha);
+  TypedData_Get_Struct(t, gsl_vector, &gsl_vector_data_type, theta);
   return rb_float_new(gsl_ran_dirichlet_pdf(alpha->size, alpha->data, theta->data));
 }
 static VALUE rb_gsl_ran_dirichlet_lnpdf(VALUE obj, VALUE a, VALUE t)
 {
   gsl_vector *alpha = NULL, *theta = NULL;
-  Data_Get_Struct(a, gsl_vector, alpha);
-  Data_Get_Struct(t, gsl_vector, theta);
+  TypedData_Get_Struct(a, gsl_vector, &gsl_vector_data_type, alpha);
+  TypedData_Get_Struct(t, gsl_vector, &gsl_vector_data_type, theta);
   return rb_float_new(gsl_ran_dirichlet_lnpdf(alpha->size, alpha->data, theta->data));
 }
 
@@ -1255,7 +1255,7 @@ static VALUE rb_gsl_ran_discrete_new(VALUE klass, VALUE vv)
 {
   gsl_vector *v = NULL;
   gsl_ran_discrete_t *g = NULL;
-  Data_Get_Struct(vv, gsl_vector, v);
+  TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
   g = gsl_ran_discrete_preproc(v->size, v->data);
   return Data_Wrap_Struct(klass, 0, gsl_ran_discrete_free, g);
 }
@@ -1264,7 +1264,7 @@ static VALUE rb_gsl_ran_discrete(VALUE obj, VALUE gg)
 {
   gsl_rng *r = NULL;
   gsl_ran_discrete_t *g = NULL;
-  Data_Get_Struct(obj, gsl_rng, r);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
   Data_Get_Struct(gg, gsl_ran_discrete_t, g);
   return INT2FIX(gsl_ran_discrete(r, g));
 }
@@ -1331,21 +1331,21 @@ VALUE rb_gsl_eval_pdf_cdf(VALUE xx, double (*f)(double))
     }
 #endif
     if (VECTOR_P(xx)) {
-      Data_Get_Struct(xx, gsl_vector, v);
+      TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, v);
       vnew = gsl_vector_alloc(v->size);
       for (i = 0; i < v->size; i++) {
         gsl_vector_set(vnew, i, (*f)(gsl_vector_get(v, i)));
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     } else if (MATRIX_P(xx)) {
-      Data_Get_Struct(xx, gsl_matrix, m);
+      TypedData_Get_Struct(xx, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
         for (j = 0; j < m->size2; j++) {
           gsl_matrix_set(mnew, i, j, (*f)(gsl_matrix_get(m, i, j)));
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       rb_raise(rb_eTypeError, "wrong argument type");
     }
@@ -1413,21 +1413,21 @@ VALUE rb_gsl_eval_pdf_cdf2(VALUE xx, VALUE aa,
     }
 #endif
     if (VECTOR_P(xx)) {
-      Data_Get_Struct(xx, gsl_vector, v);
+      TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, v);
       vnew = gsl_vector_alloc(v->size);
       for (i = 0; i < v->size; i++) {
         gsl_vector_set(vnew, i, (*f)(gsl_vector_get(v, i), a));
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     } else if (MATRIX_P(xx)) {
-      Data_Get_Struct(xx, gsl_matrix, m);
+      TypedData_Get_Struct(xx, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
         for (j = 0; j < m->size2; j++) {
           gsl_matrix_set(mnew, i, j, (*f)(gsl_matrix_get(m, i, j), a));
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       rb_raise(rb_eTypeError, "wrong argument type");
     }
@@ -1495,21 +1495,21 @@ VALUE rb_gsl_eval_pdf_cdf3(VALUE xx, VALUE aa, VALUE bb,
     }
 #endif
     if (VECTOR_P(xx)) {
-      Data_Get_Struct(xx, gsl_vector, v);
+      TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, v);
       vnew = gsl_vector_alloc(v->size);
       for (i = 0; i < v->size; i++) {
         gsl_vector_set(vnew, i, (*f)(gsl_vector_get(v, i), a, b));
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     } else if (MATRIX_P(xx)) {
-      Data_Get_Struct(xx, gsl_matrix, m);
+      TypedData_Get_Struct(xx, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
         for (j = 0; j < m->size2; j++) {
           gsl_matrix_set(mnew, i, j, (*f)(gsl_matrix_get(m, i, j), a, b));
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       rb_raise(rb_eTypeError, "wrong argument type");
     }
@@ -1572,37 +1572,37 @@ VALUE rb_gsl_eval_pdf_cdf2_uint(VALUE xx, VALUE aa,
     }
 #endif
     if (VECTOR_P(xx)) {
-      Data_Get_Struct(xx, gsl_vector, v);
+      TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, v);
       vnew = gsl_vector_alloc(v->size);
       for (i = 0; i < v->size; i++) {
         gsl_vector_set(vnew, i, (*f)((unsigned int) gsl_vector_get(v, i), a));
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     } else if (VECTOR_INT_P(xx)) {
-      Data_Get_Struct(xx, gsl_vector_int, vi);
+      TypedData_Get_Struct(xx, gsl_vector_int, &gsl_vector_int_data_type, vi);
       vnew = gsl_vector_alloc(vi->size);
       for (i = 0; i < vi->size; i++) {
         gsl_vector_set(vnew, i, (*f)((unsigned int) gsl_vector_int_get(vi, i), a));
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     } else if (MATRIX_P(xx)) {
-      Data_Get_Struct(xx, gsl_matrix, m);
+      TypedData_Get_Struct(xx, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
         for (j = 0; j < m->size2; j++) {
           gsl_matrix_set(mnew, i, j, (*f)((unsigned int) gsl_matrix_get(m, i, j), a));
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else if (MATRIX_INT_P(xx)) {
-      Data_Get_Struct(xx, gsl_matrix_int, mi);
+      TypedData_Get_Struct(xx, gsl_matrix_int, &gsl_matrix_int_data_type, mi);
       mnew = gsl_matrix_alloc(mi->size1, mi->size2);
       for (i = 0; i < mi->size1; i++) {
         for (j = 0; j < mi->size2; j++) {
           gsl_matrix_set(mnew, i, j, (*f)((unsigned int) gsl_matrix_int_get(mi, i, j), a));
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       rb_raise(rb_eTypeError, "wrong argument type");
     }
@@ -1616,7 +1616,7 @@ VALUE rb_gsl_eval_pdf_cdf2_uint(VALUE xx, VALUE aa,
 static VALUE rb_gsl_ran_erlang(VALUE obj, VALUE a, VALUE n)
 {
   gsl_rng *r = NULL;
-  Data_Get_Struct(obj, gsl_rng, r);
+  TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
   return rb_float_new(gsl_ran_erlang(r, NUM2DBL(a), NUM2DBL(n)));
 }
 
@@ -1640,18 +1640,18 @@ static VALUE rb_gsl_ran_gaussian_ziggurat(int argc, VALUE *argv, VALUE obj)
       n = NUM2INT(argv[2]);
       sigma = NUM2DBL(argv[1]);
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       v = gsl_vector_alloc(n);
       for (i = 0; i < n; i++)
         gsl_vector_set(v, i, gsl_ran_gaussian_ziggurat(r, sigma));
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
       break;
     case 2:
       sigma = NUM2DBL(argv[1]);
     /* no break */
     case 1:
       CHECK_RNG(argv[0]);
-      Data_Get_Struct(argv[0], gsl_rng, r);
+      TypedData_Get_Struct(argv[0], gsl_rng, &gsl_rng_data_type, r);
       return rb_float_new(gsl_ran_gaussian_ziggurat(r, sigma));
       break;
     default:
@@ -1661,7 +1661,7 @@ static VALUE rb_gsl_ran_gaussian_ziggurat(int argc, VALUE *argv, VALUE obj)
     }
     break;
   default:
-    Data_Get_Struct(obj, gsl_rng, r);
+    TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
     switch (argc) {
     case 2:
       n = NUM2INT(argv[1]);
@@ -1669,7 +1669,7 @@ static VALUE rb_gsl_ran_gaussian_ziggurat(int argc, VALUE *argv, VALUE obj)
       v = gsl_vector_alloc(n);
       for (i = 0; i < n; i++)
         gsl_vector_set(v, i, gsl_ran_gaussian_ziggurat(r, sigma));
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
       break;
     case 1:
       sigma = NUM2DBL(argv[0]);

@@ -117,7 +117,7 @@ static double rb_gsl_siman_Efunc_t(void *data)
   siman_solver *ss = NULL;
   ss = (siman_solver *) data;
   proc = (VALUE) ss->proc_efunc;
-  params = Data_Wrap_Struct(cgsl_vector, 0, NULL, ss->vx);
+  params = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, ss->vx);
   result = rb_funcall(proc, RBGSL_ID_call, 1, params);
   return NUM2DBL(result);
 }
@@ -223,7 +223,7 @@ static void rb_gsl_siman_print_t(void *data)
   ss = (siman_solver *) data;
   proc = ss->proc_print;
   if (NIL_P(proc)) return;
-  params = Data_Wrap_Struct(cgsl_vector, 0, NULL, ss->vx);
+  params = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, ss->vx);
   rb_funcall(proc, RBGSL_ID_call, 1, params);
 }
 
@@ -291,8 +291,8 @@ static void rb_gsl_siman_step_t(const gsl_rng *r, void *data, double step_size)
   siman_solver *ss = NULL;
   ss = (siman_solver *) data;
   proc = (VALUE) ss->proc_step;
-  rng = Data_Wrap_Struct(cgsl_rng, 0, NULL, (gsl_rng *) r);
-  params = Data_Wrap_Struct(cgsl_vector, 0, NULL, ss->vx);
+  rng = TypedData_Wrap_Struct(cgsl_rng, &gsl_rng_data_type, (gsl_rng *) r);
+  params = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, ss->vx);
   rb_funcall(proc, RBGSL_ID_call, 3, rng, params, rb_float_new(step_size));
 }
 
@@ -361,8 +361,8 @@ static double rb_gsl_siman_metric_t(void *data, void *yp)
   ss = (siman_solver *) data;
   ssy = (siman_solver *) yp;
   proc = ss->proc_metric;
-  vxp = Data_Wrap_Struct(cgsl_vector, 0, NULL, ss->vx);
-  vyp = Data_Wrap_Struct(cgsl_vector, 0, NULL, ssy->vx);
+  vxp = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, ss->vx);
+  vyp = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, ssy->vx);
   result = rb_funcall(proc, RBGSL_ID_call, 2, vxp, vyp);
   return NUM2DBL(result);
 }
@@ -573,7 +573,7 @@ static VALUE rb_gsl_siman_solver_solve(VALUE obj, VALUE rng,
   int flag = 0;
   /*  Data_Get_Struct(obj, siman_solver, ss);*/
   CHECK_VECTOR(vx0p);
-  Data_Get_Struct(vx0p, gsl_vector, vtmp);
+  TypedData_Get_Struct(vx0p, gsl_vector, &gsl_vector_data_type, vtmp);
 
   switch (TYPE(obj)) {
   case T_MODULE:
@@ -597,7 +597,7 @@ static VALUE rb_gsl_siman_solver_solve(VALUE obj, VALUE rng,
   if (!rb_obj_is_kind_of(vmetric, cgsl_siman_metric))
     rb_raise(rb_eTypeError, "wrong argument type %s (GSL::Siman::Metric expected)",
              rb_class2name(CLASS_OF(vmetric)));
-  Data_Get_Struct(rng, gsl_rng, r);
+  TypedData_Get_Struct(rng, gsl_rng, &gsl_rng_data_type, r);
   Data_Get_Struct(vefunc, siman_Efunc, efunc);
   Data_Get_Struct(vstep, siman_step, step);
   Data_Get_Struct(vmetric, siman_metric, metric);
