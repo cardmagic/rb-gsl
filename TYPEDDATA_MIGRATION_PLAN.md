@@ -2,177 +2,49 @@
 
 Step-by-step checklist for migrating rb-gsl from legacy `Data_Wrap_Struct`/`Data_Get_Struct` to the modern TypedData API.
 
+**Approach**: Migrate each file completely in one pass, handling ALL its patterns together.
+
 ## Prerequisites
 
-- [ ] Ensure all tests pass on current master
-- [ ] Working branch: `fix/typeddata-migration`
-- [ ] Ruby 3.4 installed for testing
+- [x] Ensure all tests pass on current master
+- [x] Working branch: `fix/typeddata-migration`
+- [x] Ruby 3.4 installed for testing
 
 ---
 
 ## Automation Scripts
 
-The following scripts automate much of the migration work:
-
-### `scripts/migrate_typeddata.rb` - Main Migration Script
-
 ```bash
-# Analyze current state
-ruby scripts/migrate_typeddata.rb --analyze
-
-# Generate type definitions header
-ruby scripts/migrate_typeddata.rb --generate-header > ext/gsl_native/include/rb_gsl_types.h
-
-# Preview changes for a file (dry run)
-ruby scripts/migrate_typeddata.rb --migrate FILE.c
-
-# Apply changes to a file
-ruby scripts/migrate_typeddata.rb --apply FILE.c
-
-# Migrate all automatable files
-ruby scripts/migrate_typeddata.rb --apply-all
-
-# Verify no legacy API remains
-ruby scripts/migrate_typeddata.rb --verify
+ruby scripts/migrate_typeddata.rb --analyze      # See current state
+ruby scripts/migrate_typeddata.rb --apply FILE   # Migrate a single file
+ruby scripts/migrate_typeddata.rb --verify       # Check remaining legacy API
+./scripts/test_migration.sh                      # Compile + test + verify
+./scripts/cleanup_migration.sh                   # Remove migration files (at end)
 ```
-
-### `scripts/test_migration.sh` - Test Runner
-
-```bash
-#!/bin/bash
-# Run after each migration batch
-
-set -e
-
-echo "=== Compiling extension ==="
-cd ext/gsl_native && ruby extconf.rb && make clean && make && cd ../..
-
-echo "=== Running tests ==="
-rake test
-
-echo "=== Checking for deprecation warnings ==="
-ruby -W:deprecated -e "require 'gsl'; v = GSL::Vector.alloc(10)" 2>&1 | grep -i deprecat || echo "No deprecation warnings!"
-
-echo "=== Memory check ==="
-ruby -e "1000.times { GSL::Vector.alloc(1000) }; GC.start; puts 'Memory check passed'"
-```
-
-### Automation Coverage
-
-| Phase | Automatable | Manual Work Required |
-|-------|-------------|---------------------|
-| 1 | **100%** | Test script output |
-| 2 | **100%** | Review generated header |
-| 3 | **95%** | Review edge cases |
-| 4 | **90%** | Verify clone semantics |
-| 5 | **80%** | May need macro adjustments |
-| 6 | **70%** | Verify alloc restructuring |
-| 7 | **30%** | Requires macro expertise |
-| 8 | **100%** | Just run scripts |
-| 9 | **100%** | Just run cleanup |
 
 ---
 
-## Phase 1: Setup and Verify Migration Scripts
+## Phase 1: Setup Migration Scripts
 
-**Goal**: Consolidate migration scripts and verify they work correctly.
+**Status**: Complete
 
-### Tasks
-
-- [ ] Create `scripts/` directory
-- [ ] Create consolidated `scripts/migrate_typeddata.rb`
-- [ ] Create `scripts/test_migration.sh`
-- [ ] Create `scripts/cleanup_migration.sh`
-- [ ] Make scripts executable: `chmod +x scripts/*.sh`
-- [ ] Test analysis: `ruby scripts/migrate_typeddata.rb --analyze`
-- [ ] Verify header generation: `ruby scripts/migrate_typeddata.rb --generate-header | head -50`
-- [ ] Test dry-run on a simple file: `ruby scripts/migrate_typeddata.rb --migrate sum.c`
-- [ ] Remove old scripts: `rm -f migrate_to_typeddata.sh migrate_to_typeddata_v2.rb`
-
-**Commit**: `chore: add consolidated TypedData migration scripts`
+- [x] Create `scripts/migrate_typeddata.rb`
+- [x] Create `scripts/test_migration.sh`
+- [x] Create `scripts/cleanup_migration.sh`
+- [x] Test `--analyze` command
+- [x] Remove old scripts
 
 ---
 
 ## Phase 2: Create Type Definitions Header
 
-**Goal**: Create `include/rb_gsl_types.h` with all `rb_data_type_t` definitions.
+**Goal**: Create `ext/gsl_native/include/rb_gsl_types.h` with all type definitions.
 
 ### Tasks
 
-- [ ] Generate header: `ruby scripts/migrate_typeddata.rb --generate-header > ext/gsl_native/include/rb_gsl_types.h`
-- [ ] Add type definitions for core types:
-  - [ ] `gsl_rng_data_type`
-  - [ ] `gsl_vector_data_type`
-  - [ ] `gsl_vector_complex_data_type`
-  - [ ] `gsl_vector_int_data_type`
-  - [ ] `gsl_matrix_data_type`
-  - [ ] `gsl_matrix_complex_data_type`
-  - [ ] `gsl_matrix_int_data_type`
-  - [ ] `gsl_permutation_data_type`
-  - [ ] `gsl_combination_data_type`
-  - [ ] `gsl_block_data_type`
-  - [ ] `gsl_complex_data_type`
-- [ ] Add type definitions for histogram types:
-  - [ ] `gsl_histogram_data_type`
-  - [ ] `gsl_histogram_pdf_data_type`
-  - [ ] `gsl_histogram2d_data_type`
-  - [ ] `gsl_histogram2d_pdf_data_type`
-  - [ ] `gsl_histogram3d_data_type`
-- [ ] Add type definitions for interpolation types:
-  - [ ] `gsl_interp_data_type`
-  - [ ] `gsl_interp_accel_data_type`
-  - [ ] `gsl_spline_data_type`
-  - [ ] `gsl_interp2d_data_type`
-  - [ ] `gsl_spline2d_data_type`
-  - [ ] `gsl_bspline_workspace_data_type`
-- [ ] Add type definitions for FFT/Wavelet types:
-  - [ ] `gsl_fft_complex_wavetable_data_type`
-  - [ ] `gsl_fft_complex_workspace_data_type`
-  - [ ] `gsl_fft_real_wavetable_data_type`
-  - [ ] `gsl_fft_real_workspace_data_type`
-  - [ ] `gsl_fft_halfcomplex_wavetable_data_type`
-  - [ ] `gsl_wavelet_data_type`
-  - [ ] `gsl_wavelet_workspace_data_type`
-- [ ] Add type definitions for fitting/optimization:
-  - [ ] `gsl_multifit_linear_workspace_data_type`
-  - [ ] `gsl_multifit_fdfsolver_data_type`
-  - [ ] `gsl_multimin_fdfminimizer_data_type`
-  - [ ] `gsl_multimin_fminimizer_data_type`
-  - [ ] `gsl_min_fminimizer_data_type`
-- [ ] Add type definitions for root finding:
-  - [ ] `gsl_root_fsolver_data_type`
-  - [ ] `gsl_root_fdfsolver_data_type`
-  - [ ] `gsl_multiroot_fsolver_data_type`
-  - [ ] `gsl_multiroot_fdfsolver_data_type`
-- [ ] Add type definitions for ODE:
-  - [ ] `gsl_odeiv_step_data_type`
-  - [ ] `gsl_odeiv_control_data_type`
-  - [ ] `gsl_odeiv_evolve_data_type`
-  - [ ] `gsl_odeiv_system_data_type`
-- [ ] Add type definitions for eigen:
-  - [ ] `gsl_eigen_symm_workspace_data_type`
-  - [ ] `gsl_eigen_symmv_workspace_data_type`
-  - [ ] `gsl_eigen_herm_workspace_data_type`
-  - [ ] `gsl_eigen_hermv_workspace_data_type`
-  - [ ] `gsl_eigen_nonsymm_workspace_data_type`
-  - [ ] `gsl_eigen_nonsymmv_workspace_data_type`
-  - [ ] `gsl_eigen_gen_workspace_data_type`
-  - [ ] `gsl_eigen_genv_workspace_data_type`
-- [ ] Add type definitions for misc types:
-  - [ ] `gsl_function_data_type`
-  - [ ] `gsl_function_fdf_data_type`
-  - [ ] `gsl_multiset_data_type`
-  - [ ] `gsl_dht_data_type`
-  - [ ] `gsl_qrng_data_type`
-  - [ ] `gsl_cheb_series_data_type`
-  - [ ] `gsl_sum_levin_u_workspace_data_type`
-  - [ ] `gsl_sum_levin_utrunc_workspace_data_type`
-  - [ ] `gsl_integration_workspace_data_type`
-  - [ ] `gsl_monte_plain_state_data_type`
-  - [ ] `gsl_monte_miser_state_data_type`
-  - [ ] `gsl_monte_vegas_state_data_type`
-- [ ] Add helper macros (GSL_GET_STRUCT, GSL_WRAP_STRUCT)
-- [ ] Update `extconf.rb` to include the new header path
+- [ ] Create the header file with all `rb_data_type_t` definitions
+- [ ] Include header in `rb_gsl.h` (single include point)
+- [ ] Update `extconf.rb` if needed
 - [ ] Verify compilation succeeds
 - [ ] Run tests
 
@@ -180,355 +52,288 @@ ruby -e "1000.times { GSL::Vector.alloc(1000) }; GC.start; puts 'Memory check pa
 
 ---
 
-## Phase 3: Migrate Simple Files (Static Class Only)
+## Phase 3: Simple Files (No Special Patterns)
 
-**Goal**: Migrate files that only use static class variables (no `klass`, `CLASS_OF`, or macros).
+**Goal**: Migrate files with only static class variables - no `klass`, `CLASS_OF`, or `VECROW`.
 
-### Batch 3.1: Core Simple Types
+These are fully automatable with `--apply`.
 
-- [ ] **sum.c** - Levin summation
-  - [ ] Include `rb_gsl_types.h`
-  - [ ] Replace `Data_Wrap_Struct` with `TypedData_Wrap_Struct`
-  - [ ] Replace `Data_Get_Struct` with `TypedData_Get_Struct`
-  - [ ] Run tests: `ruby -Ilib test/gsl/*sum*`
+| File | Wrap | Get | Notes |
+|------|------|-----|-------|
+| alf.c | 7 | 11 | ALF workspace |
+| blas2.c | 19 | 128 | BLAS level 2 |
+| blas3.c | 15 | 120 | BLAS level 3 |
+| dirac.c | 14 | 11 | Dirac matrices |
+| geometry.c | 0 | 4 | Get only |
+| gsl_nmatrix.c | 6 | 6 | NMatrix integration |
+| nmf_wrap.c | 2 | 3 | NMF wrapper |
+| poly2.c | 1 | 0 | Polynomial |
+| sf_coulomb.c | 10 | 0 | Wrap only |
+| sf_gamma.c | 0 | 1 | Get only |
+| sf_gegenbauer.c | 1 | 0 | Wrap only |
+| sf_legendre.c | 4 | 0 | Wrap only |
+| sf_log.c | 0 | 1 | Get only |
+| sf_trigonometric.c | 0 | 1 | Get only |
 
-- [ ] **qrng.c** - Quasi-random number generators
-  - [ ] Include `rb_gsl_types.h`
-  - [ ] Replace `Data_Wrap_Struct` with `TypedData_Wrap_Struct`
-  - [ ] Replace `Data_Get_Struct` with `TypedData_Get_Struct`
-  - [ ] Run tests
+### Commands
 
-- [ ] **dht.c** - Discrete Hankel Transform
-  - [ ] Include `rb_gsl_types.h`
-  - [ ] Replace `Data_Wrap_Struct` with `TypedData_Wrap_Struct`
-  - [ ] Replace `Data_Get_Struct` with `TypedData_Get_Struct`
-  - [ ] Handle `CLASS_OF` pattern (1 occurrence) - use same type as source
-  - [ ] Run tests
+```bash
+for f in alf.c blas2.c blas3.c dirac.c geometry.c gsl_nmatrix.c nmf_wrap.c \
+         poly2.c sf_coulomb.c sf_gamma.c sf_gegenbauer.c sf_legendre.c \
+         sf_log.c sf_trigonometric.c; do
+  ruby scripts/migrate_typeddata.rb --apply "$f"
+done
+./scripts/test_migration.sh
+```
 
-- [ ] **deriv.c** - Numerical differentiation
-  - [ ] Include `rb_gsl_types.h`
-  - [ ] Migrate all occurrences
-  - [ ] Run tests
-
-- [ ] **diff.c** - Finite differences
-  - [ ] Include `rb_gsl_types.h`
-  - [ ] Migrate all occurrences
-  - [ ] Run tests
-
-**Commit**: `refactor: migrate sum, qrng, dht, deriv, diff to TypedData`
-
-### Batch 3.2: Integration & Fitting
-
-- [ ] **integration.c** - Numerical integration
-  - [ ] Include `rb_gsl_types.h`
-  - [ ] Migrate workspace types
-  - [ ] Handle `klass` pattern - restructure alloc functions
-  - [ ] Run tests
-
-- [ ] **min.c** - 1D minimization
-  - [ ] Include `rb_gsl_types.h`
-  - [ ] Migrate all occurrences
-  - [ ] Run tests
-
-- [ ] **root.c** - 1D root finding
-  - [ ] Include `rb_gsl_types.h`
-  - [ ] Migrate all occurrences
-  - [ ] Run tests
-
-- [ ] **multifit.c** - Multidimensional fitting
-  - [ ] Include `rb_gsl_types.h`
-  - [ ] Migrate all occurrences
-  - [ ] Run tests
-
-**Commit**: `refactor: migrate integration, min, root, multifit to TypedData`
-
-### Batch 3.3: Multi-dimensional Optimization
-
-- [ ] **multimin.c** - Multidimensional minimization
-  - [ ] Include `rb_gsl_types.h`
-  - [ ] Migrate all occurrences
-  - [ ] Run tests
-
-- [ ] **multimin_fsdf.c** - FSDF minimization
-  - [ ] Include `rb_gsl_types.h`
-  - [ ] Migrate all occurrences
-  - [ ] Run tests
-
-- [ ] **multiroots.c** - Multi-root finding
-  - [ ] Include `rb_gsl_types.h`
-  - [ ] Migrate all occurrences
-  - [ ] Run tests
-
-**Commit**: `refactor: migrate multimin, multiroots to TypedData`
-
-### Batch 3.4: ODE & Monte Carlo
-
-- [ ] **odeiv.c** - ODE solvers
-  - [ ] Include `rb_gsl_types.h`
-  - [ ] Migrate all occurrences
-  - [ ] Run tests
-
-- [ ] **monte.c** - Monte Carlo integration
-  - [ ] Include `rb_gsl_types.h`
-  - [ ] Migrate all occurrences
-  - [ ] Run tests
-
-**Commit**: `refactor: migrate odeiv, monte to TypedData`
+**Commit**: `refactor: migrate simple files to TypedData`
 
 ---
 
-## Phase 4: Migrate Clone/Dup Patterns (CLASS_OF)
+## Phase 4: CLASS_OF Only Files
 
-**Goal**: Migrate files with `CLASS_OF(obj)` pattern for clone/dup operations.
+**Goal**: Migrate files with `CLASS_OF` patterns but no `klass` or `VECROW`.
 
-### Batch 4.1: Simple Clone Types
+| File | Wrap | Get | CLASS_OF | Notes |
+|------|------|-----|----------|-------|
+| array.c | 3 | 6 | 17 | Array views |
+| array_complex.c | 9 | 9 | 1 | Complex arrays |
+| blas1.c | 11 | 43 | 2 | BLAS level 1 |
+| common.c | 2 | 3 | 2 | Common utils |
+| complex.c | 21 | 33 | 3 | Complex numbers |
+| deriv.c | 4 | 3 | 3 | Derivatives |
+| diff.c | 4 | 3 | 3 | Finite diff |
+| histogram3d.c | 16 | 56 | 4 | 3D histograms |
+| interp2d.c | 3 | 7 | 6 | 2D interpolation |
+| linalg_complex.c | 9 | 48 | 15 | Complex linalg |
+| math.c | 9 | 11 | 13 | Math ops |
+| matrix_int.c | 6 | 8 | 2 | Int matrices |
+| ndlinear.c | 4 | 18 | 5 | ND linear |
+| sf.c | 31 | 41 | 36 | Special funcs |
+| sf_bessel.c | 4 | 2 | 1 | Bessel funcs |
+| signal.c | 2 | 4 | 1 | Signal processing |
+| sort.c | 7 | 6 | 4 | Sorting |
+| spline2d.c | 5 | 8 | 6 | 2D splines |
 
-- [ ] **combination.c** (1 CLASS_OF)
-  - [ ] Use `&combination_data_type` for clone
-  - [ ] Keep `CLASS_OF(obj)` for Ruby class preservation
-  - [ ] Run tests
+### Commands
 
-- [ ] **permutation.c** (2 CLASS_OF)
-  - [ ] Migrate clone/dup functions
-  - [ ] Run tests
+```bash
+for f in array.c array_complex.c blas1.c common.c complex.c deriv.c diff.c \
+         histogram3d.c interp2d.c linalg_complex.c math.c matrix_int.c \
+         ndlinear.c sf.c sf_bessel.c signal.c sort.c spline2d.c; do
+  ruby scripts/migrate_typeddata.rb --apply "$f"
+done
+./scripts/test_migration.sh
+```
 
-- [ ] **rng.c** (2 CLASS_OF)
-  - [ ] Migrate clone/dup functions
-  - [ ] Run tests
-
-**Commit**: `refactor: migrate clone/dup in combination, permutation, rng`
-
-### Batch 4.2: Histogram Types
-
-- [ ] **histogram.c** (4 CLASS_OF)
-  - [ ] Migrate clone, dup, and related functions
-  - [ ] Run tests
-
-- [ ] **histogram2d.c** (6 CLASS_OF)
-  - [ ] Migrate all clone/dup patterns
-  - [ ] Run tests
-
-- [ ] **histogram3d.c** (4 CLASS_OF)
-  - [ ] Migrate all clone/dup patterns
-  - [ ] Run tests
-
-**Commit**: `refactor: migrate histogram clone/dup to TypedData`
-
-### Batch 4.3: Complex Types
-
-- [ ] **cheb.c** (4 CLASS_OF)
-  - [ ] Migrate Chebyshev series clone/dup
-  - [ ] Run tests
-
-- [ ] **eigen.c** (2 CLASS_OF)
-  - [ ] Migrate eigenvalue clone/dup
-  - [ ] Run tests
-
-- [ ] **fft.c** (2 CLASS_OF)
-  - [ ] Migrate FFT clone/dup
-  - [ ] Run tests
-
-- [ ] **wavelet.c** (2 CLASS_OF)
-  - [ ] Migrate wavelet clone/dup
-  - [ ] Run tests
-
-**Commit**: `refactor: migrate cheb, eigen, fft, wavelet clone/dup`
+**Commit**: `refactor: migrate CLASS_OF pattern files to TypedData`
 
 ---
 
-## Phase 5: Migrate VECTOR_ROW_COL Patterns
+## Phase 5: klass + CLASS_OF Files (Medium Complexity)
 
-**Goal**: Migrate vector orientation macros using unified type approach.
+**Goal**: Migrate files with both `klass` and `CLASS_OF` patterns.
 
-### Tasks
+Handle each file completely - both patterns in one pass.
 
-- [ ] Define unified `gsl_vector_data_type` for all vector variants
-- [ ] Keep `VECTOR_ROW_COL` macro for Ruby class selection
-- [ ] Migrate files:
-  - [ ] **jacobi.c** (6 occurrences)
-  - [ ] **linalg.c** (11 occurrences)
-  - [ ] **math.c** (2 occurrences)
-  - [ ] **randist.c** (2 occurrences)
-  - [ ] **signal.c** (2 occurrences)
-  - [ ] **sort.c** (2 occurrences)
-  - [ ] **dht.c** (1 occurrence) - if not done in Phase 2
-  - [ ] **fft.c** (2 occurrences) - if not done in Phase 3
-- [ ] Run full test suite
+| File | Wrap | Get | klass | CLASS_OF | Notes |
+|------|------|-----|-------|----------|-------|
+| bspline.c | 5 | 11 | 1 | 1 | B-splines |
+| combination.c | 4 | 21 | 2 | 3 | Combinations |
+| cqp.c | 11 | 31 | 2 | 1 | CQP solver |
+| function.c | 4 | 15 | 2 | 4 | GSL functions |
+| graph.c | 1 | 100 | 1 | 5 | Graph utils |
+| gsl_narray.c | 24 | 11 | 3 | 1 | NArray integration |
+| integration.c | 10 | 52 | 3 | 5 | Integration |
+| interp.c | 4 | 18 | 1 | 5 | Interpolation |
+| min.c | 1 | 13 | 1 | 1 | 1D minimization |
+| multifit.c | 30 | 24 | 2 | 5 | Curve fitting |
+| multimin.c | 13 | 29 | 4 | 5 | ND minimization |
+| multimin_fsdf.c | 3 | 12 | 1 | 2 | FSDF minimizer |
+| multiroots.c | 26 | 42 | 4 | 6 | Root finding |
+| multiset.c | 3 | 17 | 2 | 2 | Multisets |
+| odeiv.c | 21 | 55 | 9 | 13 | ODE solvers |
+| ool.c | 14 | 40 | 3 | 8 | OOL optimizer |
+| permutation.c | 12 | 48 | 2 | 8 | Permutations |
+| qrng.c | 3 | 8 | 1 | 2 | Quasi-RNG |
+| randist.c | 32 | 92 | 1 | 12 | Distributions |
+| rational.c | 15 | 22 | 1 | 3 | Rationals |
+| rng.c | 4 | 15 | 1 | 1 | RNG |
+| root.c | 2 | 18 | 2 | 2 | 1D root finding |
+| sf_mathieu.c | 4 | 3 | 1 | 3 | Mathieu funcs |
+| siman.c | 12 | 29 | 6 | 6 | Simulated annealing |
+| spline.c | 4 | 16 | 1 | 5 | Splines |
+| sum.c | 2 | 4 | 2 | 0 | Summation |
+| tamu_anova.c | 1 | 3 | 1 | 0 | ANOVA |
+| wavelet.c | 6 | 35 | 2 | 1 | Wavelets |
 
-**Commit**: `refactor: migrate VECTOR_ROW_COL patterns to TypedData`
+### Batch 5.1: Small files (< 20 total)
+
+```bash
+for f in bspline.c min.c qrng.c rng.c sum.c tamu_anova.c function.c \
+         sf_mathieu.c combination.c multiset.c root.c; do
+  ruby scripts/migrate_typeddata.rb --apply "$f"
+done
+./scripts/test_migration.sh
+```
+
+**Commit**: `refactor: migrate small klass+CLASS_OF files to TypedData`
+
+### Batch 5.2: Medium files (20-50 total)
+
+```bash
+for f in bspline.c cqp.c gsl_narray.c integration.c interp.c multifit.c \
+         multimin.c multimin_fsdf.c permutation.c rational.c spline.c \
+         wavelet.c siman.c; do
+  ruby scripts/migrate_typeddata.rb --apply "$f"
+done
+./scripts/test_migration.sh
+```
+
+**Commit**: `refactor: migrate medium klass+CLASS_OF files to TypedData`
+
+### Batch 5.3: Large files (50+ total)
+
+```bash
+for f in multiroots.c odeiv.c ool.c graph.c randist.c; do
+  ruby scripts/migrate_typeddata.rb --apply "$f"
+done
+./scripts/test_migration.sh
+```
+
+**Commit**: `refactor: migrate large klass+CLASS_OF files to TypedData`
 
 ---
 
-## Phase 6: Migrate klass Parameter Patterns
+## Phase 6: High Complexity Files
 
-**Goal**: Restructure alloc functions to use static types.
+**Goal**: Migrate files with many patterns or high occurrence counts.
+
+| File | Wrap | Get | klass | CLASS_OF | Notes |
+|------|------|-----|-------|----------|-------|
+| cheb.c | 19 | 29 | 1 | 22 | Chebyshev |
+| eigen.c | 68 | 146 | 1 | 78 | Eigenvalues |
+| fft.c | 19 | 14 | 4 | 0 | FFT (+ VECROW) |
+| histogram.c | 27 | 89 | 11 | 14 | Histograms |
+| histogram2d.c | 20 | 72 | 5 | 10 | 2D histograms |
+| linalg.c | 103 | 203 | 0 | 55 | Linear algebra |
+| matrix_complex.c | 46 | 82 | 3 | 10 | Complex matrices |
+| monte.c | 7 | 83 | 4 | 4 | Monte Carlo |
+| ntuple.c | 7 | 24 | 4 | 0 | N-tuples |
+
+### Batch 6.1
+
+```bash
+for f in cheb.c ntuple.c monte.c; do
+  ruby scripts/migrate_typeddata.rb --apply "$f"
+done
+./scripts/test_migration.sh
+```
+
+**Commit**: `refactor: migrate cheb, ntuple, monte to TypedData`
+
+### Batch 6.2
+
+```bash
+for f in histogram.c histogram2d.c fft.c; do
+  ruby scripts/migrate_typeddata.rb --apply "$f"
+done
+./scripts/test_migration.sh
+```
+
+**Commit**: `refactor: migrate histogram, fft to TypedData`
+
+### Batch 6.3
+
+```bash
+for f in matrix_complex.c eigen.c; do
+  ruby scripts/migrate_typeddata.rb --apply "$f"
+done
+./scripts/test_migration.sh
+```
+
+**Commit**: `refactor: migrate matrix_complex, eigen to TypedData`
+
+### Batch 6.4
+
+```bash
+ruby scripts/migrate_typeddata.rb --apply linalg.c
+./scripts/test_migration.sh
+```
+
+**Commit**: `refactor: migrate linalg to TypedData`
+
+---
+
+## Phase 7: VECTOR_ROW_COL Files
+
+**Goal**: Migrate files with `VECTOR_ROW_COL` or `VEC_ROW_COL` macros.
+
+| File | Wrap | Get | VECROW | Notes |
+|------|------|-----|--------|-------|
+| dht.c | 11 | 18 | 1 | Also has klass+CLASS_OF |
+| jacobi.c | 13 | 39 | 4 | Also has klass+CLASS_OF |
+| matrix_double.c | 18 | 23 | 2 | Also has klass+CLASS_OF |
+| vector_complex.c | 44 | 91 | 8 | Also has klass+CLASS_OF |
+| vector_double.c | 37 | 47 | 7 | Also has klass+CLASS_OF |
+| vector_int.c | 9 | 11 | 3 | CLASS_OF only |
 
 ### Strategy
 
-For each file with `klass` parameter:
-1. Identify which class the alloc is registered on
-2. Replace `Data_Wrap_Struct(klass, ...)` with `TypedData_Wrap_Struct(klass, &known_type, ...)`
-3. The type is known at compile time even though klass is runtime
+Use unified `gsl_vector_data_type` for all VECROW patterns:
+```c
+// Keep VECTOR_ROW_COL for Ruby class, use unified type
+TypedData_Wrap_Struct(VECTOR_ROW_COL(obj), &gsl_vector_data_type, v);
+```
 
-### Batch 6.1: Core Alloc Functions
+### Commands
 
-- [ ] **rng.c** - gsl_rng alloc
-- [ ] **permutation.c** - gsl_permutation alloc
-- [ ] **combination.c** - gsl_combination alloc
-- [ ] **multiset.c** - gsl_multiset alloc
+```bash
+for f in dht.c jacobi.c matrix_double.c vector_int.c vector_double.c vector_complex.c; do
+  ruby scripts/migrate_typeddata.rb --apply "$f"
+  # Manual review may be needed for VECROW patterns
+done
+./scripts/test_migration.sh
+```
 
-**Commit**: `refactor: migrate rng, permutation, combination, multiset alloc`
-
-### Batch 6.2: Interpolation & Spline
-
-- [ ] **interp.c**
-- [ ] **interp2d.c**
-- [ ] **spline.c**
-- [ ] **spline2d.c**
-- [ ] **bspline.c**
-
-**Commit**: `refactor: migrate interpolation alloc functions`
-
-### Batch 6.3: FFT & Wavelet
-
-- [ ] **fft.c** - remaining klass patterns
-- [ ] **wavelet.c** - remaining klass patterns
-
-**Commit**: `refactor: migrate FFT/wavelet alloc functions`
-
-### Batch 6.4: Remaining Files
-
-- [ ] **cheb.c**
-- [ ] **cqp.c**
-- [ ] **dirac.c**
-- [ ] **eigen.c**
-- [ ] **function.c**
-- [ ] **ieee.c**
-- [ ] **ntuple.c**
-- [ ] **ool.c**
-- [ ] **siman.c**
-
-**Commit**: `refactor: migrate remaining alloc functions`
+**Commit**: `refactor: migrate VECTOR_ROW_COL files to TypedData`
 
 ---
 
-## Phase 7: Migrate Macro-based Templates
+## Phase 8: Verification
 
-**Goal**: Handle `GSL_TYPE`, `QUALIFIED_VIEW`, `CONCAT`, `FUNCTION` macros.
-
-### Analysis Required
-
-- [ ] Identify all template files using these macros
-- [ ] Determine if type can be parameterized in macros
-- [ ] Consider creating type-specific macros
-
-### Files to Review
-
-- [ ] **vector_source.h** / **vector_double.c**, **vector_int.c**, etc.
-- [ ] **matrix_source.h** / **matrix_double.c**, **matrix_int.c**, etc.
-- [ ] **block_source.h**
-- [ ] Any other template-based files
-
-### Strategy Options
-
-1. **Expand macros**: Replace macro-based code with explicit type-specific versions
-2. **Parameterize types**: Add type parameter to macros
-3. **Type lookup**: Create runtime type lookup from class variable
-
-**Commit**: `refactor: migrate template-based vector/matrix code`
-
----
-
-## Phase 8: Final Verification
-
+- [ ] Run `ruby scripts/migrate_typeddata.rb --verify`
 - [ ] Run full test suite: `rake test`
-- [ ] Run tests without GSL: `NATIVE_VECTOR=true rake test`
 - [ ] Check for deprecation warnings: `ruby -W:deprecated -e "require 'gsl'"`
-- [ ] Memory leak check: `ruby -e "1000.times { GSL::Vector.alloc(1000) }; GC.start"`
+- [ ] Memory check: `ruby -e "1000.times { GSL::Vector.alloc(1000) }; GC.start"`
 - [ ] Build gem: `gem build gsl.gemspec`
-- [ ] Test gem installation
-
----
-
-## Rollback Plan
-
-If issues are found:
-
-1. Each phase has its own commit - can revert individual phases
-2. Keep `fix/typeddata-migration` branch until fully verified
-3. Original code preserved in `master` branch
-
----
-
-## Progress Tracking
-
-| Phase | Description | Status | Files | Occurrences | Automated |
-|-------|-------------|--------|-------|-------------|-----------|
-| 1 | Setup migration scripts | Not started | 3 | - | 100% |
-| 2 | Type definitions header | Not started | 1 | ~100 types | 100% |
-| 3 | Simple files | Not started | ~20 | ~500 | 95% |
-| 4 | CLASS_OF patterns | Not started | ~11 | 30 | 90% |
-| 5 | VECTOR_ROW_COL | Not started | ~8 | 28 | 80% |
-| 6 | klass patterns | Not started | ~35 | 101 | 70% |
-| 7 | Macro templates | Not started | ~10 | ~200 | 30% |
-| 8 | Verification | Not started | - | - | 100% |
-| 9 | Cleanup | Not started | - | - | 100% |
-
-**Total**: ~3,298 occurrences across ~65 files
 
 ---
 
 ## Phase 9: Cleanup
 
-**Goal**: Remove all migration-related files after successful completion.
-
-### Cleanup Script
-
-Create and run `scripts/cleanup_migration.sh`:
-
-```bash
-#!/bin/bash
-# Run this ONLY after migration is complete and merged to master
-
-set -e
-
-echo "=== Removing migration scripts and docs ==="
-
-# Migration scripts (root level)
-rm -f migrate_to_typeddata.sh
-rm -f migrate_to_typeddata_v2.rb
-
-# Migration documentation
-rm -f TYPEDDATA_MIGRATION_STRATEGY.md
-rm -f TYPEDDATA_MIGRATION_PLAN.md
-
-# Scripts directory (if created for migration)
-rm -f scripts/migrate_typeddata.rb
-rm -f scripts/test_migration.sh
-rm -f scripts/cleanup_migration.sh
-
-# Remove scripts dir if empty
-rmdir scripts 2>/dev/null || true
-
-echo "=== Cleanup complete ==="
-echo "Don't forget to commit: git add -A && git commit -m 'chore: remove TypedData migration scripts'"
-```
-
-### Cleanup Checklist
-
 - [ ] Verify all tests pass
-- [ ] Verify no deprecation warnings remain
 - [ ] Merge PR to master
-- [ ] Run cleanup script
-- [ ] Commit cleanup changes
+- [ ] Run `./scripts/cleanup_migration.sh`
+- [ ] Commit cleanup
 - [ ] Delete feature branch
 
-**Commit**: `chore: remove TypedData migration scripts and docs`
+**Commit**: `chore: remove TypedData migration scripts`
 
 ---
 
-## Notes
+## Progress Tracking
 
-- Run tests frequently to catch regressions early
-- Each commit should leave the codebase in a working state
-- Keep the branch until migration is verified in production
+| Phase | Description | Files | Status |
+|-------|-------------|-------|--------|
+| 1 | Setup scripts | 3 | Complete |
+| 2 | Type definitions header | 1 | Not started |
+| 3 | Simple files | 14 | Not started |
+| 4 | CLASS_OF only | 18 | Not started |
+| 5 | klass + CLASS_OF | 28 | Not started |
+| 6 | High complexity | 9 | Not started |
+| 7 | VECTOR_ROW_COL | 6 | Not started |
+| 8 | Verification | - | Not started |
+| 9 | Cleanup | - | Not started |
+
+**Total**: 75 files with Data_Wrap/Get_Struct usage
