@@ -30,11 +30,11 @@ static VALUE rb_gsl_ntuple_new(int argc, VALUE *argv, VALUE klass)
   case 2:
   case 3:
     if (VECTOR_P(argv[1])) {
-      Data_Get_Struct(argv[1], gsl_vector, v);
+      TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, v);
       data = v->data;
       size = v->size;
     } else if (MATRIX_P(argv[1])) {
-      Data_Get_Struct(argv[1], gsl_matrix, m);
+      TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, m);
       data = m->data;
       size = m->size1*m->size2;
     } else {
@@ -61,11 +61,11 @@ VALUE rb_gsl_ntuple_open(int argc, VALUE *argv, VALUE klass)
   case 2:
   case 3:
     if (VECTOR_P(argv[1])) {
-      Data_Get_Struct(argv[1], gsl_vector, v);
+      TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, v);
       data = v->data;
       size = v->size;
     } else if (MATRIX_P(argv[1])) {
-      Data_Get_Struct(argv[1], gsl_matrix, m);
+      TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, m);
       data = m->data;
       size = m->size1*m->size2;
     } else {
@@ -84,7 +84,7 @@ VALUE rb_gsl_ntuple_open(int argc, VALUE *argv, VALUE klass)
 VALUE rb_gsl_ntuple_write(VALUE obj)
 {
   gsl_ntuple *n = NULL;
-  Data_Get_Struct(obj, gsl_ntuple, n);
+  TypedData_Get_Struct(obj, gsl_ntuple, &gsl_ntuple_data_type, n);
   gsl_ntuple_write(n);
   return obj;
 }
@@ -92,7 +92,7 @@ VALUE rb_gsl_ntuple_write(VALUE obj)
 VALUE rb_gsl_ntuple_bookdata(VALUE obj)
 {
   gsl_ntuple *n = NULL;
-  Data_Get_Struct(obj, gsl_ntuple, n);
+  TypedData_Get_Struct(obj, gsl_ntuple, &gsl_ntuple_data_type, n);
   gsl_ntuple_bookdata(n);
   return obj;
 }
@@ -100,7 +100,7 @@ VALUE rb_gsl_ntuple_bookdata(VALUE obj)
 VALUE rb_gsl_ntuple_read(VALUE obj)
 {
   gsl_ntuple *n = NULL;
-  Data_Get_Struct(obj, gsl_ntuple, n);
+  TypedData_Get_Struct(obj, gsl_ntuple, &gsl_ntuple_data_type, n);
   gsl_ntuple_read(n);
   return obj;
 }
@@ -108,7 +108,7 @@ VALUE rb_gsl_ntuple_read(VALUE obj)
 VALUE rb_gsl_ntuple_close(VALUE klass, VALUE obj)
 {
   gsl_ntuple *n = NULL;
-  Data_Get_Struct(obj, gsl_ntuple, n);
+  TypedData_Get_Struct(obj, gsl_ntuple, &gsl_ntuple_data_type, n);
   gsl_ntuple_close(n);
   return Qnil;
 }
@@ -116,7 +116,7 @@ VALUE rb_gsl_ntuple_close(VALUE klass, VALUE obj)
 VALUE rb_gsl_ntuple_size(VALUE klass, VALUE obj)
 {
   gsl_ntuple *n = NULL;
-  Data_Get_Struct(obj, gsl_ntuple, n);
+  TypedData_Get_Struct(obj, gsl_ntuple, &gsl_ntuple_data_type, n);
   return INT2FIX(n->size);
 }
 
@@ -124,11 +124,11 @@ VALUE rb_gsl_ntuple_data(VALUE obj)
 {
   gsl_ntuple *n = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_ntuple, n);
+  TypedData_Get_Struct(obj, gsl_ntuple, &gsl_ntuple_data_type, n);
   v = gsl_vector_view_alloc();
   v->vector.size = n->size;
   v->vector.data = n->ntuple_data;
-  return Data_Wrap_Struct(cgsl_vector_view, 0, gsl_vector_view_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, v);
 }
 
 /***** select_fn *****/
@@ -160,12 +160,22 @@ static void gsl_ntuple_select_fn_mark(gsl_ntuple_select_fn *ptr)
   rb_gc_mark((VALUE) ptr->params);
 }
 
+static const rb_data_type_t gsl_ntuple_select_fn_data_type = {
+    .wrap_struct_name = "GSL::NTuple::SelectFn",
+    .function = {
+        .dmark = (void (*)(void *))gsl_ntuple_select_fn_mark,
+        .dfree = (void (*)(void *))gsl_ntuple_select_fn_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
 static VALUE rb_gsl_ntuple_select_fn_set_f(int argc, VALUE *argv, VALUE obj)
 {
   gsl_ntuple_select_fn *F = NULL;
   VALUE ary, ary2;
   size_t i;
-  Data_Get_Struct(obj, gsl_ntuple_select_fn, F);
+  TypedData_Get_Struct(obj, gsl_ntuple_select_fn, &gsl_ntuple_select_fn_data_type, F);
   if (F->params == NULL) {
     ary = rb_ary_new2(3);
     /*    (VALUE) F->params = ary;*/
@@ -211,7 +221,7 @@ int rb_gsl_ntuple_select_fn_f(void *data, void *p)
   vtmp.vector.data = (double *) data;
   vtmp.vector.size = size;
   vtmp.vector.stride = 1;
-  vv = Data_Wrap_Struct(cgsl_vector_view, 0, NULL, &vtmp);
+  vv = TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, &vtmp);
   if (NIL_P(params)) result = rb_funcall(proc, RBGSL_ID_call, 1, vv);
   else result = rb_funcall(proc, RBGSL_ID_call, 2, vv, params);
   return FIX2INT(result);
@@ -220,7 +230,7 @@ int rb_gsl_ntuple_select_fn_f(void *data, void *p)
 static VALUE rb_gsl_ntuple_select_fn_params(VALUE obj)
 {
   gsl_ntuple_select_fn *F = NULL;
-  Data_Get_Struct(obj, gsl_ntuple_select_fn, F);
+  TypedData_Get_Struct(obj, gsl_ntuple_select_fn, &gsl_ntuple_select_fn_data_type, F);
   return rb_ary_entry((VALUE) F->params, 1);
 }
 
@@ -230,7 +240,7 @@ static VALUE rb_gsl_ntuple_select_fn_set_params(int argc, VALUE *argv, VALUE obj
   VALUE ary, ary2;
   size_t i;
   if (argc == 0) return obj;
-  Data_Get_Struct(obj, gsl_ntuple_select_fn, F);
+  TypedData_Get_Struct(obj, gsl_ntuple_select_fn, &gsl_ntuple_select_fn_data_type, F);
   ary = (VALUE) F->params;
   if (argc == 1) {
     rb_ary_store(ary, 1, argv[0]);
@@ -247,7 +257,7 @@ static VALUE rb_gsl_ntuple_select_fn_new(int argc, VALUE *argv, VALUE klass)
   gsl_ntuple_select_fn *F = NULL;
   VALUE ff;
   F = gsl_ntuple_select_fn_alloc();
-  ff = Data_Wrap_Struct(klass, gsl_ntuple_select_fn_mark, gsl_ntuple_select_fn_free, F);
+  ff = TypedData_Wrap_Struct(klass, &gsl_ntuple_select_fn_data_type, F);
   rb_gsl_ntuple_select_fn_set_f(argc, argv, ff);
   return ff;
 }
@@ -280,12 +290,22 @@ static void gsl_ntuple_value_fn_free(gsl_ntuple_value_fn *ptr)
   free((gsl_ntuple_value_fn *) ptr);
 }
 
+static const rb_data_type_t gsl_ntuple_value_fn_data_type = {
+    .wrap_struct_name = "GSL::NTuple::ValueFn",
+    .function = {
+        .dmark = (void (*)(void *))gsl_ntuple_value_fn_mark,
+        .dfree = (void (*)(void *))gsl_ntuple_value_fn_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
 static VALUE rb_gsl_ntuple_value_fn_set_f(int argc, VALUE *argv, VALUE obj)
 {
   gsl_ntuple_value_fn *F = NULL;
   VALUE ary, ary2;
   size_t i;
-  Data_Get_Struct(obj, gsl_ntuple_value_fn, F);
+  TypedData_Get_Struct(obj, gsl_ntuple_value_fn, &gsl_ntuple_value_fn_data_type, F);
   if (F->params == NULL) {
     ary = rb_ary_new2(3);
     /*    (VALUE) F->params = ary;*/
@@ -328,7 +348,7 @@ static double rb_gsl_ntuple_value_fn_f(void *data, void *p)
   vtmp.vector.data = (double *) data;
   vtmp.vector.size = FIX2INT(rb_ary_entry(ary, 2));
   vtmp.vector.stride = 1;
-  vv = Data_Wrap_Struct(cgsl_vector_view, 0, NULL, &vtmp);
+  vv = TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, &vtmp);
   if (NIL_P(params)) result = rb_funcall(proc, RBGSL_ID_call, 1, vv);
   else result = rb_funcall(proc, RBGSL_ID_call, 2, vv, params);
   return NUM2DBL(result);
@@ -337,7 +357,7 @@ static double rb_gsl_ntuple_value_fn_f(void *data, void *p)
 static VALUE rb_gsl_ntuple_value_fn_params(VALUE obj)
 {
   gsl_ntuple_value_fn *F = NULL;
-  Data_Get_Struct(obj, gsl_ntuple_value_fn, F);
+  TypedData_Get_Struct(obj, gsl_ntuple_value_fn, &gsl_ntuple_value_fn_data_type, F);
   return rb_ary_entry((VALUE) F->params, 1);
 }
 
@@ -347,7 +367,7 @@ static VALUE rb_gsl_ntuple_value_fn_set_params(int argc, VALUE *argv, VALUE obj)
   VALUE ary, ary2;
   size_t i;
   if (argc == 0) return obj;
-  Data_Get_Struct(obj, gsl_ntuple_value_fn, F);
+  TypedData_Get_Struct(obj, gsl_ntuple_value_fn, &gsl_ntuple_value_fn_data_type, F);
   ary = (VALUE) F->params;
   if (argc == 1) {
     rb_ary_store(ary, 1, argv[0]);
@@ -365,7 +385,7 @@ static VALUE rb_gsl_ntuple_value_fn_new(int argc, VALUE *argv, VALUE klass)
   gsl_ntuple_value_fn *F = NULL;
   VALUE ff;
   F = gsl_ntuple_value_fn_alloc();
-  ff = Data_Wrap_Struct(klass, gsl_ntuple_value_fn_mark, gsl_ntuple_value_fn_free, F);
+  ff = TypedData_Wrap_Struct(klass, &gsl_ntuple_value_fn_data_type, F);
   rb_gsl_ntuple_value_fn_set_f(argc, argv, ff);
   return ff;
 }
@@ -382,16 +402,16 @@ static VALUE rb_gsl_ntuple_project(VALUE obj, VALUE hh, VALUE nn,
   size_t size;
   if (!rb_obj_is_kind_of(hh, cgsl_histogram))
     rb_raise(rb_eTypeError, "argument 1: Histogram expected");
-  Data_Get_Struct(hh, gsl_histogram, h);
+  TypedData_Get_Struct(hh, gsl_histogram, &gsl_histogram_data_type, h);
   if (!rb_obj_is_kind_of(nn, cgsl_ntuple))
     rb_raise(rb_eTypeError, "argument 2: Ntuple expected");
-  Data_Get_Struct(nn, gsl_ntuple, n);
+  TypedData_Get_Struct(nn, gsl_ntuple, &gsl_ntuple_data_type, n);
   if (!rb_obj_is_kind_of(vvfn, cgsl_ntuple_value_fn))
     rb_raise(rb_eTypeError, "argument 3: Ntuple::ValueFn expected");
-  Data_Get_Struct(vvfn, gsl_ntuple_value_fn, vfn);
+  TypedData_Get_Struct(vvfn, gsl_ntuple_value_fn, &gsl_ntuple_value_fn_data_type, vfn);
   if (!rb_obj_is_kind_of(vsfn, cgsl_ntuple_select_fn))
     rb_raise(rb_eTypeError, "argument 4: Ntuple::SelectFn expected");
-  Data_Get_Struct(vsfn, gsl_ntuple_select_fn, sfn);
+  TypedData_Get_Struct(vsfn, gsl_ntuple_select_fn, &gsl_ntuple_select_fn_data_type, sfn);
 
   size = n->size/sizeof(double);
   rb_ary_store((VALUE) vfn->params, 2, INT2FIX(size));
@@ -410,14 +430,14 @@ static VALUE rb_gsl_ntuple_project2(VALUE obj, VALUE hh, VALUE vvfn, VALUE vsfn)
   int status;
   size_t size;
   CHECK_HISTOGRAM(hh);
-  Data_Get_Struct(obj, gsl_ntuple, n);
-  Data_Get_Struct(hh, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_ntuple, &gsl_ntuple_data_type, n);
+  TypedData_Get_Struct(hh, gsl_histogram, &gsl_histogram_data_type, h);
   if (!rb_obj_is_kind_of(vvfn, cgsl_ntuple_value_fn))
     rb_raise(rb_eTypeError, "argument 2: Ntuple::ValueFn expected");
-  Data_Get_Struct(vvfn, gsl_ntuple_value_fn, vfn);
+  TypedData_Get_Struct(vvfn, gsl_ntuple_value_fn, &gsl_ntuple_value_fn_data_type, vfn);
   if (!rb_obj_is_kind_of(vsfn, cgsl_ntuple_select_fn))
     rb_raise(rb_eTypeError, "argument 3: Ntuple::SelectFn expected");
-  Data_Get_Struct(vsfn, gsl_ntuple_select_fn, sfn);
+  TypedData_Get_Struct(vsfn, gsl_ntuple_select_fn, &gsl_ntuple_select_fn_data_type, sfn);
   size = n->size/sizeof(double);
   rb_ary_store((VALUE) vfn->params, 2, INT2FIX(size));
   rb_ary_store((VALUE) sfn->params, 2, INT2FIX(size));

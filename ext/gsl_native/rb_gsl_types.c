@@ -47,6 +47,8 @@
 #include <gsl/gsl_ntuple.h>
 
 #include "include/rb_gsl_types.h"
+#include "include/rb_gsl_function.h"
+#include "include/rb_gsl_array.h"
 
 /* ============================================================
  * Vector Types
@@ -316,10 +318,7 @@ const rb_data_type_t gsl_histogram3d_view_data_type = {
     .flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
 
-/* Helper function to free gsl_vector_view allocated on heap */
-static void gsl_vector_view_free(gsl_vector_view *v) {
-    if (v) free(v);
-}
+/* gsl_vector_view_free is declared in rb_gsl_array.h and defined in vector_double.c */
 
 const rb_data_type_t gsl_histogram_range_data_type = {
     .wrap_struct_name = "GSL::Histogram::Range",
@@ -669,6 +668,26 @@ const rb_data_type_t gsl_monte_vegas_state_data_type = {
     .flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
 
+const rb_data_type_t gsl_monte_miser_params_data_type = {
+    .wrap_struct_name = "GSL::Monte::Miser::Params",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+const rb_data_type_t gsl_monte_vegas_params_data_type = {
+    .wrap_struct_name = "GSL::Monte::Vegas::Params",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
 /* ============================================================
  * Minimization Types
  * ============================================================ */
@@ -858,6 +877,20 @@ const rb_data_type_t gsl_dht_data_type = {
     .function = {
         .dmark = NULL,
         .dfree = (void (*)(void *))gsl_dht_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+/* ============================================================
+ * GSL Function Types
+ * ============================================================ */
+
+const rb_data_type_t gsl_function_data_type = {
+    .wrap_struct_name = "GSL::Function",
+    .function = {
+        .dmark = (void (*)(void *))gsl_function_mark,
+        .dfree = (void (*)(void *))gsl_function_free,
         .dsize = NULL,
     },
     .flags = RUBY_TYPED_FREE_IMMEDIATELY,

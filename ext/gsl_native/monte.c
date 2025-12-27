@@ -33,16 +33,34 @@ enum {
   GSL_MONTE_VEGAS_STATE = 3,
 };
 
-static void gsl_monte_function_mark(gsl_monte_function *f);
-static void gsl_monte_function_free(gsl_monte_function *f);
 static double rb_gsl_monte_function_f(double *x, size_t dim, void *p);
+
+static void gsl_monte_function_free(gsl_monte_function *f)
+{
+  free((gsl_monte_function *) f);
+}
+
+static void gsl_monte_function_mark(gsl_monte_function *f)
+{
+  rb_gc_mark((VALUE) f->params);
+}
+
+static const rb_data_type_t gsl_monte_function_data_type = {
+    .wrap_struct_name = "GSL::Monte::Function",
+    .function = {
+        .dmark = (void (*)(void *))gsl_monte_function_mark,
+        .dfree = (void (*)(void *))gsl_monte_function_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
 
 static VALUE rb_gsl_monte_function_set_f(int argc, VALUE *argv, VALUE obj)
 {
   gsl_monte_function *F = NULL;
   VALUE ary, ary2;
   size_t i;
-  Data_Get_Struct(obj, gsl_monte_function, F);
+  TypedData_Get_Struct(obj, gsl_monte_function, &gsl_monte_function_data_type, F);
   if (F->params == NULL) {
     ary = rb_ary_new2(2);
     /*    (VALUE) F->params = ary;*/
@@ -78,16 +96,6 @@ static VALUE rb_gsl_monte_function_set_f(int argc, VALUE *argv, VALUE obj)
   return obj;
 }
 
-static void gsl_monte_function_free(gsl_monte_function *f)
-{
-  free((gsl_monte_function *) f);
-}
-
-static void gsl_monte_function_mark(gsl_monte_function *f)
-{
-  rb_gc_mark((VALUE) f->params);
-}
-
 static VALUE rb_gsl_monte_function_new(int argc, VALUE *argv, VALUE klass)
 {
   gsl_monte_function *f;
@@ -97,7 +105,7 @@ static VALUE rb_gsl_monte_function_new(int argc, VALUE *argv, VALUE klass)
   /*  (VALUE) f->params = rb_ary_new2(2);*/
   f->params = (void *) rb_ary_new2(2);
   rb_ary_store((VALUE) f->params, 1, Qnil);
-  obj = Data_Wrap_Struct(klass, gsl_monte_function_mark, gsl_monte_function_free, f);
+  obj = TypedData_Wrap_Struct(klass, &gsl_monte_function_data_type, f);
   rb_gsl_monte_function_set_f(argc, argv, obj);
   return obj;
 }
@@ -126,7 +134,7 @@ static VALUE rb_gsl_monte_function_eval(VALUE obj, VALUE vx)
   gsl_monte_function *F = NULL;
   VALUE result, ary, proc, params;
 
-  Data_Get_Struct(obj, gsl_monte_function, F);
+  TypedData_Get_Struct(obj, gsl_monte_function, &gsl_monte_function_data_type, F);
   ary = (VALUE) F->params;
   proc = rb_ary_entry(ary, 0);
   params = rb_ary_entry(ary, 1);
@@ -138,14 +146,14 @@ static VALUE rb_gsl_monte_function_eval(VALUE obj, VALUE vx)
 static VALUE rb_gsl_monte_function_proc(VALUE obj)
 {
   gsl_monte_function *F = NULL;
-  Data_Get_Struct(obj, gsl_monte_function, F);
+  TypedData_Get_Struct(obj, gsl_monte_function, &gsl_monte_function_data_type, F);
   return rb_ary_entry((VALUE) F->params, 0);
 }
 
 static VALUE rb_gsl_monte_function_params(VALUE obj)
 {
   gsl_monte_function *F = NULL;
-  Data_Get_Struct(obj, gsl_monte_function, F);
+  TypedData_Get_Struct(obj, gsl_monte_function, &gsl_monte_function_data_type, F);
   return rb_ary_entry((VALUE) F->params, 1);
 }
 
@@ -156,7 +164,7 @@ static VALUE rb_gsl_monte_function_set_params(int argc, VALUE *argv, VALUE obj)
   size_t i;
 
   if (argc == 0) return obj;
-  Data_Get_Struct(obj, gsl_monte_function, F);
+  TypedData_Get_Struct(obj, gsl_monte_function, &gsl_monte_function_data_type, F);
   ary = (VALUE) F->params;
   if (argc == 1) {
     rb_ary_store(ary, 1, argv[0]);
@@ -176,13 +184,13 @@ static VALUE rb_gsl_monte_plain_new(VALUE klass, VALUE d)
   dim = FIX2INT(d);
   s = gsl_monte_plain_alloc(dim);
   gsl_monte_plain_init(s);
-  return Data_Wrap_Struct(klass, 0, gsl_monte_plain_free, s);
+  return TypedData_Wrap_Struct(klass, &gsl_monte_plain_state_data_type, s);
 }
 
 static VALUE rb_gsl_monte_plain_init(VALUE obj)
 {
   gsl_monte_plain_state *s;
-  Data_Get_Struct(obj, gsl_monte_plain_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_plain_state, &gsl_monte_plain_state_data_type, s);
   return INT2FIX(gsl_monte_plain_init(s));
 }
 
@@ -194,13 +202,13 @@ static VALUE rb_gsl_monte_miser_new(VALUE klass, VALUE d)
   dim = FIX2INT(d);
   s = gsl_monte_miser_alloc(dim);
   gsl_monte_miser_init(s);
-  return Data_Wrap_Struct(klass, 0, gsl_monte_miser_free, s);
+  return TypedData_Wrap_Struct(klass, &gsl_monte_miser_state_data_type, s);
 }
 
 static VALUE rb_gsl_monte_miser_init(VALUE obj)
 {
   gsl_monte_miser_state *s;
-  Data_Get_Struct(obj, gsl_monte_miser_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_miser_state, &gsl_monte_miser_state_data_type, s);
   return INT2FIX(gsl_monte_miser_init(s));
 }
 
@@ -212,13 +220,13 @@ static VALUE rb_gsl_monte_vegas_new(VALUE klass, VALUE d)
   dim = FIX2INT(d);
   s = gsl_monte_vegas_alloc(dim);
   gsl_monte_vegas_init(s);
-  return Data_Wrap_Struct(klass, 0, gsl_monte_vegas_free, s);
+  return TypedData_Wrap_Struct(klass, &gsl_monte_vegas_state_data_type, s);
 }
 
 static VALUE rb_gsl_monte_vegas_init(VALUE obj)
 {
   gsl_monte_vegas_state *s;
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   return INT2FIX(gsl_monte_vegas_init(s));
 }
 
@@ -245,18 +253,18 @@ static VALUE rb_gsl_monte_integrate(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eTypeError,
                "wrong type argument %s (GSL::Monte::Function expected)",
                rb_class2name(CLASS_OF(argv[0])));
-    Data_Get_Struct(argv[0], gsl_monte_function, F);
+    TypedData_Get_Struct(argv[0], gsl_monte_function, &gsl_monte_function_data_type, F);
     itmp = 1;
     break;
   default:
-    Data_Get_Struct(obj, gsl_monte_function, F);
+    TypedData_Get_Struct(obj, gsl_monte_function, &gsl_monte_function_data_type, F);
     itmp = 0;
   }
 
   CHECK_VECTOR(argv[itmp]);
   CHECK_VECTOR(argv[itmp+1]);
-  Data_Get_Struct(argv[itmp], gsl_vector, xl);
-  Data_Get_Struct(argv[itmp+1], gsl_vector, xu);
+  TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, xl);
+  TypedData_Get_Struct(argv[itmp+1], gsl_vector, &gsl_vector_data_type, xu);
 
   if (argc > itmp+3 && TYPE(argv[itmp+3]) == T_FIXNUM) {
     dim = FIX2INT(argv[itmp+2]);
@@ -266,7 +274,7 @@ static VALUE rb_gsl_monte_integrate(int argc, VALUE *argv, VALUE obj)
     calls = FIX2INT(argv[itmp+2]);
   }
   if (rb_obj_is_kind_of(argv[argc-2], cgsl_rng)) {
-    Data_Get_Struct(argv[argc-2], gsl_rng, r);
+    TypedData_Get_Struct(argv[argc-2], gsl_rng, &gsl_rng_data_type, r);
   } else {
     r = gsl_rng_alloc(gsl_rng_default);
     flagr = 1;
@@ -283,7 +291,7 @@ static VALUE rb_gsl_monte_integrate(int argc, VALUE *argv, VALUE obj)
       if (!rb_obj_is_kind_of(argv[argc-1], cgsl_monte_plain))
         rb_raise(rb_eTypeError, "wrong argument type %s (Monte::Plain expected)",
                  rb_class2name(CLASS_OF(argv[argc-1])));
-      Data_Get_Struct(argv[argc-1], gsl_monte_plain_state, plain);
+      TypedData_Get_Struct(argv[argc-1], gsl_monte_plain_state, &gsl_monte_plain_state_data_type, plain);
     }
     gsl_monte_plain_integrate(F, xl->data, xu->data, dim, calls, r, plain, &result, &abserr);
     if (type > 100) gsl_monte_plain_free(plain);
@@ -297,7 +305,7 @@ static VALUE rb_gsl_monte_integrate(int argc, VALUE *argv, VALUE obj)
       if (!rb_obj_is_kind_of(argv[argc-1], cgsl_monte_miser))
         rb_raise(rb_eTypeError, "wrong argument type %s (Monte::Miser expected)",
                  rb_class2name(CLASS_OF(argv[argc-1])));
-      Data_Get_Struct(argv[argc-1], gsl_monte_miser_state, miser);
+      TypedData_Get_Struct(argv[argc-1], gsl_monte_miser_state, &gsl_monte_miser_state_data_type, miser);
     }
     gsl_monte_miser_integrate(F, xl->data, xu->data, dim, calls, r, miser, &result, &abserr);
     if (type > 100) gsl_monte_miser_free(miser);
@@ -310,7 +318,7 @@ static VALUE rb_gsl_monte_integrate(int argc, VALUE *argv, VALUE obj)
     } else {      if (!rb_obj_is_kind_of(argv[argc-1], cgsl_monte_vegas))
                     rb_raise(rb_eTypeError, "wrong argument type %s (Monte::Vegas expected)",
                              rb_class2name(CLASS_OF(argv[argc-1])));
-                  Data_Get_Struct(argv[argc-1], gsl_monte_vegas_state, vegas); }
+                  TypedData_Get_Struct(argv[argc-1], gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, vegas); }
     gsl_monte_vegas_integrate(F, xl->data, xu->data, dim, calls, r, vegas, &result, &abserr);
     if (type > 100) gsl_monte_vegas_free(vegas);
     break;
@@ -333,10 +341,10 @@ static VALUE rb_gsl_monte_plain_integrate(int argc, VALUE *argv, VALUE obj)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 4, 5 or 6)", argc);
   CHECK_MONTE_FUNCTION(argv[0]);
   CHECK_VECTOR(argv[1]);  CHECK_VECTOR(argv[2]);
-  Data_Get_Struct(obj, gsl_monte_plain_state, plain);
-  Data_Get_Struct(argv[0], gsl_monte_function, F);
-  Data_Get_Struct(argv[1], gsl_vector, xl);
-  Data_Get_Struct(argv[2], gsl_vector, xu);
+  TypedData_Get_Struct(obj, gsl_monte_plain_state, &gsl_monte_plain_state_data_type, plain);
+  TypedData_Get_Struct(argv[0], gsl_monte_function, &gsl_monte_function_data_type, F);
+  TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, xl);
+  TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, xu);
   if (argc >= 5 && TYPE(argv[4]) == T_FIXNUM) {
     dim = FIX2INT(argv[3]);
     calls = FIX2INT(argv[4]);
@@ -345,7 +353,7 @@ static VALUE rb_gsl_monte_plain_integrate(int argc, VALUE *argv, VALUE obj)
     calls = FIX2INT(argv[3]);
   }
   if (rb_obj_is_kind_of(argv[argc-1], cgsl_rng)) {
-    Data_Get_Struct(argv[argc-1], gsl_rng, r);
+    TypedData_Get_Struct(argv[argc-1], gsl_rng, &gsl_rng_data_type, r);
   } else {
     r = gsl_rng_alloc(gsl_rng_default);
     flagr = 1;
@@ -370,10 +378,10 @@ static VALUE rb_gsl_monte_miser_integrate(int argc, VALUE *argv, VALUE obj)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for >= 4)", argc);
   CHECK_MONTE_FUNCTION(argv[0]);
   CHECK_VECTOR(argv[1]);  CHECK_VECTOR(argv[2]);
-  Data_Get_Struct(obj, gsl_monte_miser_state, miser);
-  Data_Get_Struct(argv[0], gsl_monte_function, F);
-  Data_Get_Struct(argv[1], gsl_vector, xl);
-  Data_Get_Struct(argv[2], gsl_vector, xu);
+  TypedData_Get_Struct(obj, gsl_monte_miser_state, &gsl_monte_miser_state_data_type, miser);
+  TypedData_Get_Struct(argv[0], gsl_monte_function, &gsl_monte_function_data_type, F);
+  TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, xl);
+  TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, xu);
   if (argc >= 5 && TYPE(argv[4]) == T_FIXNUM) {
     dim = FIX2INT(argv[3]);
     calls = FIX2INT(argv[4]);
@@ -382,7 +390,7 @@ static VALUE rb_gsl_monte_miser_integrate(int argc, VALUE *argv, VALUE obj)
     calls = FIX2INT(argv[3]);
   }
   if (rb_obj_is_kind_of(argv[argc-1], cgsl_rng)) {
-    Data_Get_Struct(argv[argc-1], gsl_rng, r);
+    TypedData_Get_Struct(argv[argc-1], gsl_rng, &gsl_rng_data_type, r);
   } else {
     r = gsl_rng_alloc(gsl_rng_default);
     flagr = 1;
@@ -407,10 +415,10 @@ static VALUE rb_gsl_monte_vegas_integrate(int argc, VALUE *argv, VALUE obj)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for >= 4)", argc);
   CHECK_MONTE_FUNCTION(argv[0]);
   CHECK_VECTOR(argv[1]);  CHECK_VECTOR(argv[2]);
-  Data_Get_Struct(obj, gsl_monte_vegas_state, vegas);
-  Data_Get_Struct(argv[0], gsl_monte_function, F);
-  Data_Get_Struct(argv[1], gsl_vector, xl);
-  Data_Get_Struct(argv[2], gsl_vector, xu);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, vegas);
+  TypedData_Get_Struct(argv[0], gsl_monte_function, &gsl_monte_function_data_type, F);
+  TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, xl);
+  TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, xu);
   if (argc >= 5 && TYPE(argv[4]) == T_FIXNUM) {
     dim = FIX2INT(argv[3]);
     calls = FIX2INT(argv[4]);
@@ -419,7 +427,7 @@ static VALUE rb_gsl_monte_vegas_integrate(int argc, VALUE *argv, VALUE obj)
     calls = FIX2INT(argv[3]);
   }
   if (rb_obj_is_kind_of(argv[argc-1], cgsl_rng)) {
-    Data_Get_Struct(argv[argc-1], gsl_rng, r);
+    TypedData_Get_Struct(argv[argc-1], gsl_rng, &gsl_rng_data_type, r);
   } else {
     r = gsl_rng_alloc(gsl_rng_default);
     flagr = 1;
@@ -466,14 +474,14 @@ static int get_monte_type(VALUE vt)
 static VALUE rb_gsl_monte_miser_estimate_frac(VALUE obj)
 {
   gsl_monte_miser_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_miser_state, &gsl_monte_miser_state_data_type, s);
   return rb_float_new(s->estimate_frac);
 }
 
 static VALUE rb_gsl_monte_miser_set_estimate_frac(VALUE obj, VALUE val)
 {
   gsl_monte_miser_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_miser_state, &gsl_monte_miser_state_data_type, s);
   s->estimate_frac = NUM2DBL(val);
   return obj;
 }
@@ -481,14 +489,14 @@ static VALUE rb_gsl_monte_miser_set_estimate_frac(VALUE obj, VALUE val)
 static VALUE rb_gsl_monte_miser_min_calls(VALUE obj)
 {
   gsl_monte_miser_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_miser_state, &gsl_monte_miser_state_data_type, s);
   return INT2FIX(s->min_calls);
 }
 
 static VALUE rb_gsl_monte_miser_set_min_calls(VALUE obj, VALUE val)
 {
   gsl_monte_miser_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_miser_state, &gsl_monte_miser_state_data_type, s);
   s->min_calls = FIX2INT(val);
   return obj;
 }
@@ -496,7 +504,7 @@ static VALUE rb_gsl_monte_miser_set_min_calls(VALUE obj, VALUE val)
 static VALUE rb_gsl_monte_miser_min_calls_per_bisection(VALUE obj)
 {
   gsl_monte_miser_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_miser_state, &gsl_monte_miser_state_data_type, s);
   return INT2FIX(s->min_calls_per_bisection);
 }
 
@@ -504,7 +512,7 @@ static VALUE rb_gsl_monte_miser_set_min_calls_per_bisection(VALUE obj, VALUE val
 {
   gsl_monte_miser_state *s = NULL;
   CHECK_FIXNUM(val);
-  Data_Get_Struct(obj, gsl_monte_miser_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_miser_state, &gsl_monte_miser_state_data_type, s);
   s->min_calls_per_bisection = FIX2INT(val);
   return obj;
 }
@@ -512,7 +520,7 @@ static VALUE rb_gsl_monte_miser_set_min_calls_per_bisection(VALUE obj, VALUE val
 static VALUE rb_gsl_monte_miser_alpha(VALUE obj)
 {
   gsl_monte_miser_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_miser_state, &gsl_monte_miser_state_data_type, s);
   return rb_float_new(s->alpha);
 }
 
@@ -520,7 +528,7 @@ static VALUE rb_gsl_monte_miser_set_alpha(VALUE obj, VALUE val)
 {
   gsl_monte_miser_state *s = NULL;
   Need_Float(val);
-  Data_Get_Struct(obj, gsl_monte_miser_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_miser_state, &gsl_monte_miser_state_data_type, s);
   s->alpha = NUM2DBL(val);
   return obj;
 }
@@ -528,7 +536,7 @@ static VALUE rb_gsl_monte_miser_set_alpha(VALUE obj, VALUE val)
 static VALUE rb_gsl_monte_miser_dither(VALUE obj)
 {
   gsl_monte_miser_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_miser_state, &gsl_monte_miser_state_data_type, s);
   return rb_float_new(s->dither);
 }
 
@@ -536,7 +544,7 @@ static VALUE rb_gsl_monte_miser_set_dither(VALUE obj, VALUE val)
 {
   gsl_monte_miser_state *s = NULL;
   Need_Float(val);
-  Data_Get_Struct(obj, gsl_monte_miser_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_miser_state, &gsl_monte_miser_state_data_type, s);
   s->dither = NUM2DBL(val);
   return obj;
 }
@@ -544,7 +552,7 @@ static VALUE rb_gsl_monte_miser_set_dither(VALUE obj, VALUE val)
 static VALUE rb_gsl_monte_miser_state(VALUE obj)
 {
   gsl_monte_miser_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_miser_state, &gsl_monte_miser_state_data_type, s);
   return rb_ary_new3(5, rb_float_new(s->estimate_frac), INT2FIX(s->min_calls),
                      INT2FIX(s->min_calls_per_bisection), rb_float_new(s->alpha),
                      rb_float_new(s->dither));
@@ -553,26 +561,26 @@ static VALUE rb_gsl_monte_miser_state(VALUE obj)
 static VALUE rb_gsl_monte_vegas_result(VALUE obj)
 {
   gsl_monte_vegas_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   return rb_float_new(s->result);
 }
 
 static VALUE rb_gsl_monte_vegas_sigma(VALUE obj)
 {
   gsl_monte_vegas_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   return rb_float_new(s->sigma);
 }
 static VALUE rb_gsl_monte_vegas_chisq(VALUE obj)
 {
   gsl_monte_vegas_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   return rb_float_new(s->chisq);
 }
 static VALUE rb_gsl_monte_vegas_alpha(VALUE obj)
 {
   gsl_monte_vegas_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   return rb_float_new(s->alpha);
 }
 
@@ -580,7 +588,7 @@ static VALUE rb_gsl_monte_vegas_set_alpha(VALUE obj, VALUE val)
 {
   gsl_monte_vegas_state *s = NULL;
   Need_Float(val);
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   s->alpha = NUM2DBL(val);
   return obj;
 }
@@ -588,7 +596,7 @@ static VALUE rb_gsl_monte_vegas_set_alpha(VALUE obj, VALUE val)
 static VALUE rb_gsl_monte_vegas_iterations(VALUE obj)
 {
   gsl_monte_vegas_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   return INT2FIX(s->iterations);
 }
 
@@ -596,56 +604,56 @@ static VALUE rb_gsl_monte_vegas_set_iterations(VALUE obj, VALUE val)
 {
   gsl_monte_vegas_state *s = NULL;
   CHECK_FIXNUM(val);
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   s->iterations = FIX2INT(val);
   return obj;
 }
 static VALUE rb_gsl_monte_vegas_stage(VALUE obj)
 {
   gsl_monte_vegas_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   return INT2FIX(s->stage);
 }
 static VALUE rb_gsl_monte_vegas_set_stage(VALUE obj, VALUE val)
 {
   gsl_monte_vegas_state *s = NULL;
   CHECK_FIXNUM(val);
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   s->stage = FIX2INT(val);
   return obj;
 }
 static VALUE rb_gsl_monte_vegas_mode(VALUE obj)
 {
   gsl_monte_vegas_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   return INT2FIX(s->mode);
 }
 static VALUE rb_gsl_monte_vegas_set_mode(VALUE obj, VALUE val)
 {
   gsl_monte_vegas_state *s = NULL;
   CHECK_FIXNUM(val);
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   s->mode = FIX2INT(val);
   return obj;
 }
 static VALUE rb_gsl_monte_vegas_verbose(VALUE obj)
 {
   gsl_monte_vegas_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   return INT2FIX(s->verbose);
 }
 static VALUE rb_gsl_monte_vegas_set_verbose(VALUE obj, VALUE val)
 {
   gsl_monte_vegas_state *s = NULL;
   CHECK_FIXNUM(val);
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   s->verbose = FIX2INT(val);
   return obj;
 }
 static VALUE rb_gsl_monte_vegas_state(VALUE obj)
 {
   gsl_monte_vegas_state *s = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   return rb_ary_new3(8, rb_float_new(s->result), rb_float_new(s->sigma),
                      rb_float_new(s->chisq), rb_float_new(s->alpha),
                      INT2FIX(s->iterations), INT2FIX(s->stage),
@@ -656,82 +664,82 @@ static VALUE rb_gsl_monte_miser_params_get(VALUE obj)
 {
   gsl_monte_miser_state *s = NULL;
   gsl_monte_miser_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_miser_state, &gsl_monte_miser_state_data_type, s);
   p = (gsl_monte_miser_params *) malloc(sizeof(gsl_monte_miser_params));
   gsl_monte_miser_params_get(s, p);
-  return Data_Wrap_Struct(cgsl_monte_miser_params, 0, free, p);
+  return TypedData_Wrap_Struct(cgsl_monte_miser_params, &gsl_monte_miser_params_data_type, p);
 }
 static VALUE rb_gsl_monte_miser_params_set(VALUE obj, VALUE params)
 {
   gsl_monte_miser_state *s = NULL;
   gsl_monte_miser_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_state, s);
-  Data_Get_Struct(params, gsl_monte_miser_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_miser_state, &gsl_monte_miser_state_data_type, s);
+  TypedData_Get_Struct(params, gsl_monte_miser_params, &gsl_monte_miser_params_data_type, p);
   gsl_monte_miser_params_set(s, p);
   return Qtrue;
 }
 static VALUE rb_gsl_monte_miser_params_get_estimate_frac(VALUE obj)
 {
   gsl_monte_miser_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_miser_params, &gsl_monte_miser_params_data_type, p);
   return rb_float_new(p->estimate_frac);
 }
 static VALUE rb_gsl_monte_miser_params_set_estimate_frac(VALUE obj, VALUE val)
 {
   gsl_monte_miser_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_miser_params, &gsl_monte_miser_params_data_type, p);
   p->estimate_frac = NUM2DBL(val);
   return val;
 }
 static VALUE rb_gsl_monte_miser_params_get_min_calls(VALUE obj)
 {
   gsl_monte_miser_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_miser_params, &gsl_monte_miser_params_data_type, p);
   return INT2FIX(p->min_calls);
 }
 static VALUE rb_gsl_monte_miser_params_set_min_calls(VALUE obj, VALUE val)
 {
   gsl_monte_miser_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_miser_params, &gsl_monte_miser_params_data_type, p);
   p->min_calls = (size_t) FIX2INT(val);
   return val;
 }
 static VALUE rb_gsl_monte_miser_params_get_min_calls_per_bisection(VALUE obj)
 {
   gsl_monte_miser_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_miser_params, &gsl_monte_miser_params_data_type, p);
   return INT2FIX(p->min_calls_per_bisection);
 }
 static VALUE rb_gsl_monte_miser_params_set_min_calls_per_bisection(VALUE obj, VALUE val)
 {
   gsl_monte_miser_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_miser_params, &gsl_monte_miser_params_data_type, p);
   p->min_calls_per_bisection = (size_t) FIX2INT(val);
   return val;
 }
 static VALUE rb_gsl_monte_miser_params_get_alpha(VALUE obj)
 {
   gsl_monte_miser_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_miser_params, &gsl_monte_miser_params_data_type, p);
   return rb_float_new(p->alpha);
 }
 static VALUE rb_gsl_monte_miser_params_set_alpha(VALUE obj, VALUE val)
 {
   gsl_monte_miser_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_miser_params, &gsl_monte_miser_params_data_type, p);
   p->alpha = NUM2DBL(val);
   return val;
 }
 static VALUE rb_gsl_monte_miser_params_get_dither(VALUE obj)
 {
   gsl_monte_miser_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_miser_params, &gsl_monte_miser_params_data_type, p);
   return rb_float_new(p->dither);
 }
 static VALUE rb_gsl_monte_miser_params_set_dither(VALUE obj, VALUE val)
 {
   gsl_monte_miser_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_miser_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_miser_params, &gsl_monte_miser_params_data_type, p);
   p->dither = NUM2DBL(val);
   return val;
 }
@@ -740,82 +748,82 @@ static VALUE rb_gsl_monte_vegas_params_get(VALUE obj)
 {
   gsl_monte_vegas_state *s = NULL;
   gsl_monte_vegas_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   p = (gsl_monte_vegas_params *) malloc(sizeof(gsl_monte_vegas_params));
   gsl_monte_vegas_params_get(s, p);
-  return Data_Wrap_Struct(cgsl_monte_vegas_params, 0, free, p);
+  return TypedData_Wrap_Struct(cgsl_monte_vegas_params, &gsl_monte_vegas_params_data_type, p);
 }
 static VALUE rb_gsl_monte_vegas_params_set(VALUE obj, VALUE params)
 {
   gsl_monte_vegas_state *s = NULL;
   gsl_monte_vegas_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
-  Data_Get_Struct(params, gsl_monte_vegas_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
+  TypedData_Get_Struct(params, gsl_monte_vegas_params, &gsl_monte_vegas_params_data_type, p);
   gsl_monte_vegas_params_set(s, p);
   return Qtrue;
 }
 static VALUE rb_gsl_monte_vegas_params_get_alpha(VALUE obj)
 {
   gsl_monte_vegas_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_params, &gsl_monte_vegas_params_data_type, p);
   return rb_float_new(p->alpha);
 }
 static VALUE rb_gsl_monte_vegas_params_set_alpha(VALUE obj, VALUE val)
 {
   gsl_monte_vegas_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_params, &gsl_monte_vegas_params_data_type, p);
   p->alpha = NUM2DBL(val);
   return val;
 }
 static VALUE rb_gsl_monte_vegas_params_get_iterations(VALUE obj)
 {
   gsl_monte_vegas_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_params, &gsl_monte_vegas_params_data_type, p);
   return INT2FIX(p->iterations);
 }
 static VALUE rb_gsl_monte_vegas_params_set_iterations(VALUE obj, VALUE val)
 {
   gsl_monte_vegas_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_params, &gsl_monte_vegas_params_data_type, p);
   p->iterations = (size_t) FIX2INT(val);
   return val;
 }
 static VALUE rb_gsl_monte_vegas_params_get_stage(VALUE obj)
 {
   gsl_monte_vegas_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_params, &gsl_monte_vegas_params_data_type, p);
   return INT2FIX(p->stage);
 }
 static VALUE rb_gsl_monte_vegas_params_set_stage(VALUE obj, VALUE val)
 {
   gsl_monte_vegas_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_params, &gsl_monte_vegas_params_data_type, p);
   p->stage = FIX2INT(val);
   return val;
 }
 static VALUE rb_gsl_monte_vegas_params_get_mode(VALUE obj)
 {
   gsl_monte_vegas_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_params, &gsl_monte_vegas_params_data_type, p);
   return INT2FIX(p->mode);
 }
 static VALUE rb_gsl_monte_vegas_params_set_mode(VALUE obj, VALUE val)
 {
   gsl_monte_vegas_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_params, &gsl_monte_vegas_params_data_type, p);
   p->mode = FIX2INT(val);
   return val;
 }
 static VALUE rb_gsl_monte_vegas_params_get_verbose(VALUE obj)
 {
   gsl_monte_vegas_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_params, &gsl_monte_vegas_params_data_type, p);
   return INT2FIX(p->verbose);
 }
 static VALUE rb_gsl_monte_vegas_params_set_verbose(VALUE obj, VALUE val)
 {
   gsl_monte_vegas_params *p = NULL;
-  Data_Get_Struct(obj, gsl_monte_vegas_params, p);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_params, &gsl_monte_vegas_params_data_type, p);
   p->verbose = FIX2INT(val);
   return val;
 }
@@ -824,7 +832,7 @@ static VALUE rb_gsl_monte_vegas_runval(VALUE obj)
   gsl_monte_vegas_state *s = NULL;
   double res, sig;
   VALUE ary;
-  Data_Get_Struct(obj, gsl_monte_vegas_state, s);
+  TypedData_Get_Struct(obj, gsl_monte_vegas_state, &gsl_monte_vegas_state_data_type, s);
   gsl_monte_vegas_runval(s, &res, &sig);
   ary = rb_ary_new2(2);
   rb_ary_store(ary, 0, rb_float_new(res));

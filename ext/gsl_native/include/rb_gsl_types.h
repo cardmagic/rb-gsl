@@ -97,6 +97,8 @@ extern const rb_data_type_t gsl_integration_glfixed_table_data_type;
 extern const rb_data_type_t gsl_monte_plain_state_data_type;
 extern const rb_data_type_t gsl_monte_miser_state_data_type;
 extern const rb_data_type_t gsl_monte_vegas_state_data_type;
+extern const rb_data_type_t gsl_monte_miser_params_data_type;
+extern const rb_data_type_t gsl_monte_vegas_params_data_type;
 
 /* Minimization Types */
 extern const rb_data_type_t gsl_min_fminimizer_data_type;
@@ -126,6 +128,9 @@ extern const rb_data_type_t gsl_sum_levin_utrunc_workspace_data_type;
 
 /* DHT Types */
 extern const rb_data_type_t gsl_dht_data_type;
+
+/* GSL Function Types */
+extern const rb_data_type_t gsl_function_data_type;
 
 /* Special Function Result Types */
 extern const rb_data_type_t gsl_sf_result_data_type;
