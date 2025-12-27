@@ -15,6 +15,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <gsl/gsl_mode.h>
+#include "rb_gsl_types.h"
 #include "rb_gsl_poly.h"
 #include "rb_gsl_linalg.h"
 #include "rb_gsl_math.h"
