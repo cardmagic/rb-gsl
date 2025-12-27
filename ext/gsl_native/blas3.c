@@ -24,8 +24,8 @@ static VALUE rb_gsl_blas_dgemm(int argc, VALUE *argv, VALUE obj)
   case 2:
     CHECK_MATRIX(argv[0]);
     CHECK_MATRIX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, A);
-    Data_Get_Struct(argv[1], gsl_matrix, B);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, B);
     C = gsl_matrix_calloc(A->size1, B->size2);
     alpha = 1.0;
     beta = 0.0;
@@ -41,8 +41,8 @@ static VALUE rb_gsl_blas_dgemm(int argc, VALUE *argv, VALUE obj)
     TransA = FIX2INT(argv[0]);
     TransB = FIX2INT(argv[1]);
     alpha = NUM2DBL(argv[2]);
-    Data_Get_Struct(argv[3], gsl_matrix, A);
-    Data_Get_Struct(argv[4], gsl_matrix, B);
+    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_matrix, &gsl_matrix_data_type, B);
     C = gsl_matrix_calloc(A->size1, B->size2);
     beta = 0.0;
     flag = 1;
@@ -57,8 +57,8 @@ static VALUE rb_gsl_blas_dgemm(int argc, VALUE *argv, VALUE obj)
     TransA = FIX2INT(argv[0]);
     TransB = FIX2INT(argv[1]);
     alpha = NUM2DBL(argv[2]);
-    Data_Get_Struct(argv[3], gsl_matrix, A);
-    Data_Get_Struct(argv[4], gsl_matrix, B);
+    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_matrix, &gsl_matrix_data_type, B);
     beta = NUM2DBL(argv[5]);
     C = gsl_matrix_calloc(A->size1, B->size2);
     flag = 1;
@@ -74,17 +74,17 @@ static VALUE rb_gsl_blas_dgemm(int argc, VALUE *argv, VALUE obj)
     TransA = FIX2INT(argv[0]);
     TransB = FIX2INT(argv[1]);
     alpha = NUM2DBL(argv[2]);
-    Data_Get_Struct(argv[3], gsl_matrix, A);
-    Data_Get_Struct(argv[4], gsl_matrix, B);
+    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_matrix, &gsl_matrix_data_type, B);
     beta = NUM2DBL(argv[5]);
-    Data_Get_Struct(argv[6], gsl_matrix, C);
+    TypedData_Get_Struct(argv[6], gsl_matrix, &gsl_matrix_data_type, C);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2, 5, 6, or 7)", argc);
     break;
   }
   gsl_blas_dgemm(TransA, TransB, alpha, A, B, beta, C);
-  if (flag == 1) return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, C);
+  if (flag == 1) return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, C);
   else return argv[6];
 }
 
@@ -100,8 +100,8 @@ static VALUE rb_gsl_blas_zgemm(int argc, VALUE *argv, VALUE obj)
   case 2:
     CHECK_MATRIX_COMPLEX(argv[0]);
     CHECK_MATRIX_COMPLEX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[1], gsl_matrix_complex, B);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[1], gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
     C = gsl_matrix_complex_calloc(A->size1, B->size2);
     TransA = CblasNoTrans;  TransB = CblasNoTrans;
     flag = 1;
@@ -114,9 +114,9 @@ static VALUE rb_gsl_blas_zgemm(int argc, VALUE *argv, VALUE obj)
     CHECK_MATRIX_COMPLEX(argv[4]);
     TransA = FIX2INT(argv[0]);
     TransB = FIX2INT(argv[1]);
-    Data_Get_Struct(argv[2], gsl_complex, pa);
-    Data_Get_Struct(argv[3], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[4], gsl_matrix_complex, B);
+    TypedData_Get_Struct(argv[2], gsl_complex, &gsl_complex_data_type, pa);
+    TypedData_Get_Struct(argv[3], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
     C = gsl_matrix_complex_calloc(A->size1, B->size2);
     flag = 1;
     break;
@@ -129,10 +129,10 @@ static VALUE rb_gsl_blas_zgemm(int argc, VALUE *argv, VALUE obj)
     CHECK_COMPLEX(argv[5]);
     TransA = FIX2INT(argv[0]);
     TransB = FIX2INT(argv[1]);
-    Data_Get_Struct(argv[2], gsl_complex, pa);
-    Data_Get_Struct(argv[3], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[4], gsl_matrix_complex, B);
-    Data_Get_Struct(argv[5], gsl_complex, pb);
+    TypedData_Get_Struct(argv[2], gsl_complex, &gsl_complex_data_type, pa);
+    TypedData_Get_Struct(argv[3], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
+    TypedData_Get_Struct(argv[5], gsl_complex, &gsl_complex_data_type, pb);
     C = gsl_matrix_complex_calloc(A->size1, B->size2);
     flag = 1;
     break;
@@ -146,18 +146,18 @@ static VALUE rb_gsl_blas_zgemm(int argc, VALUE *argv, VALUE obj)
     CHECK_MATRIX_COMPLEX(argv[6]);
     TransA = FIX2INT(argv[0]);
     TransB = FIX2INT(argv[1]);
-    Data_Get_Struct(argv[2], gsl_complex, pa);
-    Data_Get_Struct(argv[3], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[4], gsl_matrix_complex, B);
-    Data_Get_Struct(argv[5], gsl_complex, pb);
-    Data_Get_Struct(argv[6], gsl_matrix_complex, C);
+    TypedData_Get_Struct(argv[2], gsl_complex, &gsl_complex_data_type, pa);
+    TypedData_Get_Struct(argv[3], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
+    TypedData_Get_Struct(argv[5], gsl_complex, &gsl_complex_data_type, pb);
+    TypedData_Get_Struct(argv[6], gsl_matrix_complex, &gsl_matrix_complex_data_type, C);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2 or 7)", argc);
     break;
   }
   gsl_blas_zgemm(TransA, TransB, *pa, A, B, *pb, C);
-  if (flag == 1) return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, C);
+  if (flag == 1) return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, C);
   else return argv[6];
 }
 
@@ -172,8 +172,8 @@ static VALUE rb_gsl_blas_dsymm(int argc, VALUE *argv, VALUE obj)
   case 2:
     CHECK_MATRIX(argv[0]);
     CHECK_MATRIX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, A);
-    Data_Get_Struct(argv[1], gsl_matrix, B);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, B);
     C = gsl_matrix_calloc(A->size1, B->size2);
     alpha = 1.0;
     beta = 0.0;
@@ -189,8 +189,8 @@ static VALUE rb_gsl_blas_dsymm(int argc, VALUE *argv, VALUE obj)
     Side = FIX2INT(argv[0]);
     Uplo = FIX2INT(argv[1]);
     alpha = NUM2DBL(argv[2]);
-    Data_Get_Struct(argv[3], gsl_matrix, A);
-    Data_Get_Struct(argv[4], gsl_matrix, B);
+    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_matrix, &gsl_matrix_data_type, B);
     C = gsl_matrix_calloc(A->size1, B->size2);
     beta = 0.0;
     flag = 1;
@@ -206,8 +206,8 @@ static VALUE rb_gsl_blas_dsymm(int argc, VALUE *argv, VALUE obj)
     Side = FIX2INT(argv[0]);
     Uplo = FIX2INT(argv[1]);
     alpha = NUM2DBL(argv[2]);
-    Data_Get_Struct(argv[3], gsl_matrix, A);
-    Data_Get_Struct(argv[4], gsl_matrix, B);
+    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_matrix, &gsl_matrix_data_type, B);
     beta = NUM2DBL(argv[5]);
     C = gsl_matrix_calloc(A->size1, B->size2);
     flag = 1;
@@ -223,17 +223,17 @@ static VALUE rb_gsl_blas_dsymm(int argc, VALUE *argv, VALUE obj)
     Side = FIX2INT(argv[0]);
     Uplo = FIX2INT(argv[1]);
     alpha = NUM2DBL(argv[2]);
-    Data_Get_Struct(argv[3], gsl_matrix, A);
-    Data_Get_Struct(argv[4], gsl_matrix, B);
+    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_matrix, &gsl_matrix_data_type, B);
     beta = NUM2DBL(argv[5]);
-    Data_Get_Struct(argv[6], gsl_matrix, C);
+    TypedData_Get_Struct(argv[6], gsl_matrix, &gsl_matrix_data_type, C);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2 or 7)", argc);
     break;
   }
   gsl_blas_dsymm(Side, Uplo, alpha, A, B, beta, C);
-  if (flag == 1) return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, C);
+  if (flag == 1) return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, C);
   else return argv[6];
 }
 
@@ -250,8 +250,8 @@ static VALUE rb_gsl_blas_zsymm(int argc, VALUE *argv, VALUE obj)
   case 2:
     CHECK_MATRIX_COMPLEX(argv[0]);
     CHECK_MATRIX_COMPLEX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[1], gsl_matrix_complex, B);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[1], gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
     C = gsl_matrix_complex_calloc(A->size1, B->size2);
     Side = CblasLeft;  Uplo = CblasUpper;
     flag = 1;
@@ -264,9 +264,9 @@ static VALUE rb_gsl_blas_zsymm(int argc, VALUE *argv, VALUE obj)
     CHECK_MATRIX_COMPLEX(argv[4]);
     Side = FIX2INT(argv[0]);
     Uplo = FIX2INT(argv[1]);
-    Data_Get_Struct(argv[2], gsl_complex, pa);
-    Data_Get_Struct(argv[3], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[4], gsl_matrix_complex, B);
+    TypedData_Get_Struct(argv[2], gsl_complex, &gsl_complex_data_type, pa);
+    TypedData_Get_Struct(argv[3], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
     C = gsl_matrix_complex_calloc(A->size1, B->size2);
     flag = 1;
     break;
@@ -280,10 +280,10 @@ static VALUE rb_gsl_blas_zsymm(int argc, VALUE *argv, VALUE obj)
     CHECK_MATRIX_COMPLEX(argv[6]);
     Side = FIX2INT(argv[0]);
     Uplo = FIX2INT(argv[1]);
-    Data_Get_Struct(argv[2], gsl_complex, pa);
-    Data_Get_Struct(argv[3], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[4], gsl_matrix_complex, B);
-    Data_Get_Struct(argv[5], gsl_complex, pb);
+    TypedData_Get_Struct(argv[2], gsl_complex, &gsl_complex_data_type, pa);
+    TypedData_Get_Struct(argv[3], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
+    TypedData_Get_Struct(argv[5], gsl_complex, &gsl_complex_data_type, pb);
     C = gsl_matrix_complex_calloc(A->size1, B->size2);
     flag = 1;
     break;
@@ -297,18 +297,18 @@ static VALUE rb_gsl_blas_zsymm(int argc, VALUE *argv, VALUE obj)
     CHECK_MATRIX_COMPLEX(argv[6]);
     Side = FIX2INT(argv[0]);
     Uplo = FIX2INT(argv[1]);
-    Data_Get_Struct(argv[2], gsl_complex, pa);
-    Data_Get_Struct(argv[3], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[4], gsl_matrix_complex, B);
-    Data_Get_Struct(argv[5], gsl_complex, pb);
-    Data_Get_Struct(argv[6], gsl_matrix_complex, C);
+    TypedData_Get_Struct(argv[2], gsl_complex, &gsl_complex_data_type, pa);
+    TypedData_Get_Struct(argv[3], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
+    TypedData_Get_Struct(argv[5], gsl_complex, &gsl_complex_data_type, pb);
+    TypedData_Get_Struct(argv[6], gsl_matrix_complex, &gsl_matrix_complex_data_type, C);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2 or 7)", argc);
     break;
   }
   gsl_blas_zsymm(Side, Uplo, *pa, A, B, *pb, C);
-  if (flag == 1) return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, C);
+  if (flag == 1) return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, C);
   else return argv[6];
 }
 
@@ -325,8 +325,8 @@ static VALUE rb_gsl_blas_zhemm(int argc, VALUE *argv, VALUE obj)
   case 2:
     CHECK_MATRIX_COMPLEX(argv[0]);
     CHECK_MATRIX_COMPLEX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[1], gsl_matrix_complex, B);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[1], gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
     C = gsl_matrix_complex_calloc(A->size1, B->size2);
     Side = CblasLeft;  Uplo = CblasUpper;
     flag = 1;
@@ -339,9 +339,9 @@ static VALUE rb_gsl_blas_zhemm(int argc, VALUE *argv, VALUE obj)
     CHECK_MATRIX_COMPLEX(argv[4]);
     Side = FIX2INT(argv[0]);
     Uplo = FIX2INT(argv[1]);
-    Data_Get_Struct(argv[2], gsl_complex, pa);
-    Data_Get_Struct(argv[3], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[4], gsl_matrix_complex, B);
+    TypedData_Get_Struct(argv[2], gsl_complex, &gsl_complex_data_type, pa);
+    TypedData_Get_Struct(argv[3], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
     C = gsl_matrix_complex_calloc(A->size1, B->size2);
     flag = 1;
     break;
@@ -355,10 +355,10 @@ static VALUE rb_gsl_blas_zhemm(int argc, VALUE *argv, VALUE obj)
     CHECK_MATRIX_COMPLEX(argv[6]);
     Side = FIX2INT(argv[0]);
     Uplo = FIX2INT(argv[1]);
-    Data_Get_Struct(argv[2], gsl_complex, pa);
-    Data_Get_Struct(argv[3], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[4], gsl_matrix_complex, B);
-    Data_Get_Struct(argv[5], gsl_complex, pb);
+    TypedData_Get_Struct(argv[2], gsl_complex, &gsl_complex_data_type, pa);
+    TypedData_Get_Struct(argv[3], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
+    TypedData_Get_Struct(argv[5], gsl_complex, &gsl_complex_data_type, pb);
     C = gsl_matrix_complex_calloc(A->size1, B->size2);
     flag = 1;
     break;
@@ -372,18 +372,18 @@ static VALUE rb_gsl_blas_zhemm(int argc, VALUE *argv, VALUE obj)
     CHECK_MATRIX_COMPLEX(argv[6]);
     Side = FIX2INT(argv[0]);
     Uplo = FIX2INT(argv[1]);
-    Data_Get_Struct(argv[2], gsl_complex, pa);
-    Data_Get_Struct(argv[3], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[4], gsl_matrix_complex, B);
-    Data_Get_Struct(argv[5], gsl_complex, pb);
-    Data_Get_Struct(argv[6], gsl_matrix_complex, C);
+    TypedData_Get_Struct(argv[2], gsl_complex, &gsl_complex_data_type, pa);
+    TypedData_Get_Struct(argv[3], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
+    TypedData_Get_Struct(argv[5], gsl_complex, &gsl_complex_data_type, pb);
+    TypedData_Get_Struct(argv[6], gsl_matrix_complex, &gsl_matrix_complex_data_type, C);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2 or 7)", argc);
     break;
   }
   gsl_blas_zhemm(Side, Uplo, *pa, A, B, *pb, C);
-  if (flag == 1) return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, C);
+  if (flag == 1) return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, C);
   else return argv[6];
 }
 
@@ -404,8 +404,8 @@ static VALUE rb_gsl_blas_dtrmm(VALUE obj, VALUE s, VALUE u, VALUE ta,
   TransA = FIX2INT(ta);
   Diag = FIX2INT(d);
   alpha = NUM2DBL(a);
-  Data_Get_Struct(aa, gsl_matrix, A);
-  Data_Get_Struct(bb, gsl_matrix, B);
+  TypedData_Get_Struct(aa, gsl_matrix, &gsl_matrix_data_type, A);
+  TypedData_Get_Struct(bb, gsl_matrix, &gsl_matrix_data_type, B);
   gsl_blas_dtrmm(Side, Uplo, TransA, Diag, alpha, A, B);
   return bb;
 }
@@ -427,12 +427,12 @@ static VALUE rb_gsl_blas_dtrmm2(VALUE obj, VALUE s, VALUE u, VALUE ta,
   TransA = FIX2INT(ta);
   Diag = FIX2INT(d);
   alpha = NUM2DBL(a);
-  Data_Get_Struct(aa, gsl_matrix, A);
-  Data_Get_Struct(bb, gsl_matrix, B);
+  TypedData_Get_Struct(aa, gsl_matrix, &gsl_matrix_data_type, A);
+  TypedData_Get_Struct(bb, gsl_matrix, &gsl_matrix_data_type, B);
   Bnew = gsl_matrix_alloc(B->size1, B->size2);
   gsl_matrix_memcpy(Bnew, B);
   gsl_blas_dtrmm(Side, Uplo, TransA, Diag, alpha, A, Bnew);
-  return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Bnew);
+  return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Bnew);
 }
 
 static VALUE rb_gsl_blas_ztrmm(VALUE obj, VALUE s, VALUE u, VALUE ta,
@@ -452,9 +452,9 @@ static VALUE rb_gsl_blas_ztrmm(VALUE obj, VALUE s, VALUE u, VALUE ta,
   Uplo = FIX2INT(u);
   TransA = FIX2INT(ta);
   Diag = FIX2INT(d);
-  Data_Get_Struct(a, gsl_complex, pa);
-  Data_Get_Struct(aa, gsl_matrix_complex, A);
-  Data_Get_Struct(bb, gsl_matrix_complex, B);
+  TypedData_Get_Struct(a, gsl_complex, &gsl_complex_data_type, pa);
+  TypedData_Get_Struct(aa, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+  TypedData_Get_Struct(bb, gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
   gsl_blas_ztrmm(Side, Uplo, TransA, Diag, *pa, A, B);
   return bb;
 }
@@ -475,13 +475,13 @@ static VALUE rb_gsl_blas_ztrmm2(VALUE obj, VALUE s, VALUE u, VALUE ta,
   Uplo = FIX2INT(u);
   TransA = FIX2INT(ta);
   Diag = FIX2INT(d);
-  Data_Get_Struct(a, gsl_complex, pa);
-  Data_Get_Struct(aa, gsl_matrix_complex, A);
-  Data_Get_Struct(bb, gsl_matrix_complex, B);
+  TypedData_Get_Struct(a, gsl_complex, &gsl_complex_data_type, pa);
+  TypedData_Get_Struct(aa, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+  TypedData_Get_Struct(bb, gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
   Bnew = gsl_matrix_complex_alloc(B->size1, B->size2);
   gsl_matrix_complex_memcpy(Bnew, B);
   gsl_blas_ztrmm(Side, Uplo, TransA, Diag, *pa, A, Bnew);
-  return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, Bnew);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, Bnew);
 }
 
 static VALUE rb_gsl_blas_dtrsm(VALUE obj, VALUE s, VALUE u, VALUE ta,
@@ -501,8 +501,8 @@ static VALUE rb_gsl_blas_dtrsm(VALUE obj, VALUE s, VALUE u, VALUE ta,
   TransA = FIX2INT(ta);
   Diag = FIX2INT(d);
   alpha = NUM2DBL(a);
-  Data_Get_Struct(aa, gsl_matrix, A);
-  Data_Get_Struct(bb, gsl_matrix, B);
+  TypedData_Get_Struct(aa, gsl_matrix, &gsl_matrix_data_type, A);
+  TypedData_Get_Struct(bb, gsl_matrix, &gsl_matrix_data_type, B);
   gsl_blas_dtrsm(Side, Uplo, TransA, Diag, alpha, A, B);
   return bb;
 }
@@ -524,12 +524,12 @@ static VALUE rb_gsl_blas_dtrsm2(VALUE obj, VALUE s, VALUE u, VALUE ta,
   TransA = FIX2INT(ta);
   Diag = FIX2INT(d);
   alpha = NUM2DBL(a);
-  Data_Get_Struct(aa, gsl_matrix, A);
-  Data_Get_Struct(bb, gsl_matrix, B);
+  TypedData_Get_Struct(aa, gsl_matrix, &gsl_matrix_data_type, A);
+  TypedData_Get_Struct(bb, gsl_matrix, &gsl_matrix_data_type, B);
   Bnew = gsl_matrix_alloc(B->size1, B->size2);
   gsl_matrix_memcpy(Bnew, B);
   gsl_blas_dtrsm(Side, Uplo, TransA, Diag, alpha, A, Bnew);
-  return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Bnew);
+  return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Bnew);
 }
 
 static VALUE rb_gsl_blas_ztrsm(VALUE obj, VALUE s, VALUE u, VALUE ta,
@@ -549,9 +549,9 @@ static VALUE rb_gsl_blas_ztrsm(VALUE obj, VALUE s, VALUE u, VALUE ta,
   Uplo = FIX2INT(u);
   TransA = FIX2INT(ta);
   Diag = FIX2INT(d);
-  Data_Get_Struct(a, gsl_complex, pa);
-  Data_Get_Struct(aa, gsl_matrix_complex, A);
-  Data_Get_Struct(bb, gsl_matrix_complex, B);
+  TypedData_Get_Struct(a, gsl_complex, &gsl_complex_data_type, pa);
+  TypedData_Get_Struct(aa, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+  TypedData_Get_Struct(bb, gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
   gsl_blas_ztrsm(Side, Uplo, TransA, Diag, *pa, A, B);
   return bb;
 }
@@ -573,13 +573,13 @@ static VALUE rb_gsl_blas_ztrsm2(VALUE obj, VALUE s, VALUE u, VALUE ta,
   Uplo = FIX2INT(u);
   TransA = FIX2INT(ta);
   Diag = FIX2INT(d);
-  Data_Get_Struct(a, gsl_complex, pa);
-  Data_Get_Struct(aa, gsl_matrix_complex, A);
-  Data_Get_Struct(bb, gsl_matrix_complex, B);
+  TypedData_Get_Struct(a, gsl_complex, &gsl_complex_data_type, pa);
+  TypedData_Get_Struct(aa, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+  TypedData_Get_Struct(bb, gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
   Bnew = gsl_matrix_complex_alloc(B->size1, B->size2);
   gsl_matrix_complex_memcpy(Bnew, B);
   gsl_blas_ztrsm(Side, Uplo, TransA, Diag, *pa, A, Bnew);
-  return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, Bnew);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, Bnew);
 }
 
 static VALUE rb_gsl_blas_dsyrk(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
@@ -596,8 +596,8 @@ static VALUE rb_gsl_blas_dsyrk(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
   Trans = FIX2INT(t);
   alpha = NUM2DBL(a);
   beta = NUM2DBL(b);
-  Data_Get_Struct(aa, gsl_matrix, A);
-  Data_Get_Struct(cc, gsl_matrix, C);
+  TypedData_Get_Struct(aa, gsl_matrix, &gsl_matrix_data_type, A);
+  TypedData_Get_Struct(cc, gsl_matrix, &gsl_matrix_data_type, C);
   gsl_blas_dsyrk(Uplo, Trans, alpha, A, beta, C);
   return cc;
 }
@@ -616,12 +616,12 @@ static VALUE rb_gsl_blas_dsyrk2(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
   Trans = FIX2INT(t);
   alpha = NUM2DBL(a);
   beta = NUM2DBL(b);
-  Data_Get_Struct(aa, gsl_matrix, A);
-  Data_Get_Struct(cc, gsl_matrix, C);
+  TypedData_Get_Struct(aa, gsl_matrix, &gsl_matrix_data_type, A);
+  TypedData_Get_Struct(cc, gsl_matrix, &gsl_matrix_data_type, C);
   Cnew = gsl_matrix_alloc(C->size1, C->size2);
   gsl_matrix_memcpy(Cnew, C);
   gsl_blas_dsyrk(Uplo, Trans, alpha, A, beta, Cnew);
-  return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Cnew);
+  return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Cnew);
 }
 
 static VALUE rb_gsl_blas_zsyrk(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
@@ -636,10 +636,10 @@ static VALUE rb_gsl_blas_zsyrk(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
   CHECK_MATRIX_COMPLEX(aa);  CHECK_MATRIX_COMPLEX(cc);
   Uplo = FIX2INT(u);
   Trans = FIX2INT(t);
-  Data_Get_Struct(a, gsl_complex, pa);
-  Data_Get_Struct(b, gsl_complex, pb);
-  Data_Get_Struct(aa, gsl_matrix_complex, A);
-  Data_Get_Struct(cc, gsl_matrix_complex, C);
+  TypedData_Get_Struct(a, gsl_complex, &gsl_complex_data_type, pa);
+  TypedData_Get_Struct(b, gsl_complex, &gsl_complex_data_type, pb);
+  TypedData_Get_Struct(aa, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+  TypedData_Get_Struct(cc, gsl_matrix_complex, &gsl_matrix_complex_data_type, C);
   gsl_blas_zsyrk(Uplo, Trans, *pa, A, *pb, C);
   return cc;
 }
@@ -656,14 +656,14 @@ static VALUE rb_gsl_blas_zsyrk2(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
   CHECK_MATRIX_COMPLEX(aa);  CHECK_MATRIX_COMPLEX(cc);
   Uplo = FIX2INT(u);
   Trans = FIX2INT(t);
-  Data_Get_Struct(a, gsl_complex, pa);
-  Data_Get_Struct(b, gsl_complex, pb);
-  Data_Get_Struct(aa, gsl_matrix_complex, A);
-  Data_Get_Struct(cc, gsl_matrix_complex, C);
+  TypedData_Get_Struct(a, gsl_complex, &gsl_complex_data_type, pa);
+  TypedData_Get_Struct(b, gsl_complex, &gsl_complex_data_type, pb);
+  TypedData_Get_Struct(aa, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+  TypedData_Get_Struct(cc, gsl_matrix_complex, &gsl_matrix_complex_data_type, C);
   Cnew = gsl_matrix_complex_alloc(C->size1, C->size2);
   gsl_matrix_complex_memcpy(Cnew, C);
   gsl_blas_zsyrk(Uplo, Trans, *pa, A, *pb, Cnew);
-  return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, Cnew);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, Cnew);
 }
 
 static VALUE rb_gsl_blas_zherk(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
@@ -681,8 +681,8 @@ static VALUE rb_gsl_blas_zherk(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
   Trans = FIX2INT(t);
   alpha = NUM2DBL(a);
   beta = NUM2DBL(b);
-  Data_Get_Struct(aa, gsl_matrix_complex, A);
-  Data_Get_Struct(cc, gsl_matrix_complex, C);
+  TypedData_Get_Struct(aa, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+  TypedData_Get_Struct(cc, gsl_matrix_complex, &gsl_matrix_complex_data_type, C);
   gsl_blas_zherk(Uplo, Trans, alpha, A, beta, C);
   return cc;
 }
@@ -701,12 +701,12 @@ static VALUE rb_gsl_blas_zherk2(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
   Trans = FIX2INT(t);
   alpha = NUM2DBL(a);
   beta = NUM2DBL(b);
-  Data_Get_Struct(aa, gsl_matrix_complex, A);
-  Data_Get_Struct(cc, gsl_matrix_complex, C);
+  TypedData_Get_Struct(aa, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+  TypedData_Get_Struct(cc, gsl_matrix_complex, &gsl_matrix_complex_data_type, C);
   Cnew = gsl_matrix_complex_alloc(C->size1, C->size2);
   gsl_matrix_complex_memcpy(Cnew, C);
   gsl_blas_zherk(Uplo, Trans, alpha, A, beta, Cnew);
-  return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, Cnew);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, Cnew);
 }
 
 static VALUE rb_gsl_blas_dsyr2k(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
@@ -722,10 +722,10 @@ static VALUE rb_gsl_blas_dsyr2k(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
   Uplo = FIX2INT(u);
   Trans = FIX2INT(t);
   alpha = NUM2DBL(a);
-  Data_Get_Struct(aa, gsl_matrix, A);
-  Data_Get_Struct(bb, gsl_matrix, B);
+  TypedData_Get_Struct(aa, gsl_matrix, &gsl_matrix_data_type, A);
+  TypedData_Get_Struct(bb, gsl_matrix, &gsl_matrix_data_type, B);
   beta = NUM2DBL(b);
-  Data_Get_Struct(cc, gsl_matrix, C);
+  TypedData_Get_Struct(cc, gsl_matrix, &gsl_matrix_data_type, C);
   gsl_blas_dsyr2k(Uplo, Trans, alpha, A, B, beta, C);
   return cc;
 }
@@ -743,14 +743,14 @@ static VALUE rb_gsl_blas_dsyr2k2(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
   Uplo = FIX2INT(u);
   Trans = FIX2INT(t);
   alpha = NUM2DBL(a);
-  Data_Get_Struct(aa, gsl_matrix, A);
-  Data_Get_Struct(bb, gsl_matrix, B);
+  TypedData_Get_Struct(aa, gsl_matrix, &gsl_matrix_data_type, A);
+  TypedData_Get_Struct(bb, gsl_matrix, &gsl_matrix_data_type, B);
   beta = NUM2DBL(b);
-  Data_Get_Struct(cc, gsl_matrix, C);
+  TypedData_Get_Struct(cc, gsl_matrix, &gsl_matrix_data_type, C);
   Cnew = gsl_matrix_alloc(C->size1, C->size2);
   gsl_matrix_memcpy(Cnew, C);
   gsl_blas_dsyr2k(Uplo, Trans, alpha, A, B, beta, Cnew);
-  return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Cnew);
+  return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Cnew);
 }
 
 static VALUE rb_gsl_blas_zsyr2k(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
@@ -765,11 +765,11 @@ static VALUE rb_gsl_blas_zsyr2k(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
   CHECK_MATRIX_COMPLEX(aa);  CHECK_MATRIX_COMPLEX(bb);  CHECK_MATRIX_COMPLEX(cc);
   Uplo = FIX2INT(u);
   Trans = FIX2INT(t);
-  Data_Get_Struct(a, gsl_complex, pa);
-  Data_Get_Struct(b, gsl_complex, pb);
-  Data_Get_Struct(aa, gsl_matrix_complex, A);
-  Data_Get_Struct(bb, gsl_matrix_complex, B);
-  Data_Get_Struct(cc, gsl_matrix_complex, C);
+  TypedData_Get_Struct(a, gsl_complex, &gsl_complex_data_type, pa);
+  TypedData_Get_Struct(b, gsl_complex, &gsl_complex_data_type, pb);
+  TypedData_Get_Struct(aa, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+  TypedData_Get_Struct(bb, gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
+  TypedData_Get_Struct(cc, gsl_matrix_complex, &gsl_matrix_complex_data_type, C);
   gsl_blas_zsyr2k(Uplo, Trans, *pa, A, B, *pb, C);
   return cc;
 }
@@ -786,15 +786,15 @@ static VALUE rb_gsl_blas_zsyr2k2(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
   CHECK_MATRIX_COMPLEX(aa);  CHECK_MATRIX_COMPLEX(bb);  CHECK_MATRIX_COMPLEX(cc);
   Uplo = FIX2INT(u);
   Trans = FIX2INT(t);
-  Data_Get_Struct(a, gsl_complex, pa);
-  Data_Get_Struct(b, gsl_complex, pb);
-  Data_Get_Struct(aa, gsl_matrix_complex, A);
-  Data_Get_Struct(bb, gsl_matrix_complex, B);
-  Data_Get_Struct(cc, gsl_matrix_complex, C);
+  TypedData_Get_Struct(a, gsl_complex, &gsl_complex_data_type, pa);
+  TypedData_Get_Struct(b, gsl_complex, &gsl_complex_data_type, pb);
+  TypedData_Get_Struct(aa, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+  TypedData_Get_Struct(bb, gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
+  TypedData_Get_Struct(cc, gsl_matrix_complex, &gsl_matrix_complex_data_type, C);
   Cnew = gsl_matrix_complex_alloc(C->size1, C->size2);
   gsl_matrix_complex_memcpy(Cnew, C);
   gsl_blas_zsyr2k(Uplo, Trans, *pa, A, B, *pb, Cnew);
-  return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, Cnew);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, Cnew);
 }
 
 static VALUE rb_gsl_blas_zher2k(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
@@ -811,11 +811,11 @@ static VALUE rb_gsl_blas_zher2k(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
   CHECK_MATRIX_COMPLEX(aa);  CHECK_MATRIX_COMPLEX(bb);  CHECK_MATRIX_COMPLEX(cc);
   Uplo = FIX2INT(u);
   Trans = FIX2INT(t);
-  Data_Get_Struct(a, gsl_complex, pa);
+  TypedData_Get_Struct(a, gsl_complex, &gsl_complex_data_type, pa);
   beta = NUM2DBL(b);
-  Data_Get_Struct(aa, gsl_matrix_complex, A);
-  Data_Get_Struct(bb, gsl_matrix_complex, B);
-  Data_Get_Struct(cc, gsl_matrix_complex, C);
+  TypedData_Get_Struct(aa, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+  TypedData_Get_Struct(bb, gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
+  TypedData_Get_Struct(cc, gsl_matrix_complex, &gsl_matrix_complex_data_type, C);
   gsl_blas_zher2k(Uplo, Trans, *pa, A, B, beta, C);
   return cc;
 }
@@ -834,15 +834,15 @@ static VALUE rb_gsl_blas_zher2k2(VALUE obj, VALUE u, VALUE t, VALUE a, VALUE aa,
   CHECK_MATRIX_COMPLEX(aa);  CHECK_MATRIX_COMPLEX(bb);  CHECK_MATRIX_COMPLEX(cc);
   Uplo = FIX2INT(u);
   Trans = FIX2INT(t);
-  Data_Get_Struct(a, gsl_complex, pa);
+  TypedData_Get_Struct(a, gsl_complex, &gsl_complex_data_type, pa);
   beta = NUM2DBL(b);
-  Data_Get_Struct(aa, gsl_matrix_complex, A);
-  Data_Get_Struct(bb, gsl_matrix_complex, B);
-  Data_Get_Struct(cc, gsl_matrix_complex, C);
+  TypedData_Get_Struct(aa, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+  TypedData_Get_Struct(bb, gsl_matrix_complex, &gsl_matrix_complex_data_type, B);
+  TypedData_Get_Struct(cc, gsl_matrix_complex, &gsl_matrix_complex_data_type, C);
   Cnew = gsl_matrix_complex_alloc(C->size1, C->size2);
   gsl_matrix_complex_memcpy(Cnew, C);
   gsl_blas_zher2k(Uplo, Trans, *pa, A, B, beta, Cnew);
-  return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, Cnew);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, Cnew);
 }
 
 void Init_gsl_blas3(VALUE module)

@@ -26,6 +26,7 @@
 #include "rb_gsl_with_narray.h"
 #include "rb_gsl_with_nmatrix.h"
 #include "gsl_config.h"
+#include "rb_gsl_types.h"
 
 extern ID rb_gsl_id_beg, rb_gsl_id_end, rb_gsl_id_excl, rb_gsl_id_to_a;
 

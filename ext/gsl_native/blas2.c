@@ -64,12 +64,12 @@ static VALUE rb_gsl_blas_dgemv(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[3]);
     type = FIX2INT(argv[0]);
     a = NUM2DBL(argv[1]);
-    Data_Get_Struct(argv[2], gsl_matrix, A);
-    Data_Get_Struct(argv[3], gsl_vector, x);
+    TypedData_Get_Struct(argv[2], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, x);
     istart = 4;
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix, A);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
     if (argc < 3) rb_raise(rb_eArgError, "wrong number of arguments (%d for >= 3)",
                            argc);
     CHECK_FIXNUM(argv[0]);
@@ -77,7 +77,7 @@ static VALUE rb_gsl_blas_dgemv(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[2]);
     type = FIX2INT(argv[0]);
     a = NUM2DBL(argv[1]);
-    Data_Get_Struct(argv[2], gsl_vector, x);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, x);
     istart = 3;
     break;
   }
@@ -86,7 +86,7 @@ static VALUE rb_gsl_blas_dgemv(int argc, VALUE *argv, VALUE obj)
     Need_Float(argv[istart]);
     CHECK_VECTOR(argv[istart+1]);
     b = NUM2DBL(argv[istart]);
-    Data_Get_Struct(argv[istart+1], gsl_vector, y);
+    TypedData_Get_Struct(argv[istart+1], gsl_vector, &gsl_vector_data_type, y);
     break;
   case 0:
     b = 0.0;
@@ -98,7 +98,7 @@ static VALUE rb_gsl_blas_dgemv(int argc, VALUE *argv, VALUE obj)
     break;
   }
   gsl_blas_dgemv(type, a, A, x, b, y);
-  if (flag == 1) return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, y);
+  if (flag == 1) return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, y);
   else return argv[argc-1];
 }
 
@@ -120,12 +120,12 @@ static VALUE rb_gsl_blas_dgemv2(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[3]);
     type = FIX2INT(argv[0]);
     a = NUM2DBL(argv[1]);
-    Data_Get_Struct(argv[2], gsl_matrix, A);
-    Data_Get_Struct(argv[3], gsl_vector, x);
+    TypedData_Get_Struct(argv[2], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, x);
     istart = 4;
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix, A);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
     if (argc < 3) rb_raise(rb_eArgError, "wrong number of arguments (%d for >= 3)",
                            argc);
     CHECK_FIXNUM(argv[0]);
@@ -133,7 +133,7 @@ static VALUE rb_gsl_blas_dgemv2(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[2]);
     type = FIX2INT(argv[0]);
     a = NUM2DBL(argv[1]);
-    Data_Get_Struct(argv[2], gsl_vector, x);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, x);
     istart = 3;
     break;
   }
@@ -142,7 +142,7 @@ static VALUE rb_gsl_blas_dgemv2(int argc, VALUE *argv, VALUE obj)
     Need_Float(argv[istart]);
     CHECK_VECTOR(argv[istart+1]);
     b = NUM2DBL(argv[istart]);
-    Data_Get_Struct(argv[istart+1], gsl_vector, y);
+    TypedData_Get_Struct(argv[istart+1], gsl_vector, &gsl_vector_data_type, y);
     break;
   case 0:
     b = 0.0;
@@ -157,7 +157,7 @@ static VALUE rb_gsl_blas_dgemv2(int argc, VALUE *argv, VALUE obj)
   gsl_vector_memcpy(ynew, y);
   gsl_blas_dgemv(type, a, A, x, b, ynew);
   if (flag == 1) gsl_vector_free(y);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, ynew);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, ynew);
 }
 
 static VALUE rb_gsl_blas_zgemv(int argc, VALUE *argv, VALUE obj)
@@ -177,21 +177,21 @@ static VALUE rb_gsl_blas_zgemv(int argc, VALUE *argv, VALUE obj)
     CHECK_MATRIX_COMPLEX(argv[2]);
     CHECK_VECTOR_COMPLEX(argv[3]);
     type = FIX2INT(argv[0]);
-    Data_Get_Struct(argv[1], gsl_complex, a);
-    Data_Get_Struct(argv[2], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[3], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[1], gsl_complex, &gsl_complex_data_type, a);
+    TypedData_Get_Struct(argv[2], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[3], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     istart = 4;
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix_complex, A);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
     if (argc < 3) rb_raise(rb_eArgError, "wrong number of arguments (%d for >= 3)",
                            argc);
     CHECK_FIXNUM(argv[0]);
     CHECK_COMPLEX(argv[1]);
     CHECK_VECTOR_COMPLEX(argv[2]);
     type = FIX2INT(argv[0]);
-    Data_Get_Struct(argv[1], gsl_complex, a);
-    Data_Get_Struct(argv[2], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[1], gsl_complex, &gsl_complex_data_type, a);
+    TypedData_Get_Struct(argv[2], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     istart = 3;
     break;
   }
@@ -199,8 +199,8 @@ static VALUE rb_gsl_blas_zgemv(int argc, VALUE *argv, VALUE obj)
   case 2:
     CHECK_COMPLEX(argv[istart]);
     CHECK_VECTOR_COMPLEX(argv[istart+1]);
-    Data_Get_Struct(argv[istart], gsl_complex, b);
-    Data_Get_Struct(argv[istart+1], gsl_vector_complex, y);
+    TypedData_Get_Struct(argv[istart], gsl_complex, &gsl_complex_data_type, b);
+    TypedData_Get_Struct(argv[istart+1], gsl_vector_complex, &gsl_vector_complex_data_type, y);
     break;
   case 0:
     z = gsl_complex_rect(0.0, 0.0);
@@ -213,7 +213,7 @@ static VALUE rb_gsl_blas_zgemv(int argc, VALUE *argv, VALUE obj)
     break;
   }
   gsl_blas_zgemv(type, *a, A, x, *b, y);
-  if (flag == 1) return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, y);
+  if (flag == 1) return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, y);
   else return argv[argc-1];
 }
 
@@ -235,21 +235,21 @@ static VALUE rb_gsl_blas_zgemv2(int argc, VALUE *argv, VALUE obj)
     CHECK_MATRIX_COMPLEX(argv[2]);
     CHECK_VECTOR_COMPLEX(argv[3]);
     type = FIX2INT(argv[0]);
-    Data_Get_Struct(argv[1], gsl_complex, a);
-    Data_Get_Struct(argv[2], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[3], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[1], gsl_complex, &gsl_complex_data_type, a);
+    TypedData_Get_Struct(argv[2], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[3], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     istart = 4;
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix_complex, A);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
     if (argc < 3) rb_raise(rb_eArgError, "wrong number of arguments (%d for >= 3)",
                            argc);
     CHECK_FIXNUM(argv[0]);
     CHECK_COMPLEX(argv[1]);
     CHECK_VECTOR_COMPLEX(argv[2]);
     type = FIX2INT(argv[0]);
-    Data_Get_Struct(argv[1], gsl_complex, a);
-    Data_Get_Struct(argv[2], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[1], gsl_complex, &gsl_complex_data_type, a);
+    TypedData_Get_Struct(argv[2], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     istart = 3;
     break;
   }
@@ -257,8 +257,8 @@ static VALUE rb_gsl_blas_zgemv2(int argc, VALUE *argv, VALUE obj)
   case 2:
     CHECK_COMPLEX(argv[istart]);
     CHECK_VECTOR_COMPLEX(argv[istart+1]);
-    Data_Get_Struct(argv[istart], gsl_complex, b);
-    Data_Get_Struct(argv[istart+1], gsl_vector_complex, y);
+    TypedData_Get_Struct(argv[istart], gsl_complex, &gsl_complex_data_type, b);
+    TypedData_Get_Struct(argv[istart+1], gsl_vector_complex, &gsl_vector_complex_data_type, y);
     break;
   case 0:
     z = gsl_complex_rect(0.0, 0.0);
@@ -274,7 +274,7 @@ static VALUE rb_gsl_blas_zgemv2(int argc, VALUE *argv, VALUE obj)
   gsl_vector_complex_memcpy(ynew, y);
   gsl_blas_zgemv(type, *a, A, x, *b, ynew);
   if (flag == 1) gsl_vector_complex_free(y);
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, ynew);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, ynew);
 }
 
 static VALUE rb_gsl_blas_dtrmv(int argc, VALUE *argv, VALUE obj)
@@ -289,15 +289,15 @@ static VALUE rb_gsl_blas_dtrmv(int argc, VALUE *argv, VALUE obj)
                             argc);
     CHECK_MATRIX(argv[3]);
     CHECK_VECTOR(argv[4]);
-    Data_Get_Struct(argv[3], gsl_matrix, A);
-    Data_Get_Struct(argv[4], gsl_vector, x);
+    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_vector, &gsl_vector_data_type, x);
     break;
   default:
     if (argc != 4) rb_raise(rb_eArgError, "wrong number of arguments (%d for 4)",
                             argc);
     CHECK_VECTOR(argv[3]);
-    Data_Get_Struct(obj, gsl_matrix, A);
-    Data_Get_Struct(argv[3], gsl_vector, x);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, x);
     break;
   }
   CHECK_FIXNUM(argv[0]); CHECK_FIXNUM(argv[1]); CHECK_FIXNUM(argv[2]);
@@ -319,15 +319,15 @@ static VALUE rb_gsl_blas_dtrmv2(int argc, VALUE *argv, VALUE obj)
                             argc);
     CHECK_MATRIX(argv[3]);
     CHECK_VECTOR(argv[4]);
-    Data_Get_Struct(argv[3], gsl_matrix, A);
-    Data_Get_Struct(argv[4], gsl_vector, x);
+    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_vector, &gsl_vector_data_type, x);
     break;
   default:
     if (argc != 4) rb_raise(rb_eArgError, "wrong number of arguments (%d for 4)",
                             argc);
     CHECK_VECTOR(argv[3]);
-    Data_Get_Struct(obj, gsl_matrix, A);
-    Data_Get_Struct(argv[3], gsl_vector, x);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, x);
     break;
   }
   CHECK_FIXNUM(argv[0]); CHECK_FIXNUM(argv[1]); CHECK_FIXNUM(argv[2]);
@@ -335,7 +335,7 @@ static VALUE rb_gsl_blas_dtrmv2(int argc, VALUE *argv, VALUE obj)
   gsl_vector_memcpy(xnew, x);
   gsl_blas_dtrmv(FIX2INT(argv[0]), FIX2INT(argv[1]), FIX2INT(argv[2]),
                  A, xnew);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, xnew);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, xnew);
 }
 
 
@@ -351,15 +351,15 @@ static VALUE rb_gsl_blas_ztrmv(int argc, VALUE *argv, VALUE obj)
                             argc);
     CHECK_MATRIX_COMPLEX(argv[3]);
     CHECK_VECTOR_COMPLEX(argv[4]);
-    Data_Get_Struct(argv[3], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[4], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[3], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     break;
   default:
     if (argc != 4) rb_raise(rb_eArgError, "wrong number of arguments (%d for 4)",
                             argc);
     CHECK_VECTOR_COMPLEX(argv[3]);
-    Data_Get_Struct(obj, gsl_matrix_complex, A);
-    Data_Get_Struct(argv[3], gsl_vector_complex, x);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[3], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     break;
   }
   CHECK_FIXNUM(argv[0]); CHECK_FIXNUM(argv[1]); CHECK_FIXNUM(argv[2]);
@@ -380,15 +380,15 @@ static VALUE rb_gsl_blas_ztrmv2(int argc, VALUE *argv, VALUE obj)
                             argc);
     CHECK_MATRIX_COMPLEX(argv[3]);
     CHECK_VECTOR_COMPLEX(argv[4]);
-    Data_Get_Struct(argv[3], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[4], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[3], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     break;
   default:
     if (argc != 4) rb_raise(rb_eArgError, "wrong number of arguments (%d for 4)",
                             argc);
     CHECK_VECTOR_COMPLEX(argv[3]);
-    Data_Get_Struct(obj, gsl_matrix_complex, A);
-    Data_Get_Struct(argv[3], gsl_vector_complex, x);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[3], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     break;
   }
   CHECK_FIXNUM(argv[0]); CHECK_FIXNUM(argv[1]); CHECK_FIXNUM(argv[2]);
@@ -396,7 +396,7 @@ static VALUE rb_gsl_blas_ztrmv2(int argc, VALUE *argv, VALUE obj)
   gsl_vector_complex_memcpy(xnew, x);
   gsl_blas_ztrmv(FIX2INT(argv[0]), FIX2INT(argv[1]), FIX2INT(argv[2]),
                  A, xnew);
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, xnew);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, xnew);
 }
 
 static VALUE rb_gsl_blas_dtrsv(int argc, VALUE *argv, VALUE obj)
@@ -411,15 +411,15 @@ static VALUE rb_gsl_blas_dtrsv(int argc, VALUE *argv, VALUE obj)
                             argc);
     CHECK_MATRIX(argv[3]);
     CHECK_VECTOR(argv[4]);
-    Data_Get_Struct(argv[3], gsl_matrix, A);
-    Data_Get_Struct(argv[4], gsl_vector, x);
+    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_vector, &gsl_vector_data_type, x);
     break;
   default:
     if (argc != 4) rb_raise(rb_eArgError, "wrong number of arguments (%d for 4)",
                             argc);
     CHECK_VECTOR(argv[3]);
-    Data_Get_Struct(obj, gsl_matrix, A);
-    Data_Get_Struct(argv[3], gsl_vector, x);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, x);
     break;
   }
   CHECK_FIXNUM(argv[0]); CHECK_FIXNUM(argv[1]); CHECK_FIXNUM(argv[2]);
@@ -440,15 +440,15 @@ static VALUE rb_gsl_blas_dtrsv2(int argc, VALUE *argv, VALUE obj)
                             argc);
     CHECK_MATRIX(argv[3]);
     CHECK_VECTOR(argv[4]);
-    Data_Get_Struct(argv[3], gsl_matrix, A);
-    Data_Get_Struct(argv[4], gsl_vector, x);
+    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_vector, &gsl_vector_data_type, x);
     break;
   default:
     if (argc != 4) rb_raise(rb_eArgError, "wrong number of arguments (%d for 4)",
                             argc);
     CHECK_VECTOR(argv[3]);
-    Data_Get_Struct(obj, gsl_matrix, A);
-    Data_Get_Struct(argv[3], gsl_vector, x);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, x);
     break;
   }
   CHECK_FIXNUM(argv[0]); CHECK_FIXNUM(argv[1]); CHECK_FIXNUM(argv[2]);
@@ -456,7 +456,7 @@ static VALUE rb_gsl_blas_dtrsv2(int argc, VALUE *argv, VALUE obj)
   gsl_vector_memcpy(xnew, x);
   gsl_blas_dtrsv(FIX2INT(argv[0]), FIX2INT(argv[1]), FIX2INT(argv[2]),
                  A, xnew);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, xnew);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, xnew);
 }
 
 static VALUE rb_gsl_blas_ztrsv(int argc, VALUE *argv, VALUE obj)
@@ -471,15 +471,15 @@ static VALUE rb_gsl_blas_ztrsv(int argc, VALUE *argv, VALUE obj)
                             argc);
     CHECK_MATRIX_COMPLEX(argv[3]);
     CHECK_VECTOR_COMPLEX(argv[4]);
-    Data_Get_Struct(argv[3], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[4], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[3], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     break;
   default:
     if (argc != 4) rb_raise(rb_eArgError, "wrong number of arguments (%d for 4)",
                             argc);
     CHECK_VECTOR_COMPLEX(argv[3]);
-    Data_Get_Struct(obj, gsl_matrix_complex, A);
-    Data_Get_Struct(argv[3], gsl_vector_complex, x);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[3], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     break;
   }
   CHECK_FIXNUM(argv[0]); CHECK_FIXNUM(argv[1]); CHECK_FIXNUM(argv[2]);
@@ -500,15 +500,15 @@ static VALUE rb_gsl_blas_ztrsv2(int argc, VALUE *argv, VALUE obj)
                             argc);
     CHECK_MATRIX_COMPLEX(argv[3]);
     CHECK_VECTOR_COMPLEX(argv[4]);
-    Data_Get_Struct(argv[3], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[4], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[3], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[4], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     break;
   default:
     if (argc != 4) rb_raise(rb_eArgError, "wrong number of arguments (%d for 4)",
                             argc);
     CHECK_VECTOR_COMPLEX(argv[3]);
-    Data_Get_Struct(obj, gsl_matrix_complex, A);
-    Data_Get_Struct(argv[3], gsl_vector_complex, x);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[3], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     break;
   }
   CHECK_FIXNUM(argv[0]); CHECK_FIXNUM(argv[1]); CHECK_FIXNUM(argv[2]);
@@ -516,7 +516,7 @@ static VALUE rb_gsl_blas_ztrsv2(int argc, VALUE *argv, VALUE obj)
   gsl_vector_complex_memcpy(xnew, x);
   gsl_blas_ztrsv(FIX2INT(argv[0]), FIX2INT(argv[1]), FIX2INT(argv[2]),
                  A, xnew);
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, xnew);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, xnew);
 }
 
 static VALUE rb_gsl_blas_dsymv(int argc, VALUE *argv, VALUE obj)
@@ -537,12 +537,12 @@ static VALUE rb_gsl_blas_dsymv(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[3]);
     type = FIX2INT(argv[0]);
     a = NUM2DBL(argv[1]);
-    Data_Get_Struct(argv[2], gsl_matrix, A);
-    Data_Get_Struct(argv[3], gsl_vector, x);
+    TypedData_Get_Struct(argv[2], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, x);
     istart = 4;
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix, A);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
     if (argc < 3) rb_raise(rb_eArgError, "wrong number of arguments (%d for >= 3)",
                            argc);
     CHECK_FIXNUM(argv[0]);
@@ -550,7 +550,7 @@ static VALUE rb_gsl_blas_dsymv(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[2]);
     type = FIX2INT(argv[0]);
     a = NUM2DBL(argv[1]);
-    Data_Get_Struct(argv[2], gsl_vector, x);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, x);
     istart = 3;
     break;
   }
@@ -559,7 +559,7 @@ static VALUE rb_gsl_blas_dsymv(int argc, VALUE *argv, VALUE obj)
     Need_Float(argv[istart]);
     CHECK_VECTOR(argv[istart+1]);
     b = NUM2DBL(argv[istart]);
-    Data_Get_Struct(argv[istart+1], gsl_vector, y);
+    TypedData_Get_Struct(argv[istart+1], gsl_vector, &gsl_vector_data_type, y);
     break;
   case 0:
     b = 0.0;
@@ -571,7 +571,7 @@ static VALUE rb_gsl_blas_dsymv(int argc, VALUE *argv, VALUE obj)
     break;
   }
   gsl_blas_dsymv(type, a, A, x, b, y);
-  if (flag == 1) return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, y);
+  if (flag == 1) return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, y);
   else return argv[argc-1];
 }
 
@@ -593,12 +593,12 @@ static VALUE rb_gsl_blas_dsymv2(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[3]);
     type = FIX2INT(argv[0]);
     a = NUM2DBL(argv[1]);
-    Data_Get_Struct(argv[2], gsl_matrix, A);
-    Data_Get_Struct(argv[3], gsl_vector, x);
+    TypedData_Get_Struct(argv[2], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, x);
     istart = 4;
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix, A);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
     if (argc < 3) rb_raise(rb_eArgError, "wrong number of arguments (%d for >= 3)",
                            argc);
     CHECK_FIXNUM(argv[0]);
@@ -606,7 +606,7 @@ static VALUE rb_gsl_blas_dsymv2(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[2]);
     type = FIX2INT(argv[0]);
     a = NUM2DBL(argv[1]);
-    Data_Get_Struct(argv[2], gsl_vector, x);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, x);
     istart = 3;
     break;
   }
@@ -615,7 +615,7 @@ static VALUE rb_gsl_blas_dsymv2(int argc, VALUE *argv, VALUE obj)
     Need_Float(argv[istart]);
     CHECK_VECTOR(argv[istart+1]);
     b = NUM2DBL(argv[istart]);
-    Data_Get_Struct(argv[istart+1], gsl_vector, y);
+    TypedData_Get_Struct(argv[istart+1], gsl_vector, &gsl_vector_data_type, y);
     break;
   case 0:
     b = 0.0;
@@ -630,7 +630,7 @@ static VALUE rb_gsl_blas_dsymv2(int argc, VALUE *argv, VALUE obj)
   gsl_vector_memcpy(ynew, y);
   gsl_blas_dsymv(type, a, A, x, b, ynew);
   if (flag == 1) gsl_vector_free(y);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, ynew);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, ynew);
 }
 
 static VALUE rb_gsl_blas_zhemv(int argc, VALUE *argv, VALUE obj)
@@ -650,21 +650,21 @@ static VALUE rb_gsl_blas_zhemv(int argc, VALUE *argv, VALUE obj)
     CHECK_MATRIX_COMPLEX(argv[2]);
     CHECK_VECTOR_COMPLEX(argv[3]);
     type = FIX2INT(argv[0]);
-    Data_Get_Struct(argv[1], gsl_complex, a);
-    Data_Get_Struct(argv[2], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[3], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[1], gsl_complex, &gsl_complex_data_type, a);
+    TypedData_Get_Struct(argv[2], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[3], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     istart = 4;
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix_complex, A);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
     if (argc < 3) rb_raise(rb_eArgError, "wrong number of arguments (%d for >= 3)",
                            argc);
     CHECK_FIXNUM(argv[0]);
     CHECK_COMPLEX(argv[1]);
     CHECK_VECTOR_COMPLEX(argv[2]);
     type = FIX2INT(argv[0]);
-    Data_Get_Struct(argv[1], gsl_complex, a);
-    Data_Get_Struct(argv[2], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[1], gsl_complex, &gsl_complex_data_type, a);
+    TypedData_Get_Struct(argv[2], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     istart = 3;
     break;
   }
@@ -672,8 +672,8 @@ static VALUE rb_gsl_blas_zhemv(int argc, VALUE *argv, VALUE obj)
   case 2:
     CHECK_COMPLEX(argv[istart]);
     CHECK_VECTOR_COMPLEX(argv[istart+1]);
-    Data_Get_Struct(argv[istart], gsl_complex, b);
-    Data_Get_Struct(argv[istart+1], gsl_vector_complex, y);
+    TypedData_Get_Struct(argv[istart], gsl_complex, &gsl_complex_data_type, b);
+    TypedData_Get_Struct(argv[istart+1], gsl_vector_complex, &gsl_vector_complex_data_type, y);
     break;
   case 0:
     z = gsl_complex_rect(0.0, 0.0);
@@ -686,7 +686,7 @@ static VALUE rb_gsl_blas_zhemv(int argc, VALUE *argv, VALUE obj)
     break;
   }
   gsl_blas_zhemv(type, *a, A, x, *b, y);
-  if (flag == 1) return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, y);
+  if (flag == 1) return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, y);
   else return argv[argc-1];
 }
 
@@ -707,21 +707,21 @@ static VALUE rb_gsl_blas_zhemv2(int argc, VALUE *argv, VALUE obj)
     CHECK_MATRIX_COMPLEX(argv[2]);
     CHECK_VECTOR_COMPLEX(argv[3]);
     type = FIX2INT(argv[0]);
-    Data_Get_Struct(argv[1], gsl_complex, a);
-    Data_Get_Struct(argv[2], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[3], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[1], gsl_complex, &gsl_complex_data_type, a);
+    TypedData_Get_Struct(argv[2], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[3], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     istart = 4;
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix_complex, A);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
     if (argc < 3) rb_raise(rb_eArgError, "wrong number of arguments (%d for >= 3)",
                            argc);
     CHECK_FIXNUM(argv[0]);
     CHECK_COMPLEX(argv[1]);
     CHECK_VECTOR_COMPLEX(argv[2]);
     type = FIX2INT(argv[0]);
-    Data_Get_Struct(argv[1], gsl_complex, a);
-    Data_Get_Struct(argv[2], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[1], gsl_complex, &gsl_complex_data_type, a);
+    TypedData_Get_Struct(argv[2], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     istart = 3;
     break;
   }
@@ -729,8 +729,8 @@ static VALUE rb_gsl_blas_zhemv2(int argc, VALUE *argv, VALUE obj)
   case 2:
     CHECK_COMPLEX(argv[istart]);
     CHECK_VECTOR_COMPLEX(argv[istart+1]);
-    Data_Get_Struct(argv[istart], gsl_complex, b);
-    Data_Get_Struct(argv[istart+1], gsl_vector_complex, y);
+    TypedData_Get_Struct(argv[istart], gsl_complex, &gsl_complex_data_type, b);
+    TypedData_Get_Struct(argv[istart+1], gsl_vector_complex, &gsl_vector_complex_data_type, y);
     break;
   case 0:
     z = gsl_complex_rect(0.0, 0.0);
@@ -746,7 +746,7 @@ static VALUE rb_gsl_blas_zhemv2(int argc, VALUE *argv, VALUE obj)
   gsl_vector_complex_memcpy(ynew, y);
   gsl_blas_zhemv(type, *a, A, x, *b, ynew);
   if (flag == 1) gsl_vector_complex_free(y);
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, ynew);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, ynew);
 }
 
 static VALUE rb_gsl_blas_dger(VALUE obj, VALUE aa, VALUE xx, VALUE yy, VALUE AA)
@@ -758,9 +758,9 @@ static VALUE rb_gsl_blas_dger(VALUE obj, VALUE aa, VALUE xx, VALUE yy, VALUE AA)
   CHECK_VECTOR(xx);  CHECK_VECTOR(yy);
   CHECK_MATRIX(AA);
   a = NUM2DBL(aa);
-  Data_Get_Struct(xx, gsl_vector, x);
-  Data_Get_Struct(yy, gsl_vector, y);
-  Data_Get_Struct(AA, gsl_matrix, A);
+  TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, x);
+  TypedData_Get_Struct(yy, gsl_vector, &gsl_vector_data_type, y);
+  TypedData_Get_Struct(AA, gsl_matrix, &gsl_matrix_data_type, A);
   gsl_blas_dger(a, x, y, A);
   return AA;
 }
@@ -774,13 +774,13 @@ static VALUE rb_gsl_blas_dger2(VALUE obj, VALUE aa, VALUE xx, VALUE yy, VALUE AA
   CHECK_VECTOR(xx);  CHECK_VECTOR(yy);
   CHECK_MATRIX(AA);
   a = NUM2DBL(aa);
-  Data_Get_Struct(xx, gsl_vector, x);
-  Data_Get_Struct(yy, gsl_vector, y);
-  Data_Get_Struct(AA, gsl_matrix, A);
+  TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, x);
+  TypedData_Get_Struct(yy, gsl_vector, &gsl_vector_data_type, y);
+  TypedData_Get_Struct(AA, gsl_matrix, &gsl_matrix_data_type, A);
   Anew = gsl_matrix_alloc(A->size1, A->size2);
   gsl_matrix_memcpy(Anew, A);
   gsl_blas_dger(a, x, y, Anew);
-  return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Anew);
+  return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Anew);
 }
 
 static VALUE rb_gsl_blas_zgeru(VALUE obj, VALUE aa, VALUE xx, VALUE yy, VALUE AA)
@@ -791,10 +791,10 @@ static VALUE rb_gsl_blas_zgeru(VALUE obj, VALUE aa, VALUE xx, VALUE yy, VALUE AA
   CHECK_COMPLEX(aa);
   CHECK_VECTOR_COMPLEX(xx); CHECK_VECTOR_COMPLEX(yy);
   CHECK_MATRIX_COMPLEX(AA);
-  Data_Get_Struct(aa, gsl_complex, a);
-  Data_Get_Struct(xx, gsl_vector_complex, x);
-  Data_Get_Struct(yy, gsl_vector_complex, y);
-  Data_Get_Struct(AA, gsl_matrix_complex, A);
+  TypedData_Get_Struct(aa, gsl_complex, &gsl_complex_data_type, a);
+  TypedData_Get_Struct(xx, gsl_vector_complex, &gsl_vector_complex_data_type, x);
+  TypedData_Get_Struct(yy, gsl_vector_complex, &gsl_vector_complex_data_type, y);
+  TypedData_Get_Struct(AA, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
   gsl_blas_zgeru(*a, x, y, A);
   return AA;
 }
@@ -807,14 +807,14 @@ static VALUE rb_gsl_blas_zgeru2(VALUE obj, VALUE aa, VALUE xx, VALUE yy, VALUE A
   CHECK_COMPLEX(aa);
   CHECK_VECTOR_COMPLEX(xx); CHECK_VECTOR_COMPLEX(yy);
   CHECK_MATRIX_COMPLEX(AA);
-  Data_Get_Struct(aa, gsl_complex, a);
-  Data_Get_Struct(xx, gsl_vector_complex, x);
-  Data_Get_Struct(yy, gsl_vector_complex, y);
-  Data_Get_Struct(AA, gsl_matrix_complex, A);
+  TypedData_Get_Struct(aa, gsl_complex, &gsl_complex_data_type, a);
+  TypedData_Get_Struct(xx, gsl_vector_complex, &gsl_vector_complex_data_type, x);
+  TypedData_Get_Struct(yy, gsl_vector_complex, &gsl_vector_complex_data_type, y);
+  TypedData_Get_Struct(AA, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
   Anew = gsl_matrix_complex_alloc(A->size1, A->size2);
   gsl_matrix_complex_memcpy(Anew, A);
   gsl_blas_zgeru(*a, x, y, Anew);
-  return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, Anew);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, Anew);
 }
 
 static VALUE rb_gsl_blas_zgerc(VALUE obj, VALUE aa, VALUE xx, VALUE yy, VALUE AA)
@@ -825,10 +825,10 @@ static VALUE rb_gsl_blas_zgerc(VALUE obj, VALUE aa, VALUE xx, VALUE yy, VALUE AA
   CHECK_COMPLEX(aa);
   CHECK_VECTOR_COMPLEX(xx); CHECK_VECTOR_COMPLEX(yy);
   CHECK_MATRIX_COMPLEX(AA);
-  Data_Get_Struct(aa, gsl_complex, a);
-  Data_Get_Struct(xx, gsl_vector_complex, x);
-  Data_Get_Struct(yy, gsl_vector_complex, y);
-  Data_Get_Struct(AA, gsl_matrix_complex, A);
+  TypedData_Get_Struct(aa, gsl_complex, &gsl_complex_data_type, a);
+  TypedData_Get_Struct(xx, gsl_vector_complex, &gsl_vector_complex_data_type, x);
+  TypedData_Get_Struct(yy, gsl_vector_complex, &gsl_vector_complex_data_type, y);
+  TypedData_Get_Struct(AA, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
   gsl_blas_zgerc(*a, x, y, A);
   return AA;
 }
@@ -841,14 +841,14 @@ static VALUE rb_gsl_blas_zgerc2(VALUE obj, VALUE aa, VALUE xx, VALUE yy, VALUE A
   CHECK_COMPLEX(aa);
   CHECK_VECTOR_COMPLEX(xx); CHECK_VECTOR_COMPLEX(yy);
   CHECK_MATRIX_COMPLEX(AA);
-  Data_Get_Struct(aa, gsl_complex, a);
-  Data_Get_Struct(xx, gsl_vector_complex, x);
-  Data_Get_Struct(yy, gsl_vector_complex, y);
-  Data_Get_Struct(AA, gsl_matrix_complex, A);
+  TypedData_Get_Struct(aa, gsl_complex, &gsl_complex_data_type, a);
+  TypedData_Get_Struct(xx, gsl_vector_complex, &gsl_vector_complex_data_type, x);
+  TypedData_Get_Struct(yy, gsl_vector_complex, &gsl_vector_complex_data_type, y);
+  TypedData_Get_Struct(AA, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
   Anew = gsl_matrix_complex_alloc(A->size1, A->size2);
   gsl_matrix_complex_memcpy(Anew, A);
   gsl_blas_zgerc(*a, x, y, Anew);
-  return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, Anew);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, Anew);
 }
 
 static VALUE rb_gsl_blas_dsyr(VALUE obj, VALUE tt, VALUE aa, VALUE xx, VALUE AA)
@@ -860,8 +860,8 @@ static VALUE rb_gsl_blas_dsyr(VALUE obj, VALUE tt, VALUE aa, VALUE xx, VALUE AA)
   Need_Float(aa);
   CHECK_VECTOR(xx);  CHECK_MATRIX(AA);
   a = NUM2DBL(aa);
-  Data_Get_Struct(xx, gsl_vector, x);
-  Data_Get_Struct(AA, gsl_matrix, A);
+  TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, x);
+  TypedData_Get_Struct(AA, gsl_matrix, &gsl_matrix_data_type, A);
   gsl_blas_dsyr(FIX2INT(tt), a, x, A);
   return AA;
 }
@@ -875,12 +875,12 @@ static VALUE rb_gsl_blas_dsyr_a(VALUE obj, VALUE tt, VALUE aa, VALUE xx, VALUE A
   Need_Float(aa);
   CHECK_VECTOR(xx);  CHECK_MATRIX(AA);
   a = NUM2DBL(aa);
-  Data_Get_Struct(xx, gsl_vector, x);
-  Data_Get_Struct(AA, gsl_matrix, A);
+  TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, x);
+  TypedData_Get_Struct(AA, gsl_matrix, &gsl_matrix_data_type, A);
   Anew = gsl_matrix_alloc(A->size1, A->size2);
   gsl_matrix_memcpy(Anew, A);
   gsl_blas_dsyr(FIX2INT(tt), a, x, Anew);
-  return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Anew);
+  return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Anew);
 }
 
 static VALUE rb_gsl_blas_zher(VALUE obj, VALUE tt, VALUE aa, VALUE xx, VALUE AA)
@@ -892,8 +892,8 @@ static VALUE rb_gsl_blas_zher(VALUE obj, VALUE tt, VALUE aa, VALUE xx, VALUE AA)
   Need_Float(aa);
   CHECK_VECTOR_COMPLEX(xx);  CHECK_MATRIX_COMPLEX(AA);
   a = NUM2DBL(aa);
-  Data_Get_Struct(xx, gsl_vector_complex, x);
-  Data_Get_Struct(AA, gsl_matrix_complex, A);
+  TypedData_Get_Struct(xx, gsl_vector_complex, &gsl_vector_complex_data_type, x);
+  TypedData_Get_Struct(AA, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
   gsl_blas_zher(FIX2INT(tt), a, x, A);
   return AA;
 }
@@ -907,12 +907,12 @@ static VALUE rb_gsl_blas_zher_a(VALUE obj, VALUE tt, VALUE aa, VALUE xx, VALUE A
   Need_Float(aa);
   CHECK_VECTOR_COMPLEX(xx);  CHECK_MATRIX_COMPLEX(AA);
   a = NUM2DBL(aa);
-  Data_Get_Struct(xx, gsl_vector_complex, x);
-  Data_Get_Struct(AA, gsl_matrix_complex, A);
+  TypedData_Get_Struct(xx, gsl_vector_complex, &gsl_vector_complex_data_type, x);
+  TypedData_Get_Struct(AA, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
   Anew = gsl_matrix_complex_alloc(A->size1, A->size2);
   gsl_matrix_complex_memcpy(Anew, A);
   gsl_blas_zher(FIX2INT(tt), a, x, Anew);
-  return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, Anew);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, Anew);
 }
 
 static VALUE rb_gsl_blas_dsyr2(VALUE obj, VALUE tt, VALUE aa, VALUE xx,
@@ -925,9 +925,9 @@ static VALUE rb_gsl_blas_dsyr2(VALUE obj, VALUE tt, VALUE aa, VALUE xx,
   Need_Float(aa);
   CHECK_VECTOR(xx); CHECK_VECTOR(yy);  CHECK_MATRIX(AA);
   a = NUM2DBL(aa);
-  Data_Get_Struct(xx, gsl_vector, x);
-  Data_Get_Struct(yy, gsl_vector, y);
-  Data_Get_Struct(AA, gsl_matrix, A);
+  TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, x);
+  TypedData_Get_Struct(yy, gsl_vector, &gsl_vector_data_type, y);
+  TypedData_Get_Struct(AA, gsl_matrix, &gsl_matrix_data_type, A);
   gsl_blas_dsyr2(FIX2INT(tt), a, x, y, A);
   return AA;
 }
@@ -942,13 +942,13 @@ static VALUE rb_gsl_blas_dsyr2_a(VALUE obj, VALUE tt, VALUE aa, VALUE xx,
   Need_Float(aa);
   CHECK_VECTOR(xx); CHECK_VECTOR(yy);  CHECK_MATRIX(AA);
   a = NUM2DBL(aa);
-  Data_Get_Struct(xx, gsl_vector, x);
-  Data_Get_Struct(yy, gsl_vector, y);
-  Data_Get_Struct(AA, gsl_matrix, A);
+  TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, x);
+  TypedData_Get_Struct(yy, gsl_vector, &gsl_vector_data_type, y);
+  TypedData_Get_Struct(AA, gsl_matrix, &gsl_matrix_data_type, A);
   Anew = gsl_matrix_alloc(A->size1, A->size2);
   gsl_matrix_memcpy(Anew, A);
   gsl_blas_dsyr2(FIX2INT(tt), a, x, y, Anew);
-  return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Anew);
+  return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Anew);
 }
 
 static VALUE rb_gsl_blas_zher2(VALUE obj, VALUE tt, VALUE aa, VALUE xx,
@@ -960,10 +960,10 @@ static VALUE rb_gsl_blas_zher2(VALUE obj, VALUE tt, VALUE aa, VALUE xx,
   CHECK_FIXNUM(tt);
   CHECK_COMPLEX(aa);
   CHECK_VECTOR_COMPLEX(xx); CHECK_VECTOR_COMPLEX(yy);  CHECK_MATRIX_COMPLEX(AA);
-  Data_Get_Struct(aa, gsl_complex, a);
-  Data_Get_Struct(xx, gsl_vector_complex, x);
-  Data_Get_Struct(yy, gsl_vector_complex, y);
-  Data_Get_Struct(AA, gsl_matrix_complex, A);
+  TypedData_Get_Struct(aa, gsl_complex, &gsl_complex_data_type, a);
+  TypedData_Get_Struct(xx, gsl_vector_complex, &gsl_vector_complex_data_type, x);
+  TypedData_Get_Struct(yy, gsl_vector_complex, &gsl_vector_complex_data_type, y);
+  TypedData_Get_Struct(AA, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
   gsl_blas_zher2(FIX2INT(tt), *a, x, y, A);
   return AA;
 }
@@ -977,14 +977,14 @@ static VALUE rb_gsl_blas_zher2_a(VALUE obj, VALUE tt, VALUE aa, VALUE xx,
   CHECK_FIXNUM(tt);
   CHECK_COMPLEX(aa);
   CHECK_VECTOR_COMPLEX(xx); CHECK_VECTOR_COMPLEX(yy);  CHECK_MATRIX_COMPLEX(AA);
-  Data_Get_Struct(aa, gsl_complex, a);
-  Data_Get_Struct(xx, gsl_vector_complex, x);
-  Data_Get_Struct(yy, gsl_vector_complex, y);
-  Data_Get_Struct(AA, gsl_matrix_complex, A);
+  TypedData_Get_Struct(aa, gsl_complex, &gsl_complex_data_type, a);
+  TypedData_Get_Struct(xx, gsl_vector_complex, &gsl_vector_complex_data_type, x);
+  TypedData_Get_Struct(yy, gsl_vector_complex, &gsl_vector_complex_data_type, y);
+  TypedData_Get_Struct(AA, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
   Anew = gsl_matrix_complex_alloc(A->size1, A->size2);
   gsl_matrix_complex_memcpy(Anew, A);
   gsl_blas_zher2(FIX2INT(tt), *a, x, y, Anew);
-  return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, Anew);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, Anew);
 }
 
 void Init_gsl_blas2(VALUE module)

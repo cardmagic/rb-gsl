@@ -7,6 +7,7 @@
 
 #include <ruby.h>
 #include <gsl/gsl_matrix.h>
+#include "include/rb_gsl_types.h"
 
 int gsl_matrix_nmf(gsl_matrix *v, int cols, gsl_matrix **w, gsl_matrix **h);
 //double difcost(gsl_matrix *a, gsl_matrix *b);
@@ -32,13 +33,13 @@ static VALUE nmf_wrap(VALUE obj, VALUE matrix, VALUE cols)
     rb_raise(rb_eArgError, "Number of columns should be a positive integer.");
   }
   arr = rb_ary_new2(2);
-  Data_Get_Struct(matrix, gsl_matrix, m);
+  TypedData_Get_Struct(matrix, gsl_matrix, &gsl_matrix_data_type, m);
 
   /* compute the NMF */
   gsl_matrix_nmf(m, c, &w, &h);
 
-  rb_ary_push(arr, Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, w));
-  rb_ary_push(arr, Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, h));
+  rb_ary_push(arr, TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, w));
+  rb_ary_push(arr, TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, h));
 
   return arr;
 }
@@ -52,8 +53,8 @@ static VALUE nmf_wrap(VALUE obj, VALUE matrix, VALUE cols)
 static VALUE difcost_wrap(VALUE obj, VALUE matrix1, VALUE matrix2)
 {
   gsl_matrix *m1, *m2;
-  Data_Get_Struct(matrix1, gsl_matrix, m1);
-  Data_Get_Struct(matrix2, gsl_matrix, m2);
+  TypedData_Get_Struct(matrix1, gsl_matrix, &gsl_matrix_data_type, m1);
+  TypedData_Get_Struct(matrix2, gsl_matrix, &gsl_matrix_data_type, m2);
   return rb_float_new(difcost(m1, m2));
 }
 

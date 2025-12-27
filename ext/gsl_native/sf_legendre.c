@@ -59,7 +59,7 @@ static VALUE rb_gsl_sf_legendre_Pl_array(VALUE obj, VALUE lmax, VALUE x)
   Need_Float(x);
   v = gsl_vector_alloc(FIX2INT(lmax) + 1);
   gsl_sf_legendre_Pl_array(FIX2INT(lmax), NUM2DBL(x), v->data);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
 }
 
 static VALUE rb_gsl_sf_legendre_Q0(VALUE obj, VALUE x)
@@ -122,7 +122,7 @@ static VALUE rb_gsl_sf_legendre_Plm_array(VALUE obj, VALUE lmax, VALUE m, VALUE 
   size = gsl_sf_legendre_array_size(ll, mm);
   v = gsl_vector_alloc(size);
   gsl_sf_legendre_Plm_array(ll, mm, NUM2DBL(x), v->data);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
 }
 
 static VALUE rb_gsl_sf_legendre_sphPlm(VALUE obj, VALUE l, VALUE m, VALUE x)
@@ -154,7 +154,7 @@ static VALUE rb_gsl_sf_legendre_sphPlm_array(VALUE obj, VALUE lmax, VALUE m, VAL
   size = gsl_sf_legendre_array_size(ll, mm);
   v = gsl_vector_alloc(size);
   gsl_sf_legendre_sphPlm_array(ll, mm, NUM2DBL(x), v->data);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
 }
 
 static VALUE rb_gsl_sf_legendre_array_size(VALUE obj, VALUE lmax, VALUE m)
@@ -273,7 +273,7 @@ static VALUE rb_gsl_sf_legendre_H3d_array(VALUE obj, VALUE lmax, VALUE lambda, V
   Need_Float(eta);
   v = gsl_vector_alloc(FIX2INT(lmax) + 1);
   gsl_sf_legendre_H3d_array(FIX2INT(lmax), NUM2DBL(lambda), NUM2DBL(eta), v->data);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
 }
 
 void Init_gsl_sf_legendre(VALUE module)

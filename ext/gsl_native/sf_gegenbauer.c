@@ -67,7 +67,7 @@ static VALUE rb_gsl_sf_gegenpoly_array(VALUE obj, VALUE nmax, VALUE lambda, VALU
   Need_Float(lambda); Need_Float(x);
   v = gsl_vector_alloc(nmax);
   gsl_sf_gegenpoly_array(FIX2INT(nmax), NUM2DBL(lambda), NUM2DBL(x), v->data);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
 }
 
 void Init_gsl_sf_gegenbauer(VALUE module)

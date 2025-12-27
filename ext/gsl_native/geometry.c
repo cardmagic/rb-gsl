@@ -104,28 +104,28 @@ void vector3_rotate(const double x[3], double theta, double phi,
 static VALUE rb_gsl_vector_rotateX(VALUE obj, VALUE angle)
 {
   gsl_vector *v;
-  Data_Get_Struct(obj, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
   vector3_rotateX(v->data, NUM2DBL(angle), v->data);
   return obj;
 }
 static VALUE rb_gsl_vector_rotateY(VALUE obj, VALUE angle)
 {
   gsl_vector *v;
-  Data_Get_Struct(obj, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
   vector3_rotateY(v->data, NUM2DBL(angle), v->data);
   return obj;
 }
 static VALUE rb_gsl_vector_rotateZ(VALUE obj, VALUE angle)
 {
   gsl_vector *v;
-  Data_Get_Struct(obj, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
   vector3_rotateZ(v->data, NUM2DBL(angle), v->data);
   return obj;
 }
 static VALUE rb_gsl_vector_rotate(VALUE obj, VALUE theta, VALUE phi)
 {
   gsl_vector *v;
-  Data_Get_Struct(obj, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
   vector3_rotate(v->data, NUM2DBL(theta), NUM2DBL(phi), v->data);
   return obj;
 }

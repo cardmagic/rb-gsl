@@ -20,42 +20,42 @@ static VALUE rb_gsl_matrix_complex_to_nmatrix(VALUE obj);
 /* GSL::Vector -> NMatrix */
 static VALUE rb_gsl_vector_to_nmatrix(VALUE obj) {
   gsl_vector *v = NULL;
-  Data_Get_Struct(obj, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
 
   return rb_nvector_dense_create(FLOAT64, v->data, v->size);
 }
 
 static VALUE rb_gsl_vector_int_to_nmatrix(VALUE obj) {
   gsl_vector_int *v = NULL;
-  Data_Get_Struct(obj, gsl_vector_int, v);
+  TypedData_Get_Struct(obj, gsl_vector_int, &gsl_vector_int_data_type, v);
 
   return rb_nvector_dense_create(INT32, v->data, v->size);
 }
 
 static VALUE rb_gsl_vector_complex_to_nmatrix(VALUE obj) {
   gsl_vector_complex *v = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
 
   return rb_nvector_dense_create(COMPLEX128, v->data, v->size);
 }
 
 static VALUE rb_gsl_matrix_to_nmatrix(VALUE obj) {
   gsl_matrix *m = NULL;
-  Data_Get_Struct(obj, gsl_matrix, m);
+  TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
 
   return rb_nmatrix_dense_create(FLOAT64, &(m->size1), 2, m->data, m->size1 * m->size2);
 }
 
 static VALUE rb_gsl_matrix_int_to_nmatrix(VALUE obj) {
   gsl_matrix_int *m = NULL;
-  Data_Get_Struct(obj, gsl_matrix_int, m);
+  TypedData_Get_Struct(obj, gsl_matrix_int, &gsl_matrix_int_data_type, m);
 
   return rb_nmatrix_dense_create(INT32, &(m->size1), 2, m->data, m->size1 * m->size2);
 }
 
 static VALUE rb_gsl_matrix_complex_to_nmatrix(VALUE obj) {
   gsl_matrix_complex *m = NULL;
-  Data_Get_Struct(obj, gsl_matrix_complex, m);
+  TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
 
   return rb_nmatrix_dense_create(COMPLEX128, &(m->size1), 2, m->data, m->size1 * m->size2);
 }
@@ -106,16 +106,13 @@ gsl_vector_complex* rb_gsl_nmatrix_to_gv_complex(VALUE nm) {
 // NMatrix function to convert NMatrix to GSL::Vector object depending on dtype
 VALUE rb_gsl_nmatrix_to_gsl_vector_method(VALUE nm) {
   if (NM_DTYPE(nm) == COMPLEX64 || NM_DTYPE(nm) == COMPLEX128) {
-    return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, 
-      rb_gsl_nmatrix_to_gv_complex(nm));
+    return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, rb_gsl_nmatrix_to_gv_complex(nm));
   } 
   else if (NM_DTYPE(nm) == INT32) {
-    return Data_Wrap_Struct(cgsl_vector_int, 0, gsl_vector_int_free,
-      rb_gsl_nmatrix_to_gv_int(nm));
+    return TypedData_Wrap_Struct(cgsl_vector_int, &gsl_vector_int_data_type, rb_gsl_nmatrix_to_gv_int(nm));
   }
   else if (NM_DTYPE(nm) == FLOAT64) {
-    return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free,
-      rb_gsl_nmatrix_to_gv(nm));
+    return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, rb_gsl_nmatrix_to_gv(nm));
   }
   else {
     rb_raise(rb_eStandardError, 
@@ -167,16 +164,13 @@ VALUE rb_gsl_nmatrix_to_gsl_matrix_method(VALUE nmatrix) {
   }
 
   if (NM_DTYPE(nmatrix) == COMPLEX64 || NM_DTYPE(nmatrix) == COMPLEX128) {
-    return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, 
-      rb_gsl_nmatrix_to_gm_complex(nmatrix));
+    return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, rb_gsl_nmatrix_to_gm_complex(nmatrix));
   } 
   else if (NM_DTYPE(nmatrix) == INT32) {
-    return Data_Wrap_Struct(cgsl_matrix_int, 0, gsl_matrix_int_free,
-      rb_gsl_nmatrix_to_gm_int(nmatrix));
+    return TypedData_Wrap_Struct(cgsl_matrix_int, &gsl_matrix_int_data_type, rb_gsl_nmatrix_to_gm_int(nmatrix));
   }
   else if (NM_DTYPE(nmatrix) == FLOAT64) {
-    return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free,
-      rb_gsl_nmatrix_to_gm(nmatrix));
+    return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, rb_gsl_nmatrix_to_gm(nmatrix));
   }
   else {
     rb_raise(rb_eStandardError, 
