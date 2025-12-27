@@ -25,9 +25,7 @@ static void GSL_FFT_Workspace_free(GSL_FFT_Workspace *space);
 static VALUE rb_gsl_fft_complex_wavetable_new(VALUE klass, VALUE n)
 {
   CHECK_FIXNUM(n);
-  return Data_Wrap_Struct(cgsl_fft_complex_wavetable, 0,
-                          gsl_fft_complex_wavetable_free,
-                          gsl_fft_complex_wavetable_alloc(FIX2INT(n)));
+  return TypedData_Wrap_Struct(cgsl_fft_complex_wavetable, &gsl_fft_complex_wavetable_data_type, gsl_fft_complex_wavetable_alloc(FIX2INT(n)));
 }
 
 static VALUE rb_gsl_fft_real_wavetable_new(VALUE klass, VALUE n)
@@ -49,6 +47,16 @@ static void GSL_FFT_Wavetable_free(GSL_FFT_Wavetable *table)
 {
   gsl_fft_complex_wavetable_free((gsl_fft_complex_wavetable *) table);
 }
+
+static const rb_data_type_t GSL_FFT_Wavetable_data_type = {
+    .wrap_struct_name = "GSL::FFT::Wavetable",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))GSL_FFT_Wavetable_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
 
 static VALUE rb_gsl_fft_complex_workspace_new(VALUE klass, VALUE n)
 {
@@ -86,7 +94,7 @@ static VALUE get_complex_stride_n(VALUE obj,
 
   // obj must be a GSL::Vector::Complex
   CHECK_VECTOR_COMPLEX(obj);
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
 
   if(vin) *vin = v;
   *data = (gsl_complex_packed_array) v->data;
@@ -108,7 +116,7 @@ static VALUE rb_fft_complex_radix2(VALUE obj,
     vout = gsl_vector_complex_alloc(n);
     gsl_vector_complex_memcpy(vout, vin);
     (*trans)(vout->data, vout->stride /*1*/, vout->size /*n*/);
-    return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vout);
+    return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vout);
   } else { /* in-place */
     (*trans)(data, stride, n);
     return ary;
@@ -138,7 +146,7 @@ static VALUE rb_gsl_fft_complex_radix2_transform(VALUE obj, VALUE val_sign)
   vout = gsl_vector_complex_alloc(n);
   gsl_vector_complex_memcpy(vout, vin);
   gsl_fft_complex_radix2_transform(vout->data, vout->stride /*1*/, vout->size /*n*/, sign);
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vout);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vout);
 }
 
 static VALUE rb_gsl_fft_complex_radix2_transform2(VALUE obj, VALUE val_sign)
@@ -203,7 +211,7 @@ static VALUE rb_gsl_fft_complex_radix2_dif_transform(VALUE obj, VALUE val_sign)
   vout = gsl_vector_complex_alloc(n);
   gsl_vector_complex_memcpy(vout, vin);
   gsl_fft_complex_radix2_dif_transform(vout->data, vout->stride /*1*/, vout->size /*n*/, sign);
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vout);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vout);
 }
 
 /* in-place */
@@ -248,14 +256,14 @@ static VALUE rb_gsl_fft_complex_radix2_dif_inverse2(VALUE obj)
 static VALUE rb_GSL_FFT_Wavetable_n(VALUE obj)
 {
   GSL_FFT_Wavetable *table;
-  Data_Get_Struct(obj, GSL_FFT_Wavetable, table);
+  TypedData_Get_Struct(obj, GSL_FFT_Wavetable, &GSL_FFT_Wavetable_data_type, table);
   return INT2FIX(table->n);
 }
 
 static VALUE rb_GSL_FFT_Wavetable_nf(VALUE obj)
 {
   GSL_FFT_Wavetable *table;
-  Data_Get_Struct(obj, GSL_FFT_Wavetable, table);
+  TypedData_Get_Struct(obj, GSL_FFT_Wavetable, &GSL_FFT_Wavetable_data_type, table);
   return INT2FIX(table->nf);
 }
 
@@ -264,10 +272,10 @@ static VALUE rb_GSL_FFT_Wavetable_factor(VALUE obj)
   GSL_FFT_Wavetable *table;
   gsl_vector_int *v;
   size_t i;
-  Data_Get_Struct(obj, GSL_FFT_Wavetable, table);
+  TypedData_Get_Struct(obj, GSL_FFT_Wavetable, &GSL_FFT_Wavetable_data_type, table);
   v = gsl_vector_int_alloc(table->nf);
   for (i = 0; i < table->nf; i++) gsl_vector_int_set(v, i, table->factor[i]);
-  return Data_Wrap_Struct(cgsl_vector_int, 0, gsl_vector_int_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_int, &gsl_vector_int_data_type, v);
 }
 
 enum {
@@ -299,7 +307,7 @@ static int gsl_fft_get_argv_complex(int argc, VALUE *argv, VALUE obj,
   flagw = 0;
   for (i = argc-1; i >= itmp2; i--) {
     if (rb_obj_is_kind_of(argv[i], cgsl_fft_complex_workspace)) {
-      Data_Get_Struct(argv[i], gsl_fft_complex_workspace, *space);
+      TypedData_Get_Struct(argv[i], gsl_fft_complex_workspace, &gsl_fft_complex_workspace_data_type, *space);
       flagtmp = 1;
       flagw = 1;
       itmp = i;
@@ -310,7 +318,7 @@ static int gsl_fft_get_argv_complex(int argc, VALUE *argv, VALUE obj,
   flagtmp = 0;
   for (i = itmp-1; i >= itmp2; i--) {
     if (rb_obj_is_kind_of(argv[i], cgsl_fft_complex_wavetable)) {
-      Data_Get_Struct(argv[i], gsl_fft_complex_wavetable, *table);
+      TypedData_Get_Struct(argv[i], gsl_fft_complex_wavetable, &gsl_fft_complex_wavetable_data_type, *table);
       flagtmp = 1;
       ccc--;
       break;
@@ -351,7 +359,7 @@ static int gsl_fft_get_argv_real(int argc, VALUE *argv, VALUE obj,
   flagw = 0;
   for (i = argc-1; i >= itmp2; i--) {
     if (rb_obj_is_kind_of(argv[i], cgsl_fft_real_workspace)) {
-      Data_Get_Struct(argv[i], gsl_fft_real_workspace, *space);
+      TypedData_Get_Struct(argv[i], gsl_fft_real_workspace, &gsl_fft_real_workspace_data_type, *space);
       flagtmp = 1;
       flagw = 1;
       itmp = i;
@@ -362,7 +370,7 @@ static int gsl_fft_get_argv_real(int argc, VALUE *argv, VALUE obj,
   flagtmp = 0;
   for (i = itmp-1; i >= itmp2; i--) {
     if (rb_obj_is_kind_of(argv[i], cgsl_fft_real_wavetable)) {
-      Data_Get_Struct(argv[i], gsl_fft_real_wavetable, *table);
+      TypedData_Get_Struct(argv[i], gsl_fft_real_wavetable, &gsl_fft_real_wavetable_data_type, *table);
       flagtmp = 1;
       ccc--;
       break;
@@ -401,7 +409,7 @@ static int gsl_fft_get_argv_halfcomplex(int argc, VALUE *argv, VALUE obj,
   flagw = 0;
   for (i = argc-1; i >= itmp2; i--) {
     if (rb_obj_is_kind_of(argv[i], cgsl_fft_real_workspace)) {
-      Data_Get_Struct(argv[i], gsl_fft_real_workspace, *space);
+      TypedData_Get_Struct(argv[i], gsl_fft_real_workspace, &gsl_fft_real_workspace_data_type, *space);
       flagtmp = 1;
       flagw = 1;
       itmp = i;
@@ -412,7 +420,7 @@ static int gsl_fft_get_argv_halfcomplex(int argc, VALUE *argv, VALUE obj,
   flagtmp = 0;
   for (i = itmp-1; i >= itmp2; i--) {
     if (rb_obj_is_kind_of(argv[i], cgsl_fft_halfcomplex_wavetable)) {
-      Data_Get_Struct(argv[i], gsl_fft_halfcomplex_wavetable, *table);
+      TypedData_Get_Struct(argv[i], gsl_fft_halfcomplex_wavetable, &gsl_fft_halfcomplex_wavetable_data_type, *table);
       flagtmp = 1;
       ccc--;
       break;
@@ -476,7 +484,7 @@ static VALUE rb_fft_complex_trans(int argc, VALUE *argv, VALUE obj,
     gsl_vector_complex_memcpy(vout, vin);
     /*status =*/ (*transform)(vout->data, vout->stride /*1*/, vout->size /*n*/, table, space);
     gsl_fft_free(flag, (GSL_FFT_Wavetable *) table, (GSL_FFT_Workspace *) space);
-    return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vout);
+    return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vout);
   } else {    /* in-place */
     /*status =*/ (*transform)(data, stride, n, table, space);
     gsl_fft_free(flag, (GSL_FFT_Wavetable *) table, (GSL_FFT_Workspace *) space);
@@ -514,7 +522,7 @@ static VALUE rb_gsl_fft_complex_transform(int argc, VALUE *argv, VALUE obj)
   gsl_vector_complex_memcpy(vout, vin);
   /*status =*/ gsl_fft_complex_transform(vout->data, stride, n, table, space, sign);
   gsl_fft_free(flag, (GSL_FFT_Wavetable *) table, (GSL_FFT_Workspace *) space);
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vout);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vout);
 }
 
 /* in-place */
@@ -599,7 +607,7 @@ static VALUE rb_fft_radix2(VALUE obj,
       gsl_vector_memcpy(vnew, &vv.vector);
       ptr2 = vnew->data;
       stride = 1;
-      ary = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      ary = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     } else {
       ary = obj;
       ptr2 = ptr1;
@@ -703,7 +711,7 @@ static VALUE rb_fft_real_trans(int argc, VALUE *argv, VALUE obj,
       gsl_vector_memcpy(vnew, &vv.vector);
       ptr2 = vnew->data;
       stride = 1;
-      ary = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      ary = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     } else {
       ptr2 = ptr1;
       ary = obj;
@@ -782,7 +790,7 @@ static VALUE rb_fft_halfcomplex_trans(int argc, VALUE *argv, VALUE obj,
       gsl_vector_memcpy(vnew, &vv.vector);
       ptr2 = vnew->data;
       stride = 1;
-      ary = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      ary = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     } else {
       ptr2 = ptr1;
       ary = obj;
@@ -871,11 +879,11 @@ static VALUE rb_gsl_fft_real_unpack(VALUE obj)
   gsl_vector_complex *vout;
 
   CHECK_VECTOR(obj);
-  Data_Get_Struct(obj, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
 
   vout = gsl_vector_complex_alloc(v->size);
   gsl_fft_real_unpack(v->data, (gsl_complex_packed_array) vout->data, v->stride, v->size);
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vout);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vout);
 }
 
 static VALUE rb_gsl_fft_halfcomplex_unpack(VALUE obj)
@@ -884,11 +892,11 @@ static VALUE rb_gsl_fft_halfcomplex_unpack(VALUE obj)
   gsl_vector_complex *vout;
 
   CHECK_VECTOR(obj);
-  Data_Get_Struct(obj, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
 
   vout = gsl_vector_complex_alloc(v->size);
   gsl_fft_halfcomplex_unpack(v->data, (gsl_complex_packed_array) vout->data, v->stride, v->size);
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vout);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vout);
 }
 
 /* Convert a halfcomplex data to Numerical Recipes style */
@@ -898,7 +906,7 @@ static VALUE rb_gsl_fft_halfcomplex_to_nrc(VALUE obj)
   size_t i, k;
 
   CHECK_VECTOR(obj);
-  Data_Get_Struct(obj, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
 
   vnew = gsl_vector_alloc(v->size);
   gsl_vector_set(vnew, 0, gsl_vector_get(v, 0));  /* DC */
@@ -907,7 +915,7 @@ static VALUE rb_gsl_fft_halfcomplex_to_nrc(VALUE obj)
     gsl_vector_set(vnew, i, gsl_vector_get(v, k));
     gsl_vector_set(vnew, i+1, -gsl_vector_get(v, v->size-k));
   }
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
 }
 
 static VALUE rb_gsl_fft_halfcomplex_amp_phase(VALUE obj)
@@ -918,7 +926,7 @@ static VALUE rb_gsl_fft_halfcomplex_amp_phase(VALUE obj)
   VALUE vamp, vphase;
   size_t i;
   CHECK_VECTOR(obj);
-  Data_Get_Struct(obj, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
   amp = gsl_vector_alloc(v->size/2);
   phase = gsl_vector_alloc(v->size/2);
   gsl_vector_set(amp, 0, gsl_vector_get(v, 0));

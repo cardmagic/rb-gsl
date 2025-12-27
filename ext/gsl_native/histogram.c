@@ -45,7 +45,7 @@ static VALUE rb_gsl_histogram_alloc(int argc, VALUE *argv, VALUE klass)
       break;
     default:
       CHECK_VECTOR(argv[0]);
-      Data_Get_Struct(argv[0], gsl_vector, v);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
       h = gsl_histogram_alloc(v->size-1);
       gsl_histogram_set_ranges(h, v->data, v->size);
       break;
@@ -89,7 +89,7 @@ static VALUE rb_gsl_histogram_alloc(int argc, VALUE *argv, VALUE klass)
     default:
       CHECK_VECTOR(argv[0]);
       CHECK_FIXNUM(argv[1]);
-      Data_Get_Struct(argv[0], gsl_vector, v);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
       size = FIX2INT(argv[1]);
       h = gsl_histogram_calloc(size-1);
       gsl_histogram_set_ranges(h, v->data, size);
@@ -212,14 +212,14 @@ static VALUE rb_gsl_histogram_calloc_range(int argc, VALUE *argv,  VALUE klass)
   switch (argc) {
   case 1:
     CHECK_VECTOR(argv[0]);
-    Data_Get_Struct(argv[0], gsl_vector, v);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
     n = v->size;
     break;
   case 2:
     CHECK_FIXNUM(argv[0]);
     CHECK_VECTOR(argv[1]);
     n = FIX2INT(argv[0]);
-    Data_Get_Struct(argv[1], gsl_vector, v);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, v);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 2)", argc);
@@ -232,7 +232,7 @@ static VALUE rb_gsl_histogram_calloc_range(int argc, VALUE *argv,  VALUE klass)
 static VALUE rb_gsl_histogram_bins(VALUE obj)
 {
   gsl_histogram *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   return INT2FIX(gsl_histogram_bins(h));
 }
 
@@ -241,7 +241,7 @@ static VALUE rb_gsl_histogram_set_ranges(int argc, VALUE *argv, VALUE obj)
   gsl_histogram *h = NULL;
   gsl_vector *v = NULL;
   size_t size;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   if (argc != 1 && argc != 2)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 2)", argc);
   if (TYPE(argv[0]) == T_ARRAY) {
@@ -252,7 +252,7 @@ static VALUE rb_gsl_histogram_set_ranges(int argc, VALUE *argv, VALUE obj)
     gsl_vector_free(v);
   } else {
     CHECK_VECTOR(argv[0]);
-    Data_Get_Struct(argv[0], gsl_vector, v);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
     if (argc == 1) size = v->size;
     else size = FIX2INT(argv[1]);
     gsl_histogram_set_ranges(h, v->data, size);
@@ -264,24 +264,24 @@ static VALUE rb_gsl_histogram_range(VALUE obj)
 {
   gsl_histogram *h = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   v = gsl_vector_view_alloc();
   v->vector.data = h->range;
   v->vector.size = h->n + 1;
   v->vector.stride = 1;
-  return Data_Wrap_Struct(cgsl_histogram_range, 0, gsl_vector_view_free, v);
+  return TypedData_Wrap_Struct(cgsl_histogram_range, &gsl_histogram_range_data_type, v);
 }
 
 static VALUE rb_gsl_histogram_bin(VALUE obj)
 {
   gsl_histogram *h = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   v = gsl_vector_view_alloc();
   v->vector.data = h->bin;
   v->vector.size = h->n;
   v->vector.stride = 1;
-  return Data_Wrap_Struct(cgsl_histogram_bin, 0, gsl_vector_view_free, v);
+  return TypedData_Wrap_Struct(cgsl_histogram_bin, &gsl_histogram_range_data_type, v);
 }
 
 static VALUE rb_gsl_histogram_set_ranges_uniform(int argc, VALUE *argv, VALUE obj)
@@ -302,7 +302,7 @@ static VALUE rb_gsl_histogram_set_ranges_uniform(int argc, VALUE *argv, VALUE ob
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 2)", argc);
     break;
   }
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   gsl_histogram_set_ranges_uniform(h, xmin, xmax);
   return obj;
 }
@@ -313,8 +313,8 @@ static VALUE rb_gsl_histogram_memcpy(VALUE obj, VALUE vhdest, VALUE vhsrc)
   gsl_histogram *hdest = NULL, *hsrc = NULL;
   CHECK_HISTOGRAM(vhdest);
   CHECK_HISTOGRAM(vhsrc);
-  Data_Get_Struct(vhdest, gsl_histogram, hdest);
-  Data_Get_Struct(vhsrc, gsl_histogram, hsrc);
+  TypedData_Get_Struct(vhdest, gsl_histogram, &gsl_histogram_data_type, hdest);
+  TypedData_Get_Struct(vhsrc, gsl_histogram, &gsl_histogram_data_type, hsrc);
   gsl_histogram_memcpy(hdest, hsrc);
   return vhdest;
 }
@@ -322,7 +322,7 @@ static VALUE rb_gsl_histogram_memcpy(VALUE obj, VALUE vhdest, VALUE vhsrc)
 static VALUE rb_gsl_histogram_clone(VALUE obj)
 {
   gsl_histogram *hsrc = NULL, *hnew = NULL;
-  Data_Get_Struct(obj, gsl_histogram, hsrc);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, hsrc);
   hnew = gsl_histogram_clone(hsrc);
   return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram_free, hnew);
 }
@@ -346,17 +346,17 @@ static VALUE rb_gsl_histogram_accumulate(int argc, VALUE *argv, VALUE obj)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 2)", argc);
     break;
   }
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   if (TYPE(argv[0]) == T_ARRAY) {
     //    for (i = 0; i < RARRAY(argv[0])->len; i++)
     for (i = 0; (int) i < RARRAY_LEN(argv[0]); i++)
       gsl_histogram_accumulate(h, NUM2DBL(rb_ary_entry(argv[0], i)), weight);
   } else if (VECTOR_P(argv[0])) {
-    Data_Get_Struct(argv[0], gsl_vector, v);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
     for (i = 0; i < v->size; i++)
       gsl_histogram_accumulate(h, gsl_vector_get(v, i), weight);
   } else if (VECTOR_INT_P(argv[0])) {
-    Data_Get_Struct(argv[0], gsl_vector_int, vi);
+    TypedData_Get_Struct(argv[0], gsl_vector_int, &gsl_vector_int_data_type, vi);
     for (i = 0; i < vi->size; i++)
       gsl_histogram_accumulate(h, (double)gsl_vector_int_get(vi, i), weight);
 #ifdef HAVE_NARRAY_H
@@ -391,7 +391,7 @@ static VALUE rb_gsl_histogram_accumulate2(int argc, VALUE *argv, VALUE obj)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 2)", argc);
     break;
   }
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   if (x < h->range[0]) x = h->range[0] + 4*GSL_DBL_EPSILON;
   if (x > h->range[h->n]) x = h->range[h->n] - 4*GSL_DBL_EPSILON;
   gsl_histogram_accumulate(h, x, weight);
@@ -402,7 +402,7 @@ static VALUE rb_gsl_histogram_get(VALUE obj, VALUE i)
 {
   gsl_histogram *h = NULL;
   CHECK_FIXNUM(i);
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   return rb_float_new(gsl_histogram_get(h, FIX2INT(i)));
 }
 
@@ -411,7 +411,7 @@ static VALUE rb_gsl_histogram_get_range(VALUE obj, VALUE i)
   gsl_histogram *h = NULL;
   double lower, upper;
   CHECK_FIXNUM(i);
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   gsl_histogram_get_range(h, FIX2INT(i), &lower, &upper);
   return rb_ary_new3(2, rb_float_new(lower), rb_float_new(upper));
 }
@@ -419,21 +419,21 @@ static VALUE rb_gsl_histogram_get_range(VALUE obj, VALUE i)
 static VALUE rb_gsl_histogram_max(VALUE obj)
 {
   gsl_histogram *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   return rb_float_new(gsl_histogram_max(h));
 }
 
 static VALUE rb_gsl_histogram_min(VALUE obj)
 {
   gsl_histogram *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   return rb_float_new(gsl_histogram_min(h));
 }
 
 static VALUE rb_gsl_histogram_reset(VALUE obj)
 {
   gsl_histogram *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   gsl_histogram_reset(h);
   return obj;
 }
@@ -443,7 +443,7 @@ static VALUE rb_gsl_histogram_find(VALUE obj, VALUE x)
   gsl_histogram *h = NULL;
   size_t i;
   Need_Float(x);
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   gsl_histogram_find(h, NUM2DBL(x), &i);
   return INT2FIX(i);
 }
@@ -451,49 +451,49 @@ static VALUE rb_gsl_histogram_find(VALUE obj, VALUE x)
 static VALUE rb_gsl_histogram_max_val(VALUE obj)
 {
   gsl_histogram *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   return rb_float_new(gsl_histogram_max_val(h));
 }
 
 static VALUE rb_gsl_histogram_max_bin(VALUE obj)
 {
   gsl_histogram *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   return INT2FIX(gsl_histogram_max_bin(h));
 }
 
 static VALUE rb_gsl_histogram_min_val(VALUE obj)
 {
   gsl_histogram *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   return rb_float_new(gsl_histogram_min_val(h));
 }
 
 static VALUE rb_gsl_histogram_min_bin(VALUE obj)
 {
   gsl_histogram *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   return INT2FIX(gsl_histogram_min_bin(h));
 }
 
 static VALUE rb_gsl_histogram_mean(VALUE obj)
 {
   gsl_histogram *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   return rb_float_new(gsl_histogram_mean(h));
 }
 
 static VALUE rb_gsl_histogram_sigma(VALUE obj)
 {
   gsl_histogram *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   return rb_float_new(gsl_histogram_sigma(h));
 }
 
 static VALUE rb_gsl_histogram_sum(VALUE obj)
 {
   gsl_histogram *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   if (CLASS_OF(obj) == cgsl_histogram_integ)
     return rb_float_new(gsl_histogram_get(h, h->n-1));
   else
@@ -504,7 +504,7 @@ static VALUE rb_gsl_histogram_normalize_bang(VALUE obj)
 {
   gsl_histogram *h = NULL;
   double scale;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   if (CLASS_OF(obj) == cgsl_histogram_integ)
     scale = 1.0/gsl_histogram_get(h, h->n-1);
   else
@@ -516,7 +516,7 @@ static VALUE rb_gsl_histogram_normalize_bang(VALUE obj)
 static VALUE rb_gsl_histogram_normalize(VALUE obj)
 {
   gsl_histogram *h = NULL, *hnew = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   hnew = gsl_histogram_clone(h);
   return rb_gsl_histogram_normalize_bang(Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram_free, hnew));
 }
@@ -526,7 +526,7 @@ static VALUE rb_gsl_histogram_integral(int argc, VALUE *argv, VALUE obj)
   gsl_histogram *h = NULL;
   size_t istart = 0, iend, i = 0;
   double sum = 0.0;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   switch (argc) {
   case 0:
     return rb_gsl_histogram_sum(obj);
@@ -561,15 +561,15 @@ static VALUE rb_gsl_histogram_equal_bins_p(int argc, VALUE *argv, VALUE obj)
                             argc);
     CHECK_HISTOGRAM(argv[0]);
     CHECK_HISTOGRAM(argv[1]);
-    Data_Get_Struct(argv[0], gsl_histogram, h1);
-    Data_Get_Struct(argv[1], gsl_histogram, h2);
+    TypedData_Get_Struct(argv[0], gsl_histogram, &gsl_histogram_data_type, h1);
+    TypedData_Get_Struct(argv[1], gsl_histogram, &gsl_histogram_data_type, h2);
     break;
   default:
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)",
                             argc);
-    Data_Get_Struct(obj, gsl_histogram, h1);
+    TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h1);
     CHECK_HISTOGRAM(argv[0]);
-    Data_Get_Struct(argv[0], gsl_histogram, h2);
+    TypedData_Get_Struct(argv[0], gsl_histogram, &gsl_histogram_data_type, h2);
     break;
   }
   return INT2FIX(gsl_histogram_equal_bins_p(h1, h2));
@@ -586,15 +586,15 @@ static VALUE rb_gsl_histogram_equal_bins_p2(int argc, VALUE *argv, VALUE obj)
                             argc);
     CHECK_HISTOGRAM(argv[0]);
     CHECK_HISTOGRAM(argv[1]);
-    Data_Get_Struct(argv[0], gsl_histogram, h1);
-    Data_Get_Struct(argv[1], gsl_histogram, h2);
+    TypedData_Get_Struct(argv[0], gsl_histogram, &gsl_histogram_data_type, h1);
+    TypedData_Get_Struct(argv[1], gsl_histogram, &gsl_histogram_data_type, h2);
     break;
   default:
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)",
                             argc);
-    Data_Get_Struct(obj, gsl_histogram, h1);
+    TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h1);
     CHECK_HISTOGRAM(argv[0]);
-    Data_Get_Struct(argv[0], gsl_histogram, h2);
+    TypedData_Get_Struct(argv[0], gsl_histogram, &gsl_histogram_data_type, h2);
     break;
   }
   if (gsl_histogram_equal_bins_p(h1, h2)) return Qtrue;
@@ -604,10 +604,10 @@ static VALUE rb_gsl_histogram_equal_bins_p2(int argc, VALUE *argv, VALUE obj)
 static VALUE rb_gsl_histogram_add(VALUE obj, VALUE hh2)
 {
   gsl_histogram *h1 = NULL, *h2 = NULL, *hnew = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h1);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h1);
   hnew = gsl_histogram_clone(h1);
   if (HISTOGRAM_P(hh2)) {
-    Data_Get_Struct(hh2, gsl_histogram, h2);
+    TypedData_Get_Struct(hh2, gsl_histogram, &gsl_histogram_data_type, h2);
     mygsl_histogram_add(hnew, h2);
   } else {
     Need_Float(hh2);
@@ -619,9 +619,9 @@ static VALUE rb_gsl_histogram_add(VALUE obj, VALUE hh2)
 static VALUE rb_gsl_histogram_add2(VALUE obj, VALUE hh2)
 {
   gsl_histogram *h1 = NULL, *h2 = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h1);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h1);
   if (HISTOGRAM_P(hh2)) {
-    Data_Get_Struct(hh2, gsl_histogram, h2);
+    TypedData_Get_Struct(hh2, gsl_histogram, &gsl_histogram_data_type, h2);
     mygsl_histogram_add(h1, h2);
   } else {
     Need_Float(hh2);
@@ -633,10 +633,10 @@ static VALUE rb_gsl_histogram_add2(VALUE obj, VALUE hh2)
 static VALUE rb_gsl_histogram_sub(VALUE obj, VALUE hh2)
 {
   gsl_histogram *h1 = NULL, *h2 = NULL, *hnew = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h1);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h1);
   hnew = gsl_histogram_clone(h1);
   if (HISTOGRAM_P(hh2)) {
-    Data_Get_Struct(hh2, gsl_histogram, h2);
+    TypedData_Get_Struct(hh2, gsl_histogram, &gsl_histogram_data_type, h2);
     mygsl_histogram_sub(hnew, h2);
   } else {
     Need_Float(hh2);
@@ -648,9 +648,9 @@ static VALUE rb_gsl_histogram_sub(VALUE obj, VALUE hh2)
 static VALUE rb_gsl_histogram_sub2(VALUE obj, VALUE hh2)
 {
   gsl_histogram *h1 = NULL, *h2 = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h1);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h1);
   if (HISTOGRAM_P(hh2)) {
-    Data_Get_Struct(hh2, gsl_histogram, h2);
+    TypedData_Get_Struct(hh2, gsl_histogram, &gsl_histogram_data_type, h2);
     mygsl_histogram_sub(h1, h2);
   } else {
     Need_Float(hh2);
@@ -662,10 +662,10 @@ static VALUE rb_gsl_histogram_sub2(VALUE obj, VALUE hh2)
 static VALUE rb_gsl_histogram_mul(VALUE obj, VALUE hh2)
 {
   gsl_histogram *h1 = NULL, *h2 = NULL, *hnew = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h1);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h1);
   hnew = gsl_histogram_clone(h1);
   if (HISTOGRAM_P(hh2)) {
-    Data_Get_Struct(hh2, gsl_histogram, h2);
+    TypedData_Get_Struct(hh2, gsl_histogram, &gsl_histogram_data_type, h2);
     mygsl_histogram_mul(hnew, h2);
   } else {
     Need_Float(hh2);
@@ -677,9 +677,9 @@ static VALUE rb_gsl_histogram_mul(VALUE obj, VALUE hh2)
 static VALUE rb_gsl_histogram_mul2(VALUE obj, VALUE hh2)
 {
   gsl_histogram *h1 = NULL, *h2 = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h1);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h1);
   if (HISTOGRAM_P(hh2)) {
-    Data_Get_Struct(hh2, gsl_histogram, h2);
+    TypedData_Get_Struct(hh2, gsl_histogram, &gsl_histogram_data_type, h2);
     mygsl_histogram_mul(h1, h2);
   } else {
     Need_Float(hh2);
@@ -691,10 +691,10 @@ static VALUE rb_gsl_histogram_mul2(VALUE obj, VALUE hh2)
 static VALUE rb_gsl_histogram_div(VALUE obj, VALUE hh2)
 {
   gsl_histogram *h1 = NULL, *h2 = NULL, *hnew = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h1);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h1);
   hnew = gsl_histogram_clone(h1);
   if (HISTOGRAM_P(hh2)) {
-    Data_Get_Struct(hh2, gsl_histogram, h2);
+    TypedData_Get_Struct(hh2, gsl_histogram, &gsl_histogram_data_type, h2);
     mygsl_histogram_div(hnew, h2);
   } else {
     Need_Float(hh2);
@@ -706,9 +706,9 @@ static VALUE rb_gsl_histogram_div(VALUE obj, VALUE hh2)
 static VALUE rb_gsl_histogram_div2(VALUE obj, VALUE hh2)
 {
   gsl_histogram *h1 = NULL, *h2 = NULL;
-  Data_Get_Struct(obj, gsl_histogram, h1);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h1);
   if (HISTOGRAM_P(hh2)) {
-    Data_Get_Struct(hh2, gsl_histogram, h2);
+    TypedData_Get_Struct(hh2, gsl_histogram, &gsl_histogram_data_type, h2);
     mygsl_histogram_div(h1, h2);
   } else {
     Need_Float(hh2);
@@ -721,7 +721,7 @@ static VALUE rb_gsl_histogram_scale_bang(int argc, VALUE *argv, VALUE obj)
 {
   gsl_histogram *h = NULL;
   double scale;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   switch (argc) {
   case 0:
     if (CLASS_OF(obj) == cgsl_histogram_integ)
@@ -744,7 +744,7 @@ static VALUE rb_gsl_histogram_scale(int argc, VALUE *argv, VALUE obj)
 {
   gsl_histogram *h = NULL, *hnew = NULL;
   double scale;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   switch (argc) {
   case 0:
     if (CLASS_OF(obj) == cgsl_histogram_integ)
@@ -768,7 +768,7 @@ static VALUE rb_gsl_histogram_shift(VALUE obj, VALUE shift)
 {
   gsl_histogram *h = NULL;
   Need_Float(shift);
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   gsl_histogram_shift(h, NUM2DBL(shift));
   return obj;
 }
@@ -777,7 +777,7 @@ static VALUE rb_gsl_histogram_shift2(VALUE obj, VALUE shift)
 {
   gsl_histogram *h = NULL, *hnew = NULL;
   Need_Float(shift);
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   hnew = gsl_histogram_clone(h);
   gsl_histogram_shift(hnew, NUM2DBL(shift));
   return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram_free, hnew);
@@ -788,7 +788,7 @@ static VALUE rb_gsl_histogram_fwrite(VALUE obj, VALUE io)
   gsl_histogram *h = NULL;
   FILE *f;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   f = rb_gsl_open_writefile(io, &flag);
   status = gsl_histogram_fwrite(f, h);
   if (flag == 1) fclose(f);
@@ -800,7 +800,7 @@ static VALUE rb_gsl_histogram_fread(VALUE obj, VALUE io)
   gsl_histogram *h = NULL;
   FILE *f;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   f = rb_gsl_open_readfile(io, &flag);
   status = gsl_histogram_fread(f, h);
   if (flag == 1) fclose(f);
@@ -816,7 +816,7 @@ static VALUE rb_gsl_histogram_fprintf(int argc, VALUE *argv, VALUE obj)
   if (argc != 1 && argc != 3) {
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 3)", argc);
   }
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   fp = rb_gsl_open_writefile(argv[0], &flag);
   if (argc == 3) {
     Check_Type(argv[1], T_STRING);
@@ -833,7 +833,7 @@ static VALUE rb_gsl_histogram_printf(int argc, VALUE *argv, VALUE obj)
 {
   gsl_histogram *h = NULL;
   int status;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   if (argc == 2) {
     Check_Type(argv[0], T_STRING);
     Check_Type(argv[1], T_STRING);
@@ -849,7 +849,7 @@ static VALUE rb_gsl_histogram_fscanf(VALUE obj, VALUE io)
   gsl_histogram *h = NULL;
   FILE *fp;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   fp = rb_gsl_open_readfile(io, &flag);
   status = gsl_histogram_fscanf(fp, h);
   if (flag == 1) fclose(fp);
@@ -860,7 +860,7 @@ static VALUE rb_gsl_histogram_print(VALUE obj)
 {
   gsl_histogram *h = NULL;
   int status;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   status = gsl_histogram_fprintf(stdout, h, "%g", "%g");
   return INT2FIX(status);
 }
@@ -870,7 +870,7 @@ static VALUE rb_gsl_histogram_pdf_alloc(VALUE klass, VALUE nn)
   gsl_histogram_pdf *h = NULL;
   gsl_histogram *h0 = NULL;
   if (rb_obj_is_kind_of(nn, cgsl_histogram)) {
-    Data_Get_Struct(nn, gsl_histogram, h0);
+    TypedData_Get_Struct(nn, gsl_histogram, &gsl_histogram_data_type, h0);
     h = gsl_histogram_pdf_alloc(h0->n);
     gsl_histogram_pdf_init(h, h0);
   } else {
@@ -885,8 +885,8 @@ static VALUE rb_gsl_histogram_pdf_init(VALUE obj, VALUE hh)
   gsl_histogram_pdf *p = NULL;
   gsl_histogram *h = NULL;
   CHECK_HISTOGRAM(hh);
-  Data_Get_Struct(obj, gsl_histogram_pdf, p);
-  Data_Get_Struct(hh, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram_pdf, &gsl_histogram_pdf_data_type, p);
+  TypedData_Get_Struct(hh, gsl_histogram, &gsl_histogram_data_type, h);
   gsl_histogram_pdf_init(p, h);
   return obj;
 }
@@ -895,7 +895,7 @@ static VALUE rb_gsl_histogram_pdf_sample(VALUE obj, VALUE r)
 {
   gsl_histogram_pdf *p = NULL;
   Need_Float(r);
-  Data_Get_Struct(obj, gsl_histogram_pdf, p);
+  TypedData_Get_Struct(obj, gsl_histogram_pdf, &gsl_histogram_pdf_data_type, p);
   return rb_float_new(gsl_histogram_pdf_sample(p, NUM2DBL(r)));
 }
 
@@ -903,24 +903,24 @@ static VALUE rb_gsl_histogram_pdf_range(VALUE obj)
 {
   gsl_histogram_pdf *h = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_histogram_pdf, h);
+  TypedData_Get_Struct(obj, gsl_histogram_pdf, &gsl_histogram_pdf_data_type, h);
   v = gsl_vector_view_alloc(h->n);
   v->vector.data = h->range;
   v->vector.size = h->n + 1;
   v->vector.stride = 1;
-  return Data_Wrap_Struct(cgsl_histogram_range, 0, gsl_vector_view_free, v);
+  return TypedData_Wrap_Struct(cgsl_histogram_range, &gsl_histogram_range_data_type, v);
 }
 
 static VALUE rb_gsl_histogram_pdf_sum(VALUE obj)
 {
   gsl_histogram_pdf *h = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_histogram_pdf, h);
+  TypedData_Get_Struct(obj, gsl_histogram_pdf, &gsl_histogram_pdf_data_type, h);
   v = gsl_vector_view_alloc(h->n);
   v->vector.data = h->sum;
   v->vector.size = h->n + 1;
   v->vector.stride = 1;
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, gsl_vector_view_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, v);
 }
 
 static VALUE rb_gsl_histogram_graph(int argc, VALUE *argv, VALUE obj)
@@ -930,7 +930,7 @@ static VALUE rb_gsl_histogram_graph(int argc, VALUE *argv, VALUE obj)
   FILE *fp = NULL;
   size_t i;
   char command[1024];
-  Data_Get_Struct(obj, gsl_histogram, v);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, v);
   switch (argc) {
   case 0:
     strcpy(command, "graph -T X -g 3");
@@ -963,7 +963,7 @@ static VALUE rb_gsl_histogram_plot(int argc, VALUE *argv, VALUE obj)
   gsl_histogram *v = NULL;
   FILE *fp = NULL;
   size_t i;
-  Data_Get_Struct(obj, gsl_histogram, v);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, v);
   switch (argc) {
   case 0:
     fp = popen("gnuplot -persist", "w");
@@ -1007,7 +1007,7 @@ static VALUE rb_gsl_histogram_fit_exponential(int argc, VALUE *argv, VALUE obj)
   gsl_vector *x, *lny, *w;
   size_t binstart = 0, binend, n, p = 2, dof, i;
   double c0, c1, cov00, cov01, cov11, sumsq, xl, xh;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   binstart = 0;
   binend = h->n - 1;
   switch (argc) {
@@ -1053,7 +1053,7 @@ static VALUE rb_gsl_histogram_fit_power(int argc, VALUE *argv, VALUE obj)
   gsl_vector *lnx, *lny, *w;
   size_t binstart = 0, binend, n, p = 2, dof, i;
   double c0, c1, cov00, cov01, cov11, sumsq, xl, xh;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   binstart = 0;
   binend = h->n - 1;
   switch (argc) {
@@ -1175,7 +1175,7 @@ static VALUE rb_gsl_histogram_fit_gaussian(int argc, VALUE *argv, VALUE obj)
   gsl_matrix *covar = NULL;
   gsl_vector *x = NULL;
   double sigma, mean, height, errs, errm, errh, chi2;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   binstart = 0;
   binend = h->n - 1;
   switch (argc) {
@@ -1325,7 +1325,7 @@ static VALUE rb_gsl_histogram_fit_rayleigh(int argc, VALUE *argv, VALUE obj)
   gsl_matrix *covar = NULL;
   gsl_vector *x = NULL;
   double sigma, height, errs, errh, chi2;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   binstart = 0;
   binend = h->n - 1;
   switch (argc) {
@@ -1475,7 +1475,7 @@ static VALUE rb_gsl_histogram_fit_xexponential(int argc, VALUE *argv, VALUE obj)
   gsl_matrix *covar = NULL;
   gsl_vector *x = NULL;
   double b, height, errs, errh, chi2;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   binstart = 0;
   binend = h->n - 1;
   switch (argc) {
@@ -1620,7 +1620,7 @@ static VALUE rb_gsl_histogram_integrate(int argc, VALUE *argv, VALUE obj)
   gsl_histogram *h, *hi;
   size_t istart, iend;
   int itmp;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   switch (argc) {
   case 2:
     istart = FIX2INT(argv[0]);
@@ -1657,15 +1657,15 @@ static VALUE rb_gsl_histogram_integrate(int argc, VALUE *argv, VALUE obj)
     break;
   }
   hi = mygsl_histogram_calloc_integrate(h, istart, iend);
-  return Data_Wrap_Struct(cgsl_histogram_integ, 0, gsl_histogram_free, hi);
+  return TypedData_Wrap_Struct(cgsl_histogram_integ, &gsl_histogram_data_type, hi);
 }
 
 static VALUE rb_gsl_histogram_differentiate(VALUE obj)
 {
   gsl_histogram *h, *hi;
-  Data_Get_Struct(obj, gsl_histogram, hi);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, hi);
   h = mygsl_histogram_calloc_differentiate(hi);
-  return Data_Wrap_Struct(cgsl_histogram, 0, gsl_histogram_free, h);
+  return TypedData_Wrap_Struct(cgsl_histogram, &gsl_histogram_data_type, h);
 }
 
 static gsl_histogram* mygsl_histogram_rebin(const gsl_histogram *h, size_t m)
@@ -1705,9 +1705,9 @@ static VALUE rb_gsl_histogram_rebin(int argc, VALUE *argv, VALUE obj)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 0 or 1)", argc);
     break;
   }
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   hnew = mygsl_histogram_rebin(h, m);
-  return Data_Wrap_Struct(cgsl_histogram, 0, gsl_histogram_free, hnew);
+  return TypedData_Wrap_Struct(cgsl_histogram, &gsl_histogram_data_type, hnew);
 }
 
 static int mygsl_histogram_fread2(FILE * stream, gsl_histogram * h)
@@ -1740,7 +1740,7 @@ static VALUE rb_gsl_histogram_fwrite2(VALUE obj, VALUE io)
   gsl_histogram *h = NULL;
   FILE *f;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   f = rb_gsl_open_writefile(io, &flag);
   status = mygsl_histogram_fwrite2(f, h);
   if (flag == 1) fclose(f);
@@ -1752,7 +1752,7 @@ static VALUE rb_gsl_histogram_fread2(VALUE obj, VALUE io)
   gsl_histogram *h = NULL;
   FILE *f;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   f = rb_gsl_open_readfile(io, &flag);
   status = mygsl_histogram_fread2(f, h);
   if (flag == 1) fclose(f);
@@ -1773,9 +1773,9 @@ static gsl_histogram* mygsl_histogram_calloc_reverse(const gsl_histogram *h)
 static VALUE rb_gsl_histogram_reverse(VALUE obj)
 {
   gsl_histogram *h, *hnew;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   hnew = mygsl_histogram_calloc_reverse(h);
-  return Data_Wrap_Struct(cgsl_histogram, 0, gsl_histogram_free, hnew);
+  return TypedData_Wrap_Struct(cgsl_histogram, &gsl_histogram_data_type, hnew);
 }
 
 /* The functions below are not included in GSL */
@@ -1811,14 +1811,14 @@ static double histogram_median(const gsl_histogram *h)
 static VALUE rb_gsl_histogram_percentile(VALUE obj, VALUE f)
 {
   gsl_histogram *h;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   return rb_float_new(histogram_percentile(h, NUM2DBL(f)));
 }
 
 static VALUE rb_gsl_histogram_median(VALUE obj)
 {
   gsl_histogram *h;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   return rb_float_new(histogram_median(h));
 }
 
@@ -1843,7 +1843,7 @@ static double histogram_percentile_inv(const gsl_histogram *h, double x)
 static VALUE rb_gsl_histogram_percentile_inv(VALUE obj, VALUE x)
 {
   gsl_histogram *h;
-  Data_Get_Struct(obj, gsl_histogram, h);
+  TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   return rb_float_new(histogram_percentile_inv(h, NUM2DBL(x)));
 }
 

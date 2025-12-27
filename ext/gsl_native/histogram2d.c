@@ -40,8 +40,8 @@ static VALUE rb_gsl_histogram2d_alloc(int argc, VALUE *argv, VALUE klass)
       break;
     default:
       CHECK_VECTOR(argv[0]); CHECK_VECTOR(argv[1]);
-      Data_Get_Struct(argv[0], gsl_vector, vx);
-      Data_Get_Struct(argv[1], gsl_vector, vy);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, vx);
+      TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, vy);
       h = gsl_histogram2d_alloc(vx->size-1, vy->size-1);
       gsl_histogram2d_set_ranges(h, vx->data, vx->size, vy->data, vy->size);
       break;
@@ -51,8 +51,8 @@ static VALUE rb_gsl_histogram2d_alloc(int argc, VALUE *argv, VALUE klass)
   case 4:
     if (VECTOR_P(argv[0]) && VECTOR_P(argv[2])) {
       CHECK_FIXNUM(argv[1]); CHECK_FIXNUM(argv[3]);
-      Data_Get_Struct(argv[0], gsl_vector, vx);
-      Data_Get_Struct(argv[2], gsl_vector, vy);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, vx);
+      TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, vy);
       xsize = (size_t) FIX2UINT(argv[1]); ysize = (size_t) FIX2UINT(argv[3]);
       h = gsl_histogram2d_alloc(xsize-1, ysize-1);
       gsl_histogram2d_set_ranges(h, vx->data, xsize, vy->data, ysize);
@@ -112,19 +112,19 @@ static VALUE rb_gsl_histogram2d_set_ranges(int argc, VALUE *argv, VALUE obj)
   gsl_histogram2d *h = NULL;
   gsl_vector *vx, *vy;
   size_t xsize, ysize;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   switch (argc) {
   case 4:
     CHECK_VECTOR(argv[0]); CHECK_VECTOR(argv[2]);
     CHECK_FIXNUM(argv[1]); CHECK_FIXNUM(argv[3]);
-    Data_Get_Struct(argv[0], gsl_vector, vx);
-    Data_Get_Struct(argv[2], gsl_vector, vy);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, vx);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, vy);
     xsize = (size_t) FIX2UINT(argv[1]); ysize = (size_t) FIX2UINT(argv[3]);
     break;
   case 2:
     CHECK_VECTOR(argv[0]); CHECK_VECTOR(argv[1]);
-    Data_Get_Struct(argv[0], gsl_vector, vx);
-    Data_Get_Struct(argv[1], gsl_vector, vy);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, vx);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, vy);
     xsize = vx->size; ysize = vy->size;
     break;
   default:
@@ -154,7 +154,7 @@ static VALUE rb_gsl_histogram2d_set_ranges_uniform(int argc, VALUE *argv, VALUE 
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2 or 4)", argc);
     break;
   }
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   gsl_histogram2d_set_ranges_uniform(h, xmin, xmax, ymin, ymax);
   return obj;
 }
@@ -162,7 +162,7 @@ static VALUE rb_gsl_histogram2d_set_ranges_uniform(int argc, VALUE *argv, VALUE 
 static VALUE rb_gsl_histogram2d_clone(VALUE obj)
 {
   gsl_histogram2d *h, *h2 = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   h2 = gsl_histogram2d_clone(h);
   return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram2d_free, h2);
 }
@@ -172,8 +172,8 @@ static VALUE rb_gsl_histogram2d_memcpy(VALUE obj, VALUE vhdest, VALUE vhsrc)
 {
   gsl_histogram2d *hdest, *hsrc;
   CHECK_HISTOGRAM2D(vhdest); CHECK_HISTOGRAM2D(vhsrc);
-  Data_Get_Struct(vhdest, gsl_histogram2d, hdest);
-  Data_Get_Struct(vhsrc, gsl_histogram2d, hsrc);
+  TypedData_Get_Struct(vhdest, gsl_histogram2d, &gsl_histogram2d_data_type, hdest);
+  TypedData_Get_Struct(vhsrc, gsl_histogram2d, &gsl_histogram2d_data_type, hsrc);
   gsl_histogram2d_memcpy(hdest, hsrc);
   return vhdest;
 }
@@ -196,10 +196,10 @@ static VALUE rb_gsl_histogram2d_accumulate(int argc, VALUE *argv, VALUE obj)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2 or 3)", argc);
     break;
   }
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   if (VECTOR_P(argv[0]) && VECTOR_P(argv[1])) {
-    Data_Get_Struct(argv[0], gsl_vector, vx);
-    Data_Get_Struct(argv[1], gsl_vector, vy);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, vx);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, vy);
     n = (size_t) GSL_MIN_INT((int) vx->size, (int) vy->size);
     for (i = 0; i < n; i++)
       gsl_histogram2d_accumulate(h, gsl_vector_get(vx, i), gsl_vector_get(vy, i),
@@ -227,7 +227,7 @@ static VALUE rb_gsl_histogram2d_accumulate2(int argc, VALUE *argv, VALUE obj)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2 or 3)", argc);
     break;
   }
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   if (x < h->xrange[0]) x = h->xrange[0] + 4*GSL_DBL_EPSILON;
   if (x > h->xrange[h->nx]) x = h->xrange[h->nx] - 4*GSL_DBL_EPSILON;
   if (y < h->yrange[0]) y = h->yrange[0] + 4*GSL_DBL_EPSILON;
@@ -244,11 +244,11 @@ static VALUE rb_gsl_histogram2d_get(int argc, VALUE *argv, VALUE obj)
   switch (argc) {
   case 2:
     CHECK_FIXNUM(argv[0]); CHECK_FIXNUM(argv[1]);
-    Data_Get_Struct(obj, gsl_histogram2d, h2);
+    TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h2);
     return rb_float_new(gsl_histogram2d_get(h2, (size_t) FIX2INT(argv[0]), (size_t) FIX2INT(argv[1])));
     break;
   case 1:
-    Data_Get_Struct(obj, gsl_histogram2d, h2);
+    TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h2);
     switch (TYPE(argv[0])) {
     case T_ARRAY:
       return rb_float_new(gsl_histogram2d_get(h2, FIX2INT(rb_ary_entry(argv[0], 0)),
@@ -263,7 +263,7 @@ static VALUE rb_gsl_histogram2d_get(int argc, VALUE *argv, VALUE obj)
       h1->h.n = h2->ny;
       h1->h.range = h2->yrange;
       h1->h.bin = h2->bin + i*h2->ny;
-      return Data_Wrap_Struct(cgsl_histogram2d_view, 0, free, h1);
+      return TypedData_Wrap_Struct(cgsl_histogram2d_view, &gsl_histogram2d_view_data_type, h1);
       break;
     default:
       rb_raise(rb_eTypeError, "wrong argument type %s (Array or Fixnum expected)",
@@ -282,7 +282,7 @@ static VALUE rb_gsl_histogram2d_get_xrange(VALUE obj, VALUE i)
   gsl_histogram2d *h = NULL;
   double x1, x2;
   CHECK_FIXNUM(i);
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   gsl_histogram2d_get_xrange(h, FIX2INT(i), &x1, &x2);
   return rb_ary_new3(2, rb_float_new(x1), rb_float_new(x2));
 }
@@ -292,7 +292,7 @@ static VALUE rb_gsl_histogram2d_get_yrange(VALUE obj, VALUE j)
   gsl_histogram2d *h = NULL;
   double y1, y2;
   CHECK_FIXNUM(j);
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   gsl_histogram2d_get_yrange(h, FIX2INT(j), &y1, &y2);
   return rb_ary_new3(2, rb_float_new(y1), rb_float_new(y2));
 }
@@ -300,42 +300,42 @@ static VALUE rb_gsl_histogram2d_get_yrange(VALUE obj, VALUE j)
 static VALUE rb_gsl_histogram2d_xmax(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   return rb_float_new(gsl_histogram2d_xmax(h));
 }
 
 static VALUE rb_gsl_histogram2d_xmin(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   return rb_float_new(gsl_histogram2d_xmin(h));
 }
 
 static VALUE rb_gsl_histogram2d_nx(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   return INT2FIX(gsl_histogram2d_nx(h));
 }
 
 static VALUE rb_gsl_histogram2d_ymax(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   return rb_float_new(gsl_histogram2d_ymax(h));
 }
 
 static VALUE rb_gsl_histogram2d_ymin(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   return rb_float_new(gsl_histogram2d_ymin(h));
 }
 
 static VALUE rb_gsl_histogram2d_ny(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   return INT2FIX(gsl_histogram2d_ny(h));
 }
 
@@ -344,7 +344,7 @@ static VALUE rb_gsl_histogram2d_find(VALUE obj, VALUE x, VALUE y)
   gsl_histogram2d *h = NULL;
   size_t i, j;
   Need_Float(x); Need_Float(y);
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   gsl_histogram2d_find(h, NUM2DBL(x), NUM2DBL(y), &i, &j);
   return rb_ary_new3(2, INT2FIX(i), INT2FIX(j));
 }
@@ -352,7 +352,7 @@ static VALUE rb_gsl_histogram2d_find(VALUE obj, VALUE x, VALUE y)
 static VALUE rb_gsl_histogram2d_max_val(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   return rb_float_new(gsl_histogram2d_max_val(h));
 }
 
@@ -360,7 +360,7 @@ static VALUE rb_gsl_histogram2d_max_bin(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
   size_t i, j;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   gsl_histogram2d_max_bin(h, &i, &j);
   return rb_ary_new3(2, INT2FIX(i), INT2FIX(j));
 }
@@ -368,7 +368,7 @@ static VALUE rb_gsl_histogram2d_max_bin(VALUE obj)
 static VALUE rb_gsl_histogram2d_min_val(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   return rb_float_new(gsl_histogram2d_min_val(h));
 }
 
@@ -376,7 +376,7 @@ static VALUE rb_gsl_histogram2d_min_bin(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
   size_t i, j;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   gsl_histogram2d_min_bin(h, &i, &j);
   return rb_ary_new3(2, INT2FIX(i), INT2FIX(j));
 }
@@ -384,42 +384,42 @@ static VALUE rb_gsl_histogram2d_min_bin(VALUE obj)
 static VALUE rb_gsl_histogram2d_xmean(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   return rb_float_new(gsl_histogram2d_xmean(h));
 }
 
 static VALUE rb_gsl_histogram2d_ymean(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   return rb_float_new(gsl_histogram2d_ymean(h));
 }
 
 static VALUE rb_gsl_histogram2d_xsigma(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   return rb_float_new(gsl_histogram2d_xsigma(h));
 }
 
 static VALUE rb_gsl_histogram2d_ysigma(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   return rb_float_new(gsl_histogram2d_ysigma(h));
 }
 
 static VALUE rb_gsl_histogram2d_cov(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   return rb_float_new(gsl_histogram2d_cov(h));
 }
 
 static VALUE rb_gsl_histogram2d_sum(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   return rb_float_new(gsl_histogram2d_sum(h));
 }
 
@@ -428,8 +428,8 @@ static VALUE rb_gsl_histogram2d_equal_bins_p(VALUE obj, VALUE hh1, VALUE hh2)
 {
   gsl_histogram2d *h1 = NULL, *h2 = NULL;
   CHECK_HISTOGRAM2D(hh1); CHECK_HISTOGRAM2D(hh2);
-  Data_Get_Struct(hh1, gsl_histogram2d, h1);
-  Data_Get_Struct(hh2, gsl_histogram2d, h2);
+  TypedData_Get_Struct(hh1, gsl_histogram2d, &gsl_histogram2d_data_type, h1);
+  TypedData_Get_Struct(hh2, gsl_histogram2d, &gsl_histogram2d_data_type, h2);
   return INT2FIX(gsl_histogram2d_equal_bins_p(h1, h2));
 }
 
@@ -437,8 +437,8 @@ static VALUE rb_gsl_histogram2d_equal_bins_p2(VALUE obj, VALUE hh1, VALUE hh2)
 {
   gsl_histogram2d *h1 = NULL, *h2 = NULL;
   CHECK_HISTOGRAM2D(hh1); CHECK_HISTOGRAM2D(hh2);
-  Data_Get_Struct(hh1, gsl_histogram2d, h1);
-  Data_Get_Struct(hh2, gsl_histogram2d, h2);
+  TypedData_Get_Struct(hh1, gsl_histogram2d, &gsl_histogram2d_data_type, h1);
+  TypedData_Get_Struct(hh2, gsl_histogram2d, &gsl_histogram2d_data_type, h2);
   if (gsl_histogram2d_equal_bins_p(h1, h2)) return Qtrue;
   else return Qfalse;
 }
@@ -447,7 +447,7 @@ static VALUE rb_gsl_histogram2d_scale(VALUE obj, VALUE s)
 {
   gsl_histogram2d *h = NULL;
   Need_Float(s);
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   gsl_histogram2d_scale(h, NUM2DBL(s));
   return obj;
 }
@@ -456,7 +456,7 @@ static VALUE rb_gsl_histogram2d_shift(VALUE obj, VALUE s)
 {
   gsl_histogram2d *h = NULL;
   Need_Float(s);
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   gsl_histogram2d_shift(h, NUM2DBL(s));
   return obj;
 }
@@ -465,10 +465,10 @@ static VALUE rb_gsl_histogram2d_shift(VALUE obj, VALUE s)
 static VALUE rb_gsl_histogram2d_add(VALUE obj, VALUE hh2)
 {
   gsl_histogram2d *h1 = NULL, *h2 = NULL, *hnew = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h1);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h1);
   hnew = gsl_histogram2d_clone(h1);
   if (HISTOGRAM2D_P(hh2)) {
-    Data_Get_Struct(hh2, gsl_histogram2d, h2);
+    TypedData_Get_Struct(hh2, gsl_histogram2d, &gsl_histogram2d_data_type, h2);
     gsl_histogram2d_add(hnew, h2);
   } else {
     Need_Float(hh2);
@@ -480,10 +480,10 @@ static VALUE rb_gsl_histogram2d_add(VALUE obj, VALUE hh2)
 static VALUE rb_gsl_histogram2d_sub(VALUE obj, VALUE hh2)
 {
   gsl_histogram2d *h1 = NULL, *h2 = NULL, *hnew = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h1);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h1);
   hnew = gsl_histogram2d_clone(h1);
   if (HISTOGRAM2D_P(hh2)) {
-    Data_Get_Struct(hh2, gsl_histogram2d, h2);
+    TypedData_Get_Struct(hh2, gsl_histogram2d, &gsl_histogram2d_data_type, h2);
     gsl_histogram2d_sub(hnew, h2);
   } else {
     Need_Float(hh2);
@@ -495,10 +495,10 @@ static VALUE rb_gsl_histogram2d_sub(VALUE obj, VALUE hh2)
 static VALUE rb_gsl_histogram2d_mul(VALUE obj, VALUE hh2)
 {
   gsl_histogram2d *h1 = NULL, *h2 = NULL, *hnew = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h1);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h1);
   hnew = gsl_histogram2d_clone(h1);
   if (HISTOGRAM2D_P(hh2)) {
-    Data_Get_Struct(hh2, gsl_histogram2d, h2);
+    TypedData_Get_Struct(hh2, gsl_histogram2d, &gsl_histogram2d_data_type, h2);
     gsl_histogram2d_mul(hnew, h2);
   } else {
     Need_Float(hh2);
@@ -510,10 +510,10 @@ static VALUE rb_gsl_histogram2d_mul(VALUE obj, VALUE hh2)
 static VALUE rb_gsl_histogram2d_div(VALUE obj, VALUE hh2)
 {
   gsl_histogram2d *h1 = NULL, *h2 = NULL, *hnew = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h1);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h1);
   hnew = gsl_histogram2d_clone(h1);
   if (HISTOGRAM2D_P(hh2)) {
-    Data_Get_Struct(hh2, gsl_histogram2d, h2);
+    TypedData_Get_Struct(hh2, gsl_histogram2d, &gsl_histogram2d_data_type, h2);
     gsl_histogram2d_div(hnew, h2);
   } else {
     Need_Float(hh2);
@@ -526,7 +526,7 @@ static VALUE rb_gsl_histogram2d_scale2(VALUE obj, VALUE val)
 {
   gsl_histogram2d *h1 = NULL, *hnew = NULL;
   Need_Float(val);
-  Data_Get_Struct(obj, gsl_histogram2d, h1);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h1);
   hnew = gsl_histogram2d_clone(h1);
   gsl_histogram2d_scale(hnew, NUM2DBL(val));
   return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram2d_free, hnew);
@@ -536,7 +536,7 @@ static VALUE rb_gsl_histogram2d_shift2(VALUE obj, VALUE val)
 {
   gsl_histogram2d *h1 = NULL, *hnew = NULL;
   Need_Float(val);
-  Data_Get_Struct(obj, gsl_histogram2d, h1);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h1);
   hnew = gsl_histogram2d_clone(h1);
   gsl_histogram2d_shift(hnew, NUM2DBL(val));
   return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram2d_free, hnew);
@@ -547,7 +547,7 @@ static VALUE rb_gsl_histogram2d_fwrite(VALUE obj, VALUE io)
   gsl_histogram2d *h = NULL;
   FILE *f;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   f = rb_gsl_open_writefile(io, &flag);
   status = gsl_histogram2d_fwrite(f, h);
   if (flag == 1) fclose(f);
@@ -559,7 +559,7 @@ static VALUE rb_gsl_histogram2d_fread(VALUE obj, VALUE io)
   gsl_histogram2d *h = NULL;
   FILE *f = NULL;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   f = rb_gsl_open_readfile(io, &flag);
   status = gsl_histogram2d_fread(f, h);
   if (flag == 1) fclose(f);
@@ -574,7 +574,7 @@ static VALUE rb_gsl_histogram2d_fprintf(int argc, VALUE *argv, VALUE obj)
   if (argc != 1 && argc != 3) {
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 3)", argc);
   }
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   fp = rb_gsl_open_writefile(argv[0], &flag);
   if (argc == 3) {
     Check_Type(argv[1], T_STRING);
@@ -592,7 +592,7 @@ static VALUE rb_gsl_histogram2d_fscanf(VALUE obj, VALUE io)
   gsl_histogram2d *h = NULL;
   FILE *fp;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   fp = rb_gsl_open_readfile(io, &flag);
   status = gsl_histogram2d_fscanf(fp, h);
   if (flag == 1) fclose(fp);
@@ -602,7 +602,7 @@ static VALUE rb_gsl_histogram2d_fscanf(VALUE obj, VALUE io)
 static VALUE rb_gsl_histogram2d_reset(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   gsl_histogram2d_reset(h);
   return obj;
 }
@@ -620,8 +620,8 @@ static VALUE rb_gsl_histogram2d_pdf_init(VALUE obj, VALUE hh)
   gsl_histogram2d_pdf *pdf = NULL;
   gsl_histogram2d *h = NULL;
   CHECK_HISTOGRAM2D(hh);
-  Data_Get_Struct(obj, gsl_histogram2d_pdf, pdf);
-  Data_Get_Struct(hh, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d_pdf, &gsl_histogram2d_pdf_data_type, pdf);
+  TypedData_Get_Struct(hh, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   gsl_histogram2d_pdf_init(pdf, h);
   return obj;
 }
@@ -631,7 +631,7 @@ static VALUE rb_gsl_histogram2d_pdf_sample(VALUE obj, VALUE r1, VALUE r2)
   gsl_histogram2d_pdf *pdf = NULL;
   double x, y;
   Need_Float(r1); Need_Float(r2);
-  Data_Get_Struct(obj, gsl_histogram2d_pdf, pdf);
+  TypedData_Get_Struct(obj, gsl_histogram2d_pdf, &gsl_histogram2d_pdf_data_type, pdf);
   gsl_histogram2d_pdf_sample(pdf, NUM2DBL(r1), NUM2DBL(r2), &x, &y);
   return rb_ary_new3(2, rb_float_new(x), rb_float_new(y));
 }
@@ -640,36 +640,36 @@ static VALUE rb_gsl_histogram2d_xrange(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   v = gsl_vector_view_alloc(h->nx);
   v->vector.data = h->xrange;
   v->vector.size = h->nx + 1;
   v->vector.stride = 1;
-  return Data_Wrap_Struct(cgsl_histogram_range, 0, gsl_vector_view_free, v);
+  return TypedData_Wrap_Struct(cgsl_histogram_range, &gsl_histogram_range_data_type, v);
 }
 
 static VALUE rb_gsl_histogram2d_yrange(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   v = gsl_vector_view_alloc(h->ny);
   v->vector.data = h->yrange;
   v->vector.size = h->ny + 1;
   v->vector.stride = 1;
-  return Data_Wrap_Struct(cgsl_histogram_range, 0, gsl_vector_view_free, v);
+  return TypedData_Wrap_Struct(cgsl_histogram_range, &gsl_histogram_range_data_type, v);
 }
 
 static VALUE rb_gsl_histogram2d_bin(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   v = gsl_vector_view_alloc(h->nx*h->ny);
   v->vector.data = h->bin;
   v->vector.size = h->nx*h->ny;
   v->vector.stride = 1;
-  return Data_Wrap_Struct(cgsl_histogram_bin, 0, gsl_vector_view_free, v);
+  return TypedData_Wrap_Struct(cgsl_histogram_bin, &gsl_histogram_range_data_type, v);
 }
 
 void mygsl_histogram2d_yproject(const gsl_histogram2d *h2, size_t istart,
@@ -725,7 +725,7 @@ static VALUE rb_gsl_histogram2d_xproject(int argc, VALUE *argv, VALUE obj)
   gsl_histogram2d *h2 = NULL;
   gsl_histogram *h = NULL;
   size_t jstart = 0, jend;
-  Data_Get_Struct(obj, gsl_histogram2d, h2);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h2);
   switch (argc) {
   case 2:
     jstart = (size_t) FIX2INT(argv[0]);
@@ -743,7 +743,7 @@ static VALUE rb_gsl_histogram2d_xproject(int argc, VALUE *argv, VALUE obj)
     break;
   }
   h = mygsl_histogram2d_calloc_xproject(h2, jstart, jend);
-  return Data_Wrap_Struct(cgsl_histogram, 0, gsl_histogram_free, h);
+  return TypedData_Wrap_Struct(cgsl_histogram, &gsl_histogram_data_type, h);
 }
 
 static VALUE rb_gsl_histogram2d_yproject(int argc, VALUE *argv, VALUE obj)
@@ -751,7 +751,7 @@ static VALUE rb_gsl_histogram2d_yproject(int argc, VALUE *argv, VALUE obj)
   gsl_histogram2d *h2 = NULL;
   gsl_histogram *h = NULL;
   size_t istart = 0, iend;
-  Data_Get_Struct(obj, gsl_histogram2d, h2);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h2);
   switch (argc) {
   case 2:
     istart = (size_t) FIX2INT(argv[0]);
@@ -769,7 +769,7 @@ static VALUE rb_gsl_histogram2d_yproject(int argc, VALUE *argv, VALUE obj)
     break;
   }
   h = mygsl_histogram2d_calloc_yproject(h2, istart, iend);
-  return Data_Wrap_Struct(cgsl_histogram, 0, gsl_histogram_free, h);
+  return TypedData_Wrap_Struct(cgsl_histogram, &gsl_histogram_data_type, h);
 }
 
 static int mygsl_histogram2d_fread2(FILE * stream, gsl_histogram2d * h)
@@ -810,7 +810,7 @@ static VALUE rb_gsl_histogram2d_fwrite2(VALUE obj, VALUE io)
   gsl_histogram2d *h = NULL;
   FILE *f;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   f = rb_gsl_open_writefile(io, &flag);
   status = mygsl_histogram2d_fwrite2(f, h);
   if (flag == 1) fclose(f);
@@ -822,7 +822,7 @@ static VALUE rb_gsl_histogram2d_fread2(VALUE obj, VALUE io)
   gsl_histogram2d *h = NULL;
   FILE *f;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   f = rb_gsl_open_readfile(io, &flag);
   status = mygsl_histogram2d_fread2(f, h);
   if (flag == 1) fclose(f);
@@ -881,7 +881,7 @@ static VALUE rb_gsl_histogram2d_integrate(int argc, VALUE *argv, VALUE obj)
 {
   gsl_histogram2d *h = NULL, *hi = NULL;
   int flag;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   switch (argc) {
   case 0:
     flag = 1;
@@ -894,14 +894,14 @@ static VALUE rb_gsl_histogram2d_integrate(int argc, VALUE *argv, VALUE obj)
     break;
   }
   hi = mygsl_histogram2d_calloc_integrate(h, flag);
-  return Data_Wrap_Struct(cgsl_histogram2d_integ, 0, gsl_histogram2d_free, hi);
+  return TypedData_Wrap_Struct(cgsl_histogram2d_integ, &gsl_histogram2d_data_type, hi);
 }
 
 static VALUE rb_gsl_histogram2d_normalize_bang(VALUE obj)
 {
   gsl_histogram2d *h = NULL;
   double scale;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   if (CLASS_OF(obj) == cgsl_histogram2d_integ)
     scale = 1.0/h->bin[h->nx*h->ny-1];
   else
@@ -913,7 +913,7 @@ static VALUE rb_gsl_histogram2d_normalize_bang(VALUE obj)
 static VALUE rb_gsl_histogram2d_normalize(VALUE obj)
 {
   gsl_histogram2d *h = NULL, *hnew = NULL;
-  Data_Get_Struct(obj, gsl_histogram2d, h);
+  TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   hnew = gsl_histogram2d_clone(h);
   return rb_gsl_histogram2d_normalize_bang(Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram2d_free, hnew));
 }
