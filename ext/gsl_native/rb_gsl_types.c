@@ -19,6 +19,7 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_histogram.h>
 #include <gsl/gsl_histogram2d.h>
+#include "include/rb_gsl_histogram3d.h"
 #include <gsl/gsl_interp.h>
 #include <gsl/gsl_spline.h>
 #include <gsl/gsl_bspline.h>
@@ -280,6 +281,51 @@ const rb_data_type_t gsl_histogram2d_pdf_data_type = {
     .function = {
         .dmark = NULL,
         .dfree = (void (*)(void *))gsl_histogram2d_pdf_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+const rb_data_type_t gsl_histogram2d_view_data_type = {
+    .wrap_struct_name = "GSL::Histogram2d::View",
+    .function = {
+        .dmark = NULL,
+        .dfree = RUBY_DEFAULT_FREE,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+const rb_data_type_t gsl_histogram3d_data_type = {
+    .wrap_struct_name = "GSL::Histogram3d",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))mygsl_histogram3d_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+const rb_data_type_t gsl_histogram3d_view_data_type = {
+    .wrap_struct_name = "GSL::Histogram3d::View",
+    .function = {
+        .dmark = NULL,
+        .dfree = RUBY_DEFAULT_FREE,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+/* Helper function to free gsl_vector_view allocated on heap */
+static void gsl_vector_view_free(gsl_vector_view *v) {
+    if (v) free(v);
+}
+
+const rb_data_type_t gsl_histogram_range_data_type = {
+    .wrap_struct_name = "GSL::Histogram::Range",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))gsl_vector_view_free,
         .dsize = NULL,
     },
     .flags = RUBY_TYPED_FREE_IMMEDIATELY,

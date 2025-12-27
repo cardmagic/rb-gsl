@@ -56,7 +56,7 @@ static VALUE rb_gsl_sf_bessel_Xn_array(VALUE obj, VALUE n0, VALUE n1, VALUE x,
   n = nmax - nmin + 1;
   v = gsl_vector_alloc(n);
   (*f)(nmin, nmax, NUM2DBL(x), v->data);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
 }
 
 static VALUE rb_gsl_sf_bessel_Jn_array(VALUE obj, VALUE n0, VALUE n1, VALUE x)
@@ -298,7 +298,7 @@ static VALUE rb_gsl_sf_bessel_xl_array(VALUE obj, VALUE n1, VALUE x,
   n = nmax  + 1;
   v = gsl_vector_alloc(n);
   /*status =*/ (*f)(nmax, NUM2DBL(x), v->data);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
 }
 
 static VALUE rb_gsl_sf_bessel_jl_array(VALUE obj, VALUE n1, VALUE x)
@@ -514,13 +514,13 @@ static VALUE rb_gsl_sf_bessel_sequence_Jnu_e(int argc, VALUE *argv, VALUE obj)
     break;
   default:
     CHECK_VECTOR(ary);
-    Data_Get_Struct(ary, gsl_vector, v);
+    TypedData_Get_Struct(ary, gsl_vector, &gsl_vector_data_type, v);
     size = v->size;
     flag = 0;
     break;
   }
   /*status =*/ gsl_sf_bessel_sequence_Jnu_e(NUM2DBL(nu), mode, size, v->data);
-  if (flag == 1) return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+  if (flag == 1) return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
   else return ary;
 }
 
@@ -614,14 +614,14 @@ static VALUE rb_gsl_sf_eval_double_uint(double (*func)(double, unsigned int), VA
     break;
   default:
     CHECK_VECTOR(argv);
-    Data_Get_Struct(argv, gsl_vector, v);
+    TypedData_Get_Struct(argv, gsl_vector, &gsl_vector_data_type, v);
     n = v->size;
     vnew = gsl_vector_alloc(n);
     for (i = 0; i < n; i++) {
       val = (*func)(f, (unsigned int) gsl_vector_get(v, i));
       gsl_vector_set(vnew, i, val);
     }
-    return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     break;
   }
 }

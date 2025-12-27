@@ -31,14 +31,14 @@ VALUE rb_gsl_matrix_int_to_f(VALUE obj)
   gsl_matrix_int *m;
   gsl_matrix *mnew;
   size_t i, j;
-  Data_Get_Struct(obj, gsl_matrix_int, m);
+  TypedData_Get_Struct(obj, gsl_matrix_int, &gsl_matrix_int_data_type, m);
   mnew = gsl_matrix_alloc(m->size1, m->size2);
   for (i = 0; i < m->size1; i++) {
     for (j = 0; j < m->size2; j++) {
       gsl_matrix_set(mnew, i, j, (double) gsl_matrix_int_get(m, i, j));
     }
   }
-  return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+  return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
 }
 
 static VALUE rb_gsl_matrix_int_to_complex(VALUE obj)
@@ -47,7 +47,7 @@ static VALUE rb_gsl_matrix_int_to_complex(VALUE obj)
   gsl_matrix_complex *mnew;
   gsl_complex z;
   size_t i, j;
-  Data_Get_Struct(obj, gsl_matrix_int, m);
+  TypedData_Get_Struct(obj, gsl_matrix_int, &gsl_matrix_int_data_type, m);
   mnew = gsl_matrix_complex_alloc(m->size1, m->size2);
   for (i = 0; i < m->size1; i++) {
     for (j = 0; j < m->size2; j++) {
@@ -56,7 +56,7 @@ static VALUE rb_gsl_matrix_int_to_complex(VALUE obj)
       gsl_matrix_complex_set(mnew, i, j, z);
     }
   }
-  return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, mnew);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, mnew);
 }
 
 static VALUE rb_gsl_matrix_int_coerce(VALUE obj, VALUE other)
@@ -78,7 +78,7 @@ static VALUE rb_gsl_matrix_int_operation1(VALUE obj, VALUE other, int flag)
   double bval;
   // local variable "result" declared and set, but never used
   //int result;
-  Data_Get_Struct(obj, gsl_matrix_int, a);
+  TypedData_Get_Struct(obj, gsl_matrix_int, &gsl_matrix_int_data_type, a);
   switch (TYPE(other)) {
   case T_FIXNUM:
   case T_FLOAT:
@@ -106,7 +106,7 @@ static VALUE rb_gsl_matrix_int_operation1(VALUE obj, VALUE other, int flag)
     if (VECTOR_P(other)) other = rb_gsl_vector_to_i(other);
     if (MATRIX_INT_P(other)) {
       anew = make_matrix_int_clone(a);
-      Data_Get_Struct(other, gsl_matrix_int, b);
+      TypedData_Get_Struct(other, gsl_matrix_int, &gsl_matrix_int_data_type, b);
       switch (flag) {
       case GSL_MATRIX_INT_ADD:
         /*result =*/ gsl_matrix_int_add(anew, b);
@@ -126,10 +126,10 @@ static VALUE rb_gsl_matrix_int_operation1(VALUE obj, VALUE other, int flag)
     } else if (VECTOR_INT_COL_P(other)) {
       switch (flag) {
       case GSL_MATRIX_INT_MUL:
-        Data_Get_Struct(other, gsl_vector_int, vi);
+        TypedData_Get_Struct(other, gsl_vector_int, &gsl_vector_int_data_type, vi);
         vinew = gsl_vector_int_alloc(vi->size);
         gsl_matrix_int_mul_vector(vinew, a, vi);
-        return Data_Wrap_Struct(cgsl_vector_int_col, 0, gsl_vector_int_free, vinew);
+        return TypedData_Wrap_Struct(cgsl_vector_int_col, &gsl_vector_int_data_type, vinew);
         break;
       default:
         rb_raise(rb_eRuntimeError, "Operation not defined");
@@ -140,7 +140,7 @@ static VALUE rb_gsl_matrix_int_operation1(VALUE obj, VALUE other, int flag)
     }
     break;
   }
-  return Data_Wrap_Struct(cgsl_matrix_int, 0, gsl_matrix_int_free, anew);
+  return TypedData_Wrap_Struct(cgsl_matrix_int, &gsl_matrix_int_data_type, anew);
 }
 
 static VALUE rb_gsl_matrix_int_add(VALUE obj, VALUE other)
@@ -167,18 +167,18 @@ static VALUE rb_gsl_matrix_int_matrix_mul(VALUE obj, VALUE bb)
 {
   gsl_matrix_int *m = NULL, *b = NULL, *mnew = NULL;
   gsl_vector_int *vi, *vinew;
-  Data_Get_Struct(obj, gsl_matrix_int, m);
+  TypedData_Get_Struct(obj, gsl_matrix_int, &gsl_matrix_int_data_type, m);
   if (MATRIX_INT_P(bb)) {
-    Data_Get_Struct(bb, gsl_matrix_int, b);
+    TypedData_Get_Struct(bb, gsl_matrix_int, &gsl_matrix_int_data_type, b);
     mnew = gsl_matrix_int_alloc(m->size1, b->size2);
     gsl_linalg_matmult_int(m, b, mnew);
-    return Data_Wrap_Struct(cgsl_matrix_int, 0, gsl_matrix_int_free, mnew);
+    return TypedData_Wrap_Struct(cgsl_matrix_int, &gsl_matrix_int_data_type, mnew);
   } else {
     if (VECTOR_INT_COL_P(bb)) {
-      Data_Get_Struct(bb, gsl_vector_int, vi);
+      TypedData_Get_Struct(bb, gsl_vector_int, &gsl_vector_int_data_type, vi);
       vinew = gsl_vector_int_alloc(vi->size);
       gsl_matrix_int_mul_vector(vinew, m, vi);
-      return Data_Wrap_Struct(cgsl_vector_int_col, 0, gsl_vector_int_free, vinew);
+      return TypedData_Wrap_Struct(cgsl_vector_int_col, &gsl_vector_int_data_type, vinew);
     }
     switch (TYPE(bb)) {
     case T_FIXNUM:

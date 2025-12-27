@@ -93,7 +93,7 @@ static VALUE rb_gsl_diff_eval(VALUE obj, VALUE xx,
     }
 #endif
     if (VECTOR_P(xx)) {
-      Data_Get_Struct(xx, gsl_vector, v);
+      TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, v);
       vnew = gsl_vector_alloc(v->size);
       verr = gsl_vector_alloc(v->size);
       for (i = 0; i < v->size; i++) {
@@ -102,10 +102,10 @@ static VALUE rb_gsl_diff_eval(VALUE obj, VALUE xx,
         gsl_vector_set(verr, i, abserr);
       }
       return rb_ary_new3(2,
-                         Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew),
-                         Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, verr));
+                         TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew),
+                         TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, verr));
     } else if (MATRIX_P(xx)) {
-      Data_Get_Struct(xx, gsl_matrix, m);
+      TypedData_Get_Struct(xx, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       merr = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
@@ -116,8 +116,8 @@ static VALUE rb_gsl_diff_eval(VALUE obj, VALUE xx,
         }
       }
       return rb_ary_new3(2,
-                         Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew),
-                         Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, merr));
+                         TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew),
+                         TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, merr));
     } else {
       rb_raise(rb_eTypeError, "wrong argument type");
     }

@@ -86,14 +86,14 @@ static VALUE rb_gsl_multifit_ndlinear_alloc(int argc, VALUE *argv, VALUE klass)
 
   p = ufunc_struct_alloc(n_dim);
   for (i = 0; i < n_dim; i++) p->fptr[i] = func_u;
-  pp = Data_Wrap_Struct(cUFunc, 0, ufunc_struct_free, p);
+  pp = TypedData_Wrap_Struct(cUFunc, &UFunc_data_type, p);
   rb_ary_store(params, INDEX_FUNCS, pp);
 
   w = gsl_multifit_ndlinear_alloc(n_dim, N, p->fptr, (void*) params);
 
   free((size_t*) N);
 
-  wspace = Data_Wrap_Struct(cWorkspace, multifit_ndlinear_mark, gsl_multifit_ndlinear_free, w);
+  wspace = TypedData_Wrap_Struct(cWorkspace, &Workspace_data_type, w);
 
   return wspace;
 }
@@ -115,7 +115,7 @@ static int func_u(double x, double y[], void *data)
   ytmp.vector.data = (double*) y;
   ytmp.vector.stride = 1;
   ytmp.vector.size = FIX2INT(rb_ary_entry(vN, i));
-  vy = Data_Wrap_Struct(cgsl_vector_view, 0, NULL, &ytmp);
+  vy = TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, &ytmp);
 
   rslt = rb_funcall((VALUE) proc, RBGSL_ID_call, 3, rb_float_new(x), vy, params);
 
@@ -150,15 +150,15 @@ static VALUE rb_gsl_multifit_ndlinear_design(int argc, VALUE *argv, VALUE obj)
   switch (argc2) {
   case 1:
     CHECK_MATRIX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix, vars);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, vars);
     X = gsl_matrix_alloc(vars->size1, w->n_coeffs);
     flag = 1;
     break;
   case 2:
     CHECK_MATRIX(argv[0]);
     CHECK_MATRIX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, vars);
-    Data_Get_Struct(argv[1], gsl_matrix, X);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, vars);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, X);
     break;
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments.");
@@ -166,7 +166,7 @@ static VALUE rb_gsl_multifit_ndlinear_design(int argc, VALUE *argv, VALUE obj)
   ret = gsl_multifit_ndlinear_design(vars, X, w);
 
   if (flag == 1) {
-    return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, X);
+    return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, X);
   } else {
     return INT2FIX(ret);
   }
@@ -199,9 +199,9 @@ static VALUE rb_gsl_multifit_ndlinear_est(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[0]);
     CHECK_VECTOR(argv[1]);
     CHECK_MATRIX(argv[2]);
-    Data_Get_Struct(argv[0], gsl_vector, x);
-    Data_Get_Struct(argv[1], gsl_vector, c);
-    Data_Get_Struct(argv[2], gsl_matrix, cov);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, x);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, c);
+    TypedData_Get_Struct(argv[2], gsl_matrix, &gsl_matrix_data_type, cov);
     break;
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments.");
@@ -236,8 +236,8 @@ static VALUE rb_gsl_multifit_ndlinear_calc(int argc, VALUE *argv, VALUE obj)
   case 2:
     CHECK_VECTOR(argv[0]);
     CHECK_VECTOR(argv[1]);
-    Data_Get_Struct(argv[0], gsl_vector, x);
-    Data_Get_Struct(argv[1], gsl_vector, c);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, x);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, c);
     break;
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments.");
@@ -274,7 +274,7 @@ static VALUE rb_gsl_multifit_linear_Rsq(VALUE module, VALUE vy, VALUE vchisq)
   gsl_vector *y;
   double chisq, Rsq;
   CHECK_VECTOR(vy);
-  Data_Get_Struct(vy, gsl_vector, y);
+  TypedData_Get_Struct(vy, gsl_vector, &gsl_vector_data_type, y);
   chisq = NUM2DBL(vchisq);
   gsl_multifit_linear_Rsq(y, chisq, &Rsq);
   return rb_float_new(Rsq);

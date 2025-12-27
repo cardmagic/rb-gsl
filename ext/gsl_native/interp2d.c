@@ -14,6 +14,19 @@
 VALUE cgsl_interp2d_accel; /* this is used also in spline2d.c */
 extern VALUE cgsl_vector, cgsl_matrix;
 
+/* Forward declaration for TypedData */
+static void rb_gsl_interp2d_free(rb_gsl_interp2d *fr);
+
+static const rb_data_type_t rb_gsl_interp2d_data_type = {
+    .wrap_struct_name = "GSL::Interp2d",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))rb_gsl_interp2d_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
 static VALUE rb_gsl_interp2d_alloc(int argc, VALUE *argv, VALUE self)
 { 
   rb_gsl_interp2d *sp = NULL;
@@ -44,7 +57,7 @@ static VALUE rb_gsl_interp2d_alloc(int argc, VALUE *argv, VALUE self)
 
   if (xptr && yptr && zptr) gsl_interp2d_init(sp->p, xptr, yptr, zptr, sizex, sizey);
 
-  return Data_Wrap_Struct(self, 0, rb_gsl_interp2d_free, sp);
+  return TypedData_Wrap_Struct(self, &rb_gsl_interp2d_data_type, sp);
 }
 
 static VALUE rb_gsl_interp2d_init(VALUE self, VALUE xarr, VALUE yarr, VALUE zarr)
@@ -56,7 +69,7 @@ static VALUE rb_gsl_interp2d_init(VALUE self, VALUE xarr, VALUE yarr, VALUE zarr
   yptr = get_vector_ptr(yarr, &stride, &ysize);
   zptr = get_vector_ptr(zarr, &stride, &zsize);
 
-  Data_Get_Struct(self, rb_gsl_interp2d, rgi);
+  TypedData_Get_Struct(self, rb_gsl_interp2d, &rb_gsl_interp2d_data_type, rgi);
   gsl_interp2d_init(rgi->p, xptr, yptr, zptr, xsize, ysize);
 
   return self;
@@ -86,7 +99,7 @@ static VALUE rb_gsl_interp_evaluate(
   double val;
   size_t i, j, xsize, ysize, zsize, stridex, stridey, stridez;
 
-  Data_Get_Struct(self, rb_gsl_interp2d, rgi);
+  TypedData_Get_Struct(self, rb_gsl_interp2d, &rb_gsl_interp2d_data_type, rgi);
   xptr = get_vector_ptr(xarr, &stridex, &xsize);
   if (xsize != rgi->p->xsize ) {
     rb_raise(rb_eTypeError, "size mismatch (xa:%d != %d)",  (int) xsize, 
@@ -137,8 +150,8 @@ static VALUE rb_gsl_interp_evaluate(
     return ary;
   default:
     if (VECTOR_P(xx)) {
-      Data_Get_Struct(xx, gsl_vector, vx);
-      Data_Get_Struct(yy, gsl_vector, vy);
+      TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, vx);
+      TypedData_Get_Struct(yy, gsl_vector, &gsl_vector_data_type, vy);
       if (vx->size != vy->size) {
         rb_raise(rb_eRuntimeError, "xx and yy must be same sized Vectors.");
       }
@@ -149,10 +162,10 @@ static VALUE rb_gsl_interp_evaluate(
           gsl_vector_get(vy, i), rgi->xacc, rgi->yacc);
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     } else if (MATRIX_P(xx)) {
-      Data_Get_Struct(xx, gsl_matrix, mx);
-      Data_Get_Struct(xx, gsl_matrix, my);
+      TypedData_Get_Struct(xx, gsl_matrix, &gsl_matrix_data_type, mx);
+      TypedData_Get_Struct(xx, gsl_matrix, &gsl_matrix_data_type, my);
 
       if ((mx->size1 != my->size1) || (mx->size2 != my->size2)) {
         rb_raise(rb_eRuntimeError, "xx and yy must be same sized Matrices.");
@@ -165,7 +178,7 @@ static VALUE rb_gsl_interp_evaluate(
           gsl_matrix_set(mnew, i, j, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       rb_raise(rb_eTypeError, "wrong argument type %s", rb_class2name(CLASS_OF(xx)));
     }
@@ -234,7 +247,7 @@ static VALUE rb_gsl_interp2d_info(VALUE self)
 {
   rb_gsl_interp2d *p;
   char buf[256];
-  Data_Get_Struct(self, rb_gsl_interp2d, p);
+  TypedData_Get_Struct(self, rb_gsl_interp2d, &rb_gsl_interp2d_data_type, p);
   sprintf(buf, "Class:      %s\n", rb_class2name(CLASS_OF(self)));
   sprintf(buf, "%sSuperClass: %s\n", buf, rb_class2name(RCLASS_SUPER(CLASS_OF(self))));
   sprintf(buf, "%sType:       %s\n", buf, gsl_interp2d_name(p->p));

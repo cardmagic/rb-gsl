@@ -157,10 +157,10 @@ static VALUE rb_gsl_fft_conv_corr(int argc, VALUE *argv, VALUE obj,
     v = gsl_vector_alloc(size1);
     switch (flag1) {
     case RB_GSL_FFT_REAL:
-      ary = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+      ary = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
       break;
     default:
-      ary = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+      ary = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
       break;
     }
     data3 = v->data;

@@ -193,7 +193,7 @@ VALUE rb_gsl_sf_eval_int_double(double (*func)(int, double), VALUE jj, VALUE arg
     }
 #endif
     if (rb_obj_is_kind_of(argv, cgsl_matrix)) {
-      Data_Get_Struct(argv, gsl_matrix, m);
+      TypedData_Get_Struct(argv, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
         for (k = 0; k < m->size2; k++) {
@@ -201,17 +201,17 @@ VALUE rb_gsl_sf_eval_int_double(double (*func)(int, double), VALUE jj, VALUE arg
           gsl_matrix_set(mnew, i, k, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       CHECK_VECTOR(argv);
-      Data_Get_Struct(argv, gsl_vector, v);
+      TypedData_Get_Struct(argv, gsl_vector, &gsl_vector_data_type, v);
       n = v->size;
       vnew = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) {
         val = (*func)(j, gsl_vector_get(v, i));
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     }
     break;
   }
@@ -260,7 +260,7 @@ VALUE rb_gsl_sf_eval_double_int(double (*func)(double, int), VALUE argv, VALUE j
     }
 #endif
     if (rb_obj_is_kind_of(argv, cgsl_matrix)) {
-      Data_Get_Struct(argv, gsl_matrix, m);
+      TypedData_Get_Struct(argv, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
         for (k = 0; k < m->size2; k++) {
@@ -268,17 +268,17 @@ VALUE rb_gsl_sf_eval_double_int(double (*func)(double, int), VALUE argv, VALUE j
           gsl_matrix_set(mnew, i, k, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       CHECK_VECTOR(argv);
-      Data_Get_Struct(argv, gsl_vector, v);
+      TypedData_Get_Struct(argv, gsl_vector, &gsl_vector_data_type, v);
       n = v->size;
       vnew = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) {
         val = (*func)(gsl_vector_get(v, i), j);
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     }
     break;
   }
@@ -330,7 +330,7 @@ VALUE rb_gsl_sf_eval_int_int_double(double (*func)(int, int, double), VALUE jj,
     }
 #endif
     if (rb_obj_is_kind_of(argv, cgsl_matrix)) {
-      Data_Get_Struct(argv, gsl_matrix, m);
+      TypedData_Get_Struct(argv, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
         for (k = 0; k < m->size2; k++) {
@@ -338,17 +338,17 @@ VALUE rb_gsl_sf_eval_int_int_double(double (*func)(int, int, double), VALUE jj,
           gsl_matrix_set(mnew, i, k, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       CHECK_VECTOR(argv);
-      Data_Get_Struct(argv, gsl_vector, v);
+      TypedData_Get_Struct(argv, gsl_vector, &gsl_vector_data_type, v);
       n = v->size;
       vnew = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) {
         val = (*func)(j, j2, gsl_vector_get(v, i));
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     }
     break;
   }
@@ -400,7 +400,7 @@ VALUE rb_gsl_sf_eval_int_double_double(double (*func)(int, double, double), VALU
     }
 #endif
     if (rb_obj_is_kind_of(argv, cgsl_matrix)) {
-      Data_Get_Struct(argv, gsl_matrix, m);
+      TypedData_Get_Struct(argv, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
         for (k = 0; k < m->size2; k++) {
@@ -408,17 +408,17 @@ VALUE rb_gsl_sf_eval_int_double_double(double (*func)(int, double, double), VALU
           gsl_matrix_set(mnew, i, k, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       CHECK_VECTOR(argv);
-      Data_Get_Struct(argv, gsl_vector, v);
+      TypedData_Get_Struct(argv, gsl_vector, &gsl_vector_data_type, v);
       n = v->size;
       vnew = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) {
         val = (*func)(j, f, gsl_vector_get(v, i));
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     }
     break;
   }
@@ -467,22 +467,22 @@ VALUE rb_gsl_sf_eval_double_double(double (*func)(double, double), VALUE ff, VAL
     }
 #endif
     if (rb_obj_is_kind_of(argv, cgsl_matrix)) {
-      Data_Get_Struct(argv, gsl_matrix, m);
+      TypedData_Get_Struct(argv, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
         for (k = 0; k < m->size2; k++) {
           gsl_matrix_set(mnew, i, k, (*func)(f, gsl_matrix_get(m, i, k)));
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       CHECK_VECTOR(argv);
-      Data_Get_Struct(argv, gsl_vector, v);
+      TypedData_Get_Struct(argv, gsl_vector, &gsl_vector_data_type, v);
       vnew = gsl_vector_alloc(v->size);
       for (i = 0; i < v->size; i++) {
         gsl_vector_set(vnew, i, (*func)(f, gsl_vector_get(v, i)));
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     }
     break;
   }
@@ -533,7 +533,7 @@ VALUE rb_gsl_sf_eval_double3(double (*func)(double, double, double),
     }
 #endif
     if (rb_obj_is_kind_of(argv, cgsl_matrix)) {
-      Data_Get_Struct(argv, gsl_matrix, m);
+      TypedData_Get_Struct(argv, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
         for (k = 0; k < m->size2; k++) {
@@ -541,17 +541,17 @@ VALUE rb_gsl_sf_eval_double3(double (*func)(double, double, double),
           gsl_matrix_set(mnew, i, k, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       CHECK_VECTOR(argv);
-      Data_Get_Struct(argv, gsl_vector, v);
+      TypedData_Get_Struct(argv, gsl_vector, &gsl_vector_data_type, v);
       n = v->size;
       vnew = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) {
         val = (*func)(f, f2, gsl_vector_get(v, i));
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     }
     break;
   }
@@ -603,7 +603,7 @@ VALUE rb_gsl_sf_eval_double4(double (*func)(double, double, double, double),
     }
 #endif
     if (rb_obj_is_kind_of(argv, cgsl_matrix)) {
-      Data_Get_Struct(argv, gsl_matrix, m);
+      TypedData_Get_Struct(argv, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
         for (k = 0; k < m->size2; k++) {
@@ -611,17 +611,17 @@ VALUE rb_gsl_sf_eval_double4(double (*func)(double, double, double, double),
           gsl_matrix_set(mnew, i, k, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       CHECK_VECTOR(argv);
-      Data_Get_Struct(argv, gsl_vector, v);
+      TypedData_Get_Struct(argv, gsl_vector, &gsl_vector_data_type, v);
       n = v->size;
       vnew = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) {
         val = (*func)(f, f2, f3, gsl_vector_get(v, i));
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     }
     break;
   }
@@ -666,7 +666,7 @@ VALUE rb_gsl_sf_eval1_int(double (*func)(int), VALUE argv)
     }
 #endif
     if (rb_obj_is_kind_of(argv, cgsl_matrix)) {
-      Data_Get_Struct(argv, gsl_matrix, m);
+      TypedData_Get_Struct(argv, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
         for (k = 0; k < m->size2; k++) {
@@ -674,17 +674,17 @@ VALUE rb_gsl_sf_eval1_int(double (*func)(int), VALUE argv)
           gsl_matrix_set(mnew, i, k, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       CHECK_VECTOR(argv);
-      Data_Get_Struct(argv, gsl_vector, v);
+      TypedData_Get_Struct(argv, gsl_vector, &gsl_vector_data_type, v);
       n = v->size;
       vnew = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) {
         val = (*func)((int) gsl_vector_get(v, i));
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     }
     break;
   }
@@ -729,7 +729,7 @@ VALUE rb_gsl_sf_eval1_uint(double (*func)(unsigned int), VALUE argv)
     }
 #endif
     if (rb_obj_is_kind_of(argv, cgsl_matrix)) {
-      Data_Get_Struct(argv, gsl_matrix, m);
+      TypedData_Get_Struct(argv, gsl_matrix, &gsl_matrix_data_type, m);
       mnew = gsl_matrix_alloc(m->size1, m->size2);
       for (i = 0; i < m->size1; i++) {
         for (k = 0; k < m->size2; k++) {
@@ -737,17 +737,17 @@ VALUE rb_gsl_sf_eval1_uint(double (*func)(unsigned int), VALUE argv)
           gsl_matrix_set(mnew, i, k, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       CHECK_VECTOR(argv);
-      Data_Get_Struct(argv, gsl_vector, v);
+      TypedData_Get_Struct(argv, gsl_vector, &gsl_vector_data_type, v);
       n = v->size;
       vnew = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) {
         val = (*func)((unsigned int) gsl_vector_get(v, i));
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     }
     break;
   }
@@ -810,7 +810,7 @@ VALUE rb_gsl_sf_eval_double_m(double (*func)(double, gsl_mode_t), VALUE argv, VA
     }
 #endif
     if (rb_obj_is_kind_of(argv, cgsl_matrix)) {
-      Data_Get_Struct(argv, gsl_matrix, mm);
+      TypedData_Get_Struct(argv, gsl_matrix, &gsl_matrix_data_type, mm);
       mnew = gsl_matrix_alloc(mm->size1, mm->size2);
       for (i = 0; i < mm->size1; i++) {
         for (k = 0; k < mm->size2; k++) {
@@ -818,17 +818,17 @@ VALUE rb_gsl_sf_eval_double_m(double (*func)(double, gsl_mode_t), VALUE argv, VA
           gsl_matrix_set(mnew, i, k, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       CHECK_VECTOR(argv);
-      Data_Get_Struct(argv, gsl_vector, v);
+      TypedData_Get_Struct(argv, gsl_vector, &gsl_vector_data_type, v);
       n = v->size;
       vnew = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) {
         val = (*func)(gsl_vector_get(v, i), m);
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     }
     break;
   }
@@ -884,7 +884,7 @@ VALUE rb_gsl_sf_eval_double2_m(double (*func)(double, double, gsl_mode_t),
     }
 #endif
     if (rb_obj_is_kind_of(argv, cgsl_matrix)) {
-      Data_Get_Struct(argv, gsl_matrix, mm);
+      TypedData_Get_Struct(argv, gsl_matrix, &gsl_matrix_data_type, mm);
       mnew = gsl_matrix_alloc(mm->size1, mm->size2);
       for (i = 0; i < mm->size1; i++) {
         for (k = 0; k < mm->size2; k++) {
@@ -892,17 +892,17 @@ VALUE rb_gsl_sf_eval_double2_m(double (*func)(double, double, gsl_mode_t),
           gsl_matrix_set(mnew, i, k, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       CHECK_VECTOR(argv);
-      Data_Get_Struct(argv, gsl_vector, v);
+      TypedData_Get_Struct(argv, gsl_vector, &gsl_vector_data_type, v);
       n = v->size;
       vnew = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) {
         val = (*func)(gsl_vector_get(v, i), xx2, m);
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     }
     break;
   }
@@ -959,7 +959,7 @@ VALUE rb_gsl_sf_eval_double3_m(double (*func)(double, double, double, gsl_mode_t
     }
 #endif
     if (rb_obj_is_kind_of(argv, cgsl_matrix)) {
-      Data_Get_Struct(argv, gsl_matrix, mm);
+      TypedData_Get_Struct(argv, gsl_matrix, &gsl_matrix_data_type, mm);
       mnew = gsl_matrix_alloc(mm->size1, mm->size2);
       for (i = 0; i < mm->size1; i++) {
         for (k = 0; k < mm->size2; k++) {
@@ -967,17 +967,17 @@ VALUE rb_gsl_sf_eval_double3_m(double (*func)(double, double, double, gsl_mode_t
           gsl_matrix_set(mnew, i, k, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       CHECK_VECTOR(argv);
-      Data_Get_Struct(argv, gsl_vector, v);
+      TypedData_Get_Struct(argv, gsl_vector, &gsl_vector_data_type, v);
       n = v->size;
       vnew = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) {
         val = (*func)(gsl_vector_get(v, i), xx2, xx3, m);
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     }
     break;
   }
@@ -1035,7 +1035,7 @@ VALUE rb_gsl_sf_eval_double4_m(double (*func)(double, double, double, double,
     }
 #endif
     if (rb_obj_is_kind_of(argv, cgsl_matrix)) {
-      Data_Get_Struct(argv, gsl_matrix, mm);
+      TypedData_Get_Struct(argv, gsl_matrix, &gsl_matrix_data_type, mm);
       mnew = gsl_matrix_alloc(mm->size1, mm->size2);
       for (i = 0; i < mm->size1; i++) {
         for (k = 0; k < mm->size2; k++) {
@@ -1043,17 +1043,17 @@ VALUE rb_gsl_sf_eval_double4_m(double (*func)(double, double, double, double,
           gsl_matrix_set(mnew, i, k, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       CHECK_VECTOR(argv);
-      Data_Get_Struct(argv, gsl_vector, v);
+      TypedData_Get_Struct(argv, gsl_vector, &gsl_vector_data_type, v);
       n = v->size;
       vnew = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) {
         val = (*func)(gsl_vector_get(v, i),  xx2, xx3, xx4, m);
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     }
     break;
   }
@@ -1328,7 +1328,7 @@ VALUE eval_sf(double (*func)(double, gsl_mode_t), VALUE argv)
     }
 #endif
     if (rb_obj_is_kind_of(argv, cgsl_matrix)) {
-      Data_Get_Struct(argv, gsl_matrix, mm);
+      TypedData_Get_Struct(argv, gsl_matrix, &gsl_matrix_data_type, mm);
       mnew = gsl_matrix_alloc(mm->size1, mm->size2);
       for (i = 0; i < mm->size1; i++) {
         for (k = 0; k < mm->size2; k++) {
@@ -1336,17 +1336,17 @@ VALUE eval_sf(double (*func)(double, gsl_mode_t), VALUE argv)
           gsl_matrix_set(mnew, i, k, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       CHECK_VECTOR(argv);
-      Data_Get_Struct(argv, gsl_vector, v);
+      TypedData_Get_Struct(argv, gsl_vector, &gsl_vector_data_type, v);
       n = v->size;
       vnew = gsl_vector_alloc(n);
       for (i = 0; i < n; i++) {
         val = (*func)(gsl_vector_get(v, i), GSL_PREC_DOUBLE);
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     }
     break;
   }
@@ -1359,13 +1359,13 @@ VALUE rb_gsl_sf_eval_complex(double (*f)(double), VALUE obj)
   gsl_matrix_complex *m, *mnew;
   size_t i, j;
   if (COMPLEX_P(obj)) {
-    Data_Get_Struct(obj, gsl_complex, z);
+    TypedData_Get_Struct(obj, gsl_complex, &gsl_complex_data_type, z);
     znew = xmalloc(sizeof(gsl_complex));
     GSL_SET_REAL(znew, (*f)(GSL_REAL(*z)));
     GSL_SET_IMAG(znew, (*f)(GSL_IMAG(*z)));
-    return Data_Wrap_Struct(cgsl_complex, 0, free, znew);
+    return TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, znew);
   } else if (VECTOR_COMPLEX_P(obj)) {
-    Data_Get_Struct(obj, gsl_vector_complex, v);
+    TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
     vnew = gsl_vector_complex_alloc(v->size);
     for (i = 0; i < v->size; i++) {
       z = GSL_COMPLEX_AT(v, i);
@@ -1373,9 +1373,9 @@ VALUE rb_gsl_sf_eval_complex(double (*f)(double), VALUE obj)
       GSL_SET_IMAG(&c, (*f)(GSL_IMAG(*z)));
       gsl_vector_complex_set(vnew, i, c);
     }
-    return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vnew);
   } else if (MATRIX_COMPLEX_P(obj)) {
-    Data_Get_Struct(obj, gsl_matrix_complex, m);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     mnew = gsl_matrix_complex_alloc(m->size1, m->size2);
     for (i = 0; i < m->size1; i++) {
       for (j = 0; j < m->size2; j++) {
@@ -1385,7 +1385,7 @@ VALUE rb_gsl_sf_eval_complex(double (*f)(double), VALUE obj)
         gsl_matrix_complex_set(mnew, i, j, c);
       }
     }
-    return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, mnew);
+    return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, mnew);
   } else {
     rb_raise(rb_eTypeError,
              "wrong argument type %s "

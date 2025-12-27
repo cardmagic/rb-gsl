@@ -32,15 +32,15 @@ int rb_gsl_comparison_complex(const void *aa, const void *bb)
   a = (gsl_complex *) aa;
   b = (gsl_complex *) bb;
   return FIX2INT(rb_funcall(rb_block_proc(), RBGSL_ID_call, 2,
-                            Data_Wrap_Struct(cgsl_complex, 0, NULL, a),
-                            Data_Wrap_Struct(cgsl_complex, 0, NULL, b)));
+                            TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, a),
+                            TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, b)));
 }
 
 static VALUE rb_gsl_heapsort_vector(VALUE obj)
 {
   gsl_vector *v = NULL;
   if (!rb_block_given_p()) rb_raise(rb_eRuntimeError, "Proc is not given");
-  Data_Get_Struct(obj, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
   gsl_heapsort(v->data, v->size, sizeof(double), rb_gsl_comparison_double);
   return obj;
 }
@@ -49,11 +49,11 @@ static VALUE rb_gsl_heapsort_vector2(VALUE obj)
 {
   gsl_vector *v = NULL, *vnew = NULL;
   if (!rb_block_given_p()) rb_raise(rb_eRuntimeError, "Proc is not given");
-  Data_Get_Struct(obj, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
   vnew = gsl_vector_alloc(v->size);
   gsl_vector_memcpy(vnew, v);
   gsl_heapsort(vnew->data, vnew->size, sizeof(double), rb_gsl_comparison_double);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
 }
 
 static VALUE rb_gsl_heapsort_index_vector(VALUE obj)
@@ -61,17 +61,17 @@ static VALUE rb_gsl_heapsort_index_vector(VALUE obj)
   gsl_vector *v = NULL;
   gsl_permutation *p = NULL;
   if (!rb_block_given_p()) rb_raise(rb_eRuntimeError, "Proc is not given");
-  Data_Get_Struct(obj, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
   p = gsl_permutation_alloc(v->size);
   gsl_heapsort_index(p->data, v->data, v->size, sizeof(double), rb_gsl_comparison_double);
-  return Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, p);
+  return TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, p);
 }
 
 static VALUE rb_gsl_heapsort_vector_complex(VALUE obj)
 {
   gsl_vector_complex *v = NULL;
   if (!rb_block_given_p()) rb_raise(rb_eRuntimeError, "Proc is not given");
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   gsl_heapsort(v->data, v->size, sizeof(gsl_complex), rb_gsl_comparison_complex);
   return obj;
 }
@@ -80,11 +80,11 @@ static VALUE rb_gsl_heapsort_vector_complex2(VALUE obj)
 {
   gsl_vector_complex *v = NULL, *vnew = NULL;
   if (!rb_block_given_p()) rb_raise(rb_eRuntimeError, "Proc is not given");
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   vnew = gsl_vector_complex_alloc(v->size);
   gsl_vector_complex_memcpy(vnew, v);
   gsl_heapsort(vnew->data, vnew->size, sizeof(gsl_complex), rb_gsl_comparison_complex);
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vnew);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vnew);
 }
 
 static VALUE rb_gsl_heapsort_index_vector_complex(VALUE obj)
@@ -92,10 +92,10 @@ static VALUE rb_gsl_heapsort_index_vector_complex(VALUE obj)
   gsl_vector_complex *v = NULL;
   gsl_permutation *p = NULL;
   if (!rb_block_given_p()) rb_raise(rb_eRuntimeError, "Proc is not given");
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   p = gsl_permutation_alloc(v->size);
   gsl_heapsort_index(p->data, v->data, v->size, sizeof(gsl_complex), rb_gsl_comparison_complex);
-  return Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, p);
+  return TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, p);
 }
 
 /* singleton */
@@ -181,7 +181,7 @@ static VALUE rb_gsl_sort_index_narray(VALUE obj)
   stride = 1;
   p = gsl_permutation_alloc(size);
   gsl_sort_index(p->data, ptr1, stride, size);
-  return Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, p);
+  return TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, p);
 }
 #endif
 

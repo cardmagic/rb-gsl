@@ -35,12 +35,12 @@ VALUE rb_gsl_linalg_complex_LU_decomp(int argc, VALUE *argv, VALUE obj)
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)",
                             argc);
     CHECK_MATRIX_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, m);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     itmp = 1;
     break;
   default:
     CHECK_MATRIX_COMPLEX(obj);
-    Data_Get_Struct(obj, gsl_matrix_complex, m);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     itmp = 0;
   }
   size = m->size1;
@@ -50,12 +50,12 @@ VALUE rb_gsl_linalg_complex_LU_decomp(int argc, VALUE *argv, VALUE obj)
     gsl_linalg_complex_LU_decomp(m, p, &signum);
     if (itmp == 1) RBGSL_SET_CLASS(argv[0], cgsl_matrix_complex_LU);
     else RBGSL_SET_CLASS(obj, cgsl_matrix_complex_LU);
-    obj2 = Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, p);
+    obj2 = TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, p);
     return rb_ary_new3(2, obj2, INT2FIX(signum));
     break;
   case 1:  /* when a permutation object is given */
     CHECK_PERMUTATION(argv[itmp]);
-    Data_Get_Struct(argv[itmp], gsl_permutation, p);
+    TypedData_Get_Struct(argv[itmp], gsl_permutation, &gsl_permutation_data_type, p);
     gsl_linalg_complex_LU_decomp(m, p, &signum);
     if (itmp == 1) RBGSL_SET_CLASS(argv[0], cgsl_matrix_complex_LU);
     else RBGSL_SET_CLASS(obj, cgsl_matrix_complex_LU);
@@ -81,28 +81,28 @@ VALUE rb_gsl_linalg_complex_LU_decomp2(int argc, VALUE *argv, VALUE obj)
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)",
                             argc);
     CHECK_MATRIX_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, m);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     itmp = 1;
     break;
   default:
     CHECK_MATRIX_COMPLEX(obj);
-    Data_Get_Struct(obj, gsl_matrix_complex, m);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     itmp = 0;
   }
   size = m->size1;
   mnew = gsl_matrix_complex_alloc(m->size1, m->size2);
   gsl_matrix_complex_memcpy(mnew, m);
-  objm = Data_Wrap_Struct(cgsl_matrix_complex_LU, 0, gsl_matrix_complex_free, mnew);
+  objm = TypedData_Wrap_Struct(cgsl_matrix_complex_LU, &gsl_matrix_complex_data_type, mnew);
   switch (argc-itmp) {
   case 0:
     p = gsl_permutation_alloc(size);
     gsl_linalg_complex_LU_decomp(mnew, p, &signum);
-    obj2 = Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, p);
+    obj2 = TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, p);
     return rb_ary_new3(3, objm,obj2, INT2FIX(signum));
     break;
   case 1:  /* when a permutation object is given */
     CHECK_PERMUTATION(argv[itmp]);
-    Data_Get_Struct(argv[itmp], gsl_permutation, p);
+    TypedData_Get_Struct(argv[itmp], gsl_permutation, &gsl_permutation_data_type, p);
     gsl_linalg_complex_LU_decomp(m, p, &signum);
     return rb_ary_new3(3, objm, argv[itmp], INT2FIX(signum));
     break;
@@ -125,7 +125,7 @@ static VALUE rb_gsl_linalg_complex_LU_solve(int argc, VALUE *argv, VALUE obj)
     if (argc < 2 || argc > 4)
       rb_raise(rb_eArgError, "Usage: solve(m, b), solve(m, b, x), solve(lu, p, b), solve(lu, p, b, x)");
     CHECK_MATRIX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, m);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     if (CLASS_OF(argv[0]) != cgsl_matrix_complex_LU) {
       flagm = 1;
       mtmp = gsl_matrix_complex_alloc(m->size1, m->size2);
@@ -138,7 +138,7 @@ static VALUE rb_gsl_linalg_complex_LU_solve(int argc, VALUE *argv, VALUE obj)
   default:
     if (argc < 1 || argc > 3)
       rb_raise(rb_eArgError, "Usage: LU_solve(b), LU_solve(p, b), LU_solve(b, x), solve(p, b, x)");
-    Data_Get_Struct(obj, gsl_matrix_complex, m);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     if (CLASS_OF(obj) != cgsl_matrix_complex_LU) {
       flagm = 1;
       mtmp = gsl_matrix_complex_alloc(m->size1, m->size2);
@@ -150,17 +150,17 @@ static VALUE rb_gsl_linalg_complex_LU_solve(int argc, VALUE *argv, VALUE obj)
   }
   if (flagm == 1) {
     if (itmp != argc-1) rb_raise(rb_eArgError, "Usage: m.LU_solve(b)");
-    Data_Get_Struct(argv[itmp], gsl_vector_complex, b);
+    TypedData_Get_Struct(argv[itmp], gsl_vector_complex, &gsl_vector_complex_data_type, b);
     x = gsl_vector_complex_alloc(b->size);
     p = gsl_permutation_alloc(b->size);
     gsl_linalg_complex_LU_decomp(mtmp, p, &signum);
   } else {
-    Data_Get_Struct(argv[itmp], gsl_permutation, p);
+    TypedData_Get_Struct(argv[itmp], gsl_permutation, &gsl_permutation_data_type, p);
     itmp++;
-    Data_Get_Struct(argv[itmp], gsl_vector_complex, b);
+    TypedData_Get_Struct(argv[itmp], gsl_vector_complex, &gsl_vector_complex_data_type, b);
     itmp++;
     if (itmp == argc-1) {
-      Data_Get_Struct(argv[itmp], gsl_vector_complex, x);
+      TypedData_Get_Struct(argv[itmp], gsl_vector_complex, &gsl_vector_complex_data_type, x);
       flagx = 1;
     } else {
       x = gsl_vector_complex_alloc(m->size1);
@@ -171,7 +171,7 @@ static VALUE rb_gsl_linalg_complex_LU_solve(int argc, VALUE *argv, VALUE obj)
     gsl_matrix_complex_free(mtmp);
     gsl_permutation_free(p);
   }
-  if (flagx == 0) return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, x);
+  if (flagx == 0) return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, x);
   else return argv[argc-1];
 }
 
@@ -188,7 +188,7 @@ static VALUE rb_gsl_linalg_complex_LU_svx(int argc, VALUE *argv, VALUE obj)
   case T_CLASS:
   case T_OBJECT:
     CHECK_MATRIX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, m);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     if (CLASS_OF(argv[0]) != cgsl_matrix_complex_LU) {
       flagm = 1;
       mtmp = gsl_matrix_complex_alloc(m->size1, m->size2);
@@ -199,7 +199,7 @@ static VALUE rb_gsl_linalg_complex_LU_svx(int argc, VALUE *argv, VALUE obj)
     itmp = 1;
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix_complex, m);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     if (CLASS_OF(obj) != cgsl_matrix_complex_LU) {
       flagm = 1;
       mtmp = gsl_matrix_complex_alloc(m->size1, m->size2);
@@ -211,13 +211,13 @@ static VALUE rb_gsl_linalg_complex_LU_svx(int argc, VALUE *argv, VALUE obj)
   }
   if (flagm == 1) {
     if (itmp != argc-1) rb_raise(rb_eArgError, "Usage: m.LU_solve(b)");
-    Data_Get_Struct(argv[itmp], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[itmp], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     p = gsl_permutation_alloc(x->size);
     gsl_linalg_complex_LU_decomp(mtmp, p, &signum);
   } else {
-    Data_Get_Struct(argv[itmp], gsl_permutation, p);
+    TypedData_Get_Struct(argv[itmp], gsl_permutation, &gsl_permutation_data_type, p);
     itmp++;
-    Data_Get_Struct(argv[itmp], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[itmp], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     itmp++;
   }
   gsl_linalg_complex_LU_svx(mtmp, p, x);
@@ -244,15 +244,15 @@ static VALUE rb_gsl_linalg_complex_LU_refine(VALUE obj, VALUE vm,
   CHECK_MATRIX_COMPLEX(lu);
   CHECK_PERMUTATION(pp);
   CHECK_VECTOR_COMPLEX(xx);
-  Data_Get_Struct(vm, gsl_matrix_complex, m);
-  Data_Get_Struct(lu, gsl_matrix_complex, mlu);
-  Data_Get_Struct(pp, gsl_permutation, p);
+  TypedData_Get_Struct(vm, gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
+  TypedData_Get_Struct(lu, gsl_matrix_complex, &gsl_matrix_complex_data_type, mlu);
+  TypedData_Get_Struct(pp, gsl_permutation, &gsl_permutation_data_type, p);
   CHECK_VECTOR_COMPLEX(bb);
-  Data_Get_Struct(bb, gsl_vector_complex, b);
-  Data_Get_Struct(xx, gsl_vector_complex, x);
+  TypedData_Get_Struct(bb, gsl_vector_complex, &gsl_vector_complex_data_type, b);
+  TypedData_Get_Struct(xx, gsl_vector_complex, &gsl_vector_complex_data_type, x);
   r = gsl_vector_complex_alloc(m->size1);
   gsl_linalg_complex_LU_refine(m, mlu, p, b, x, r);
-  vr = Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, r);
+  vr = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, r);
   if (flagb == 1) gsl_vector_complex_free(b);
   return rb_ary_new3(2, xx, vr);
 }
@@ -267,7 +267,7 @@ static VALUE rb_gsl_linalg_complex_LU_invert(int argc, VALUE *argv, VALUE obj)
   case T_CLASS:
   case T_OBJECT:
     CHECK_MATRIX_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, m);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     if (CLASS_OF(argv[0]) != cgsl_matrix_complex_LU) {
       mtmp = gsl_matrix_complex_alloc(m->size1, m->size2);
       gsl_matrix_complex_memcpy(mtmp, m);
@@ -278,7 +278,7 @@ static VALUE rb_gsl_linalg_complex_LU_invert(int argc, VALUE *argv, VALUE obj)
     itmp = 1;
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix_complex, m);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     if (CLASS_OF(obj) != cgsl_matrix_complex_LU) {
       mtmp = gsl_matrix_complex_alloc(m->size1, m->size2);
       gsl_matrix_complex_memcpy(mtmp, m);
@@ -293,7 +293,7 @@ static VALUE rb_gsl_linalg_complex_LU_invert(int argc, VALUE *argv, VALUE obj)
     p = gsl_permutation_alloc(m->size1);
     gsl_linalg_complex_LU_decomp(mtmp, p, &signum);
   } else {
-    Data_Get_Struct(argv[itmp], gsl_permutation, p);
+    TypedData_Get_Struct(argv[itmp], gsl_permutation, &gsl_permutation_data_type, p);
   }
   inverse = gsl_matrix_complex_alloc(m->size1, m->size2);
   gsl_linalg_complex_LU_invert(mtmp, p, inverse);
@@ -301,7 +301,7 @@ static VALUE rb_gsl_linalg_complex_LU_invert(int argc, VALUE *argv, VALUE obj)
     gsl_matrix_complex_free(mtmp);
     gsl_permutation_free(p);
   }
-  return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, inverse);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, inverse);
 }
 static VALUE rb_gsl_linalg_complex_LU_det(int argc, VALUE *argv, VALUE obj)
 {
@@ -315,7 +315,7 @@ static VALUE rb_gsl_linalg_complex_LU_det(int argc, VALUE *argv, VALUE obj)
   case T_CLASS:
   case T_OBJECT:
     CHECK_MATRIX_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, m);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     if (CLASS_OF(argv[0]) != cgsl_matrix_complex_LU) {
       mtmp = gsl_matrix_complex_alloc(m->size1, m->size2);
       gsl_matrix_complex_memcpy(mtmp, m);
@@ -326,7 +326,7 @@ static VALUE rb_gsl_linalg_complex_LU_det(int argc, VALUE *argv, VALUE obj)
     itmp = 1;
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix_complex, m);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     if (CLASS_OF(obj) != cgsl_matrix_complex_LU) {
       mtmp = gsl_matrix_complex_alloc(m->size1, m->size2);
       gsl_matrix_complex_memcpy(mtmp, m);
@@ -363,7 +363,7 @@ static VALUE rb_gsl_linalg_complex_LU_lndet(int argc, VALUE *argv, VALUE obj)
   case T_CLASS:
   case T_OBJECT:
     CHECK_MATRIX_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, m);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     if (CLASS_OF(argv[0]) != cgsl_matrix_complex_LU) {
       mtmp = gsl_matrix_complex_alloc(m->size1, m->size2);
       gsl_matrix_complex_memcpy(mtmp, m);
@@ -373,7 +373,7 @@ static VALUE rb_gsl_linalg_complex_LU_lndet(int argc, VALUE *argv, VALUE obj)
     }
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix_complex, m);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     if (CLASS_OF(obj) != cgsl_matrix_complex_LU) {
       mtmp = gsl_matrix_complex_alloc(m->size1, m->size2);
       gsl_matrix_complex_memcpy(mtmp, m);
@@ -406,7 +406,7 @@ static VALUE rb_gsl_linalg_complex_LU_sgndet(int argc, VALUE *argv, VALUE obj)
   case T_CLASS:
   case T_OBJECT:
     CHECK_MATRIX_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, m);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     if (CLASS_OF(argv[0]) != cgsl_matrix_complex_LU) {
       mtmp = gsl_matrix_complex_alloc(m->size1, m->size2);
       gsl_matrix_complex_memcpy(mtmp, m);
@@ -417,7 +417,7 @@ static VALUE rb_gsl_linalg_complex_LU_sgndet(int argc, VALUE *argv, VALUE obj)
     itmp = 1;
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix_complex, m);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     if (CLASS_OF(obj) != cgsl_matrix_complex_LU) {
       mtmp = gsl_matrix_complex_alloc(m->size1, m->size2);
       gsl_matrix_complex_memcpy(mtmp, m);
@@ -451,16 +451,16 @@ static VALUE rb_gsl_linalg_cholesky_decomp(int argc, VALUE *argv, VALUE obj)
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of argument (%d for 1)",
                             argc);
     CHECK_MATRIX_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, Atmp);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, Atmp);
     break;
   default:
     CHECK_MATRIX_COMPLEX(obj);
-    Data_Get_Struct(obj, gsl_matrix_complex, Atmp);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, Atmp);
     break;
   }
   A = make_matrix_complex_clone(Atmp);
   gsl_linalg_complex_cholesky_decomp(A);
-  return Data_Wrap_Struct(cgsl_matrix_complex_C, 0, gsl_matrix_complex_free, A);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex_C, &gsl_matrix_complex_data_type, A);
 }
 
 static VALUE rb_gsl_linalg_cholesky_solve(int argc, VALUE *argv, VALUE obj)
@@ -484,9 +484,9 @@ static VALUE rb_gsl_linalg_cholesky_solve(int argc, VALUE *argv, VALUE obj)
     break;
   }
   CHECK_MATRIX_COMPLEX(vA);
-  Data_Get_Struct(vA, gsl_matrix_complex, Atmp);
+  TypedData_Get_Struct(vA, gsl_matrix_complex, &gsl_matrix_complex_data_type, Atmp);
   CHECK_VECTOR_COMPLEX(vb);
-  Data_Get_Struct(vb, gsl_vector_complex, b);
+  TypedData_Get_Struct(vb, gsl_vector_complex, &gsl_vector_complex_data_type, b);
 
   if (CLASS_OF(vA) == cgsl_matrix_complex_C) {
     A = Atmp;
@@ -499,7 +499,7 @@ static VALUE rb_gsl_linalg_cholesky_solve(int argc, VALUE *argv, VALUE obj)
   gsl_linalg_complex_cholesky_solve(A, b, x);
   if (flaga == 1) gsl_matrix_complex_free(A);
   if (flagb == 1) gsl_vector_complex_free(b);
-  return Data_Wrap_Struct(cgsl_vector_complex_col, 0, gsl_vector_complex_free, x);
+  return TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_data_type, x);
 }
 
 
@@ -524,9 +524,9 @@ static VALUE rb_gsl_linalg_cholesky_svx(int argc, VALUE *argv, VALUE obj)
     break;
   }
   CHECK_MATRIX_COMPLEX(vA);
-  Data_Get_Struct(vA, gsl_matrix_complex, Atmp);
+  TypedData_Get_Struct(vA, gsl_matrix_complex, &gsl_matrix_complex_data_type, Atmp);
   CHECK_VECTOR_COMPLEX(vb);
-  Data_Get_Struct(vb, gsl_vector_complex, b);
+  TypedData_Get_Struct(vb, gsl_vector_complex, &gsl_vector_complex_data_type, b);
   if (CLASS_OF(vA) == cgsl_matrix_complex_C) {
     A = Atmp;
   } else {
@@ -548,15 +548,15 @@ static VALUE rb_gsl_linalg_complex_householder_transform(int argc, VALUE *argv, 
   case T_MODULE:  case T_CLASS:  case T_OBJECT:
     if (argc < 1) rb_raise(rb_eArgError, "too few arguments.");
     CHECK_VECTOR_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_vector_complex, v);
+    TypedData_Get_Struct(argv[0], gsl_vector_complex, &gsl_vector_complex_data_type, v);
     break;
   default:
-    Data_Get_Struct(obj, gsl_vector_complex, v);
+    TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
     break;
   }
   z = (gsl_complex*) malloc(sizeof(gsl_complex));
   *z = gsl_linalg_complex_householder_transform(v);
-  return Data_Wrap_Struct(cgsl_complex, 0, free, z);
+  return TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, z);
 }
 
 /* singleton */
@@ -568,9 +568,9 @@ static VALUE rb_gsl_linalg_complex_householder_hm(VALUE obj, VALUE t, VALUE vv, 
   CHECK_COMPLEX(t);
   CHECK_VECTOR_COMPLEX(vv);
   CHECK_MATRIX_COMPLEX(aa);
-  Data_Get_Struct(t, gsl_complex, tau);
-  Data_Get_Struct(vv, gsl_vector_complex, v);
-  Data_Get_Struct(aa, gsl_matrix_complex, A);
+  TypedData_Get_Struct(t, gsl_complex, &gsl_complex_data_type, tau);
+  TypedData_Get_Struct(vv, gsl_vector_complex, &gsl_vector_complex_data_type, v);
+  TypedData_Get_Struct(aa, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
   gsl_linalg_complex_householder_hm(*tau, v, A);
   return aa;
 }
@@ -583,9 +583,9 @@ static VALUE rb_gsl_linalg_complex_householder_mh(VALUE obj, VALUE t, VALUE vv, 
   CHECK_COMPLEX(t);
   CHECK_VECTOR_COMPLEX(vv);
   CHECK_MATRIX_COMPLEX(aa);
-  Data_Get_Struct(t, gsl_complex, tau);
-  Data_Get_Struct(vv, gsl_vector_complex, v);
-  Data_Get_Struct(aa, gsl_matrix_complex, A);
+  TypedData_Get_Struct(t, gsl_complex, &gsl_complex_data_type, tau);
+  TypedData_Get_Struct(vv, gsl_vector_complex, &gsl_vector_complex_data_type, v);
+  TypedData_Get_Struct(aa, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
   gsl_linalg_complex_householder_hm(*tau, v, A);
   return aa;
 }
@@ -597,9 +597,9 @@ static VALUE rb_gsl_linalg_complex_householder_hv(VALUE obj, VALUE t, VALUE vv, 
   CHECK_COMPLEX(t);
   CHECK_VECTOR_COMPLEX(vv);
   CHECK_VECTOR_COMPLEX(ww);
-  Data_Get_Struct(t, gsl_complex, tau);
-  Data_Get_Struct(vv, gsl_vector_complex, v);
-  Data_Get_Struct(ww, gsl_vector_complex, w);
+  TypedData_Get_Struct(t, gsl_complex, &gsl_complex_data_type, tau);
+  TypedData_Get_Struct(vv, gsl_vector_complex, &gsl_vector_complex_data_type, v);
+  TypedData_Get_Struct(ww, gsl_vector_complex, &gsl_vector_complex_data_type, w);
   gsl_linalg_complex_householder_hv(*tau, v, w);
   return ww;
 }

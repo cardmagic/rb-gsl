@@ -48,6 +48,10 @@ extern const rb_data_type_t gsl_histogram_data_type;
 extern const rb_data_type_t gsl_histogram_pdf_data_type;
 extern const rb_data_type_t gsl_histogram2d_data_type;
 extern const rb_data_type_t gsl_histogram2d_pdf_data_type;
+extern const rb_data_type_t gsl_histogram2d_view_data_type;
+extern const rb_data_type_t gsl_histogram3d_data_type;
+extern const rb_data_type_t gsl_histogram3d_view_data_type;
+extern const rb_data_type_t gsl_histogram_range_data_type;
 
 /* Interpolation & Splines */
 extern const rb_data_type_t gsl_interp_data_type;

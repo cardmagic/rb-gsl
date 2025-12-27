@@ -59,7 +59,7 @@ static VALUE rb_gsl_complex_arithmetics5(int flag, VALUE obj, VALUE bb)
   }
 
   CHECK_COMPLEX(obj);
-  Data_Get_Struct(obj, gsl_complex, a);
+  TypedData_Get_Struct(obj, gsl_complex, &gsl_complex_data_type, a);
   switch (TYPE(bb)) {
   case T_FLOAT:
   case T_FIXNUM:
@@ -74,13 +74,13 @@ static VALUE rb_gsl_complex_arithmetics5(int flag, VALUE obj, VALUE bb)
     case GSL_COMPLEX_DIV:
       c = ALLOC(gsl_complex);
       *c = tmp;
-      return Data_Wrap_Struct(cgsl_complex, 0, free, c);
+      return TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, c);
       break;
     }
     break;
   default:
     if (COMPLEX_P(bb)) {
-      Data_Get_Struct(bb, gsl_complex, b);
+      TypedData_Get_Struct(bb, gsl_complex, &gsl_complex_data_type, b);
       tmp = (*func1)(*a, *b);
       switch (flag) {
       case GSL_COMPLEX_ADD:
@@ -89,12 +89,12 @@ static VALUE rb_gsl_complex_arithmetics5(int flag, VALUE obj, VALUE bb)
       case GSL_COMPLEX_DIV:
         c = ALLOC(gsl_complex);
         *c = tmp;
-        return Data_Wrap_Struct(cgsl_complex, 0, free, c);
+        return TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, c);
         break;
       }
     } else {
       if (VECTOR_P(bb)) {
-        Data_Get_Struct(bb, gsl_vector, v);
+        TypedData_Get_Struct(bb, gsl_vector, &gsl_vector_data_type, v);
         cv = vector_to_complex(v);
         cvnew = gsl_vector_complex_alloc(v->size);
         if (cvnew == NULL) rb_raise(rb_eNoMemError, "gsl_vector_complex_alloc failed");
@@ -114,10 +114,10 @@ static VALUE rb_gsl_complex_arithmetics5(int flag, VALUE obj, VALUE bb)
           break;
         }
         gsl_vector_complex_free(cv);
-        return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, cvnew);
+        return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, cvnew);
       }
       if (VECTOR_COMPLEX_P(bb)) {
-        Data_Get_Struct(bb, gsl_vector_complex, cv);
+        TypedData_Get_Struct(bb, gsl_vector_complex, &gsl_vector_complex_data_type, cv);
         cvnew = gsl_vector_complex_alloc(v->size);
         if (cvnew == NULL) rb_raise(rb_eNoMemError, "gsl_vector_complex_alloc failed");
         gsl_vector_complex_set_all(cvnew, *a);
@@ -135,14 +135,14 @@ static VALUE rb_gsl_complex_arithmetics5(int flag, VALUE obj, VALUE bb)
           gsl_vector_complex_add(cvnew, cv);
           break;
         }
-        return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, cvnew);
+        return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, cvnew);
       }
       if (MATRIX_P(bb)) {
-        Data_Get_Struct(bb, gsl_matrix, m);
+        TypedData_Get_Struct(bb, gsl_matrix, &gsl_matrix_data_type, m);
         cm = matrix_to_complex(m);
         flagcm = 1;
       } else if (MATRIX_COMPLEX_P(bb)) {
-        Data_Get_Struct(bb, gsl_matrix_complex, cm);
+        TypedData_Get_Struct(bb, gsl_matrix_complex, &gsl_matrix_complex_data_type, cm);
       } else {
         rb_raise(rb_eTypeError, "wrong argument type %s", rb_class2name(CLASS_OF(bb)));
       }
@@ -164,7 +164,7 @@ static VALUE rb_gsl_complex_arithmetics5(int flag, VALUE obj, VALUE bb)
         break;
       }
       if (flagcm == 1) gsl_matrix_complex_free(cm);
-      return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, cmself);
+      return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, cmself);
     }
   }
   /* never reach here */
@@ -203,26 +203,26 @@ static VALUE rb_gsl_complex_coerce(VALUE obj, VALUE other)
     x = NUM2DBL(other);
     c = ALLOC(gsl_complex);
     *c = gsl_complex_rect(x, 0.0);
-    return rb_ary_new3(2, Data_Wrap_Struct(cgsl_complex, 0, free, c),
+    return rb_ary_new3(2, TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, c),
                        obj);
     break;
   default:
     if (MATRIX_P(other)) {
-      Data_Get_Struct(other, gsl_matrix, m);
+      TypedData_Get_Struct(other, gsl_matrix, &gsl_matrix_data_type, m);
       cmnew = matrix_to_complex(m);
-      vcmnew = Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, cmnew);
+      vcmnew = TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, cmnew);
       cmself = gsl_matrix_complex_alloc(m->size1, m->size2);
       if (cmself == NULL) rb_raise(rb_eNoMemError, "gsl_matrix_complex_alloc failed");
-      Data_Get_Struct(obj, gsl_complex, c);
+      TypedData_Get_Struct(obj, gsl_complex, &gsl_complex_data_type, c);
       gsl_matrix_complex_set_all(cmself, *c);
-      vcmself = Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, cmself);
+      vcmself = TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, cmself);
       return rb_ary_new3(2, vcmself, vcmnew);
     }
     if (MATRIX_COMPLEX_P(other)) {
-      Data_Get_Struct(other, gsl_matrix_complex, cmnew);
+      TypedData_Get_Struct(other, gsl_matrix_complex, &gsl_matrix_complex_data_type, cmnew);
       cmself = gsl_matrix_complex_alloc(cmnew->size1, cmnew->size2);
       if (cmself == NULL) rb_raise(rb_eNoMemError, "gsl_matrix_complex_alloc failed");
-      vcmself = Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, cmself);
+      vcmself = TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, cmself);
       return rb_ary_new3(2, vcmself, other);
     } else {
       rb_raise(rb_eTypeError, "cannot coerce to GSL::Complex");

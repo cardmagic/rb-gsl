@@ -217,7 +217,7 @@ double* get_ptr_double3(VALUE obj, size_t *size, size_t *stride, int *flag)
   }
 #endif
   CHECK_VECTOR(obj);
-  Data_Get_Struct(obj, gsl_vector, v);
+  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
   *size = v->size;
   *stride = v->stride;
   *flag = 0;
@@ -234,7 +234,7 @@ gsl_complex ary2complex(VALUE obj)
     break;
   default:
     if (COMPLEX_P(obj)) {
-      Data_Get_Struct(obj, gsl_complex, z);
+      TypedData_Get_Struct(obj, gsl_complex, &gsl_complex_data_type, z);
       c = *z;
     } else {
       rb_raise(rb_eTypeError, "wrong argument type %s (Array or Complex expected)",
@@ -255,21 +255,21 @@ VALUE vector_eval_create(VALUE obj, double (*func)(double))
   for (i = 0; i < size; i++) {
     gsl_vector_set(vnew, i, (*func)(ptr[i*stride]));
   }
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
 }
 
 VALUE matrix_eval_create(VALUE obj, double (*func)(double))
 {
   gsl_matrix *m, *mnew;
   size_t i, j;
-  Data_Get_Struct(obj, gsl_matrix, m);
+  TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
   mnew = gsl_matrix_alloc(m->size1, m->size2);
   for (i = 0; i < m->size1; i++) {
     for (j = 0; j < m->size2; j++) {
       gsl_matrix_set(mnew, i, j, (*func)(gsl_matrix_get(m, i, j)));
     }
   }
-  return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+  return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
 }
 
 VALUE rb_gsl_ary_eval1(VALUE ary, double (*f)(double))

@@ -46,17 +46,17 @@ double* get_vector_ptr(VALUE ary, size_t *stride, size_t *n)
   gsl_vector_complex *vc = NULL;
   gsl_matrix *m;
   if (VECTOR_P(ary)) {
-    Data_Get_Struct(ary, gsl_vector, v);
+    TypedData_Get_Struct(ary, gsl_vector, &gsl_vector_data_type, v);
     *stride = v->stride;
     *n = v->size;
     return v->data;
   } else if (VECTOR_COMPLEX_P(ary)) {
-    Data_Get_Struct(ary, gsl_vector_complex, vc);
+    TypedData_Get_Struct(ary, gsl_vector_complex, &gsl_vector_complex_data_type, vc);
     *stride = vc->stride;
     *n = vc->size*2;
     return vc->data;
   } else if (MATRIX_P(ary)) {
-    Data_Get_Struct(ary, gsl_matrix, m);
+    TypedData_Get_Struct(ary, gsl_matrix, &gsl_matrix_data_type, m);
     *stride = 1;
     *n = m->size1*m->size2;
     return m->data;
@@ -88,7 +88,7 @@ gsl_vector* get_cvector(VALUE obj)
 {
   gsl_vector *v = NULL;
   if (rb_obj_is_kind_of(obj, cgsl_vector)) {
-    Data_Get_Struct(obj, gsl_vector,  v);
+    TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
 #ifdef HAVE_NARRAY_H
   } else if (NA_IsArray(obj)) {
     v = make_cvector_from_rarrays(obj);
@@ -144,7 +144,7 @@ gsl_vector* get_vector(VALUE ary)
     return make_cvector_from_narray(ary);
 #endif
   } else if (VECTOR_P(ary)) {
-    Data_Get_Struct(ary, gsl_vector, v);
+    TypedData_Get_Struct(ary, gsl_vector, &gsl_vector_data_type, v);
     return v;
   } else {
     rb_raise(rb_eTypeError,
@@ -276,11 +276,11 @@ gsl_matrix_int* make_matrix_int_clone(const gsl_matrix_int *m)
 VALUE make_matrix_clone2(VALUE vm)
 {
   gsl_matrix *m = NULL, *mnew = NULL;
-  Data_Get_Struct(vm, gsl_matrix, m);
+  TypedData_Get_Struct(vm, gsl_matrix, &gsl_matrix_data_type, m);
   mnew = gsl_matrix_alloc(m->size1, m->size2);
   if (mnew == NULL) rb_raise(rb_eNoMemError, "gsl_matrix_alloc failed");
   gsl_matrix_memcpy(mnew, m);
-  return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+  return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
 }
 
 gsl_matrix_complex* make_matrix_complex_clone(const gsl_matrix_complex *m)
@@ -411,7 +411,7 @@ VALUE rb_gsl_range2vector(VALUE obj)
   get_range_beg_en_n(obj, &beg, &en, &n, &step);
   v = gsl_vector_alloc(n);
   for (i = 0; i < (int) n; i++) gsl_vector_set(v, i, (double) (beg+i));
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
 }
 
 void get_range_int_beg_en_n(VALUE range, int *beg, int *en, size_t *n, int *step);
@@ -426,7 +426,7 @@ VALUE rb_gsl_range2vector_int(VALUE obj)
   get_range_int_beg_en_n(obj, &beg, &en, &n, &step);
   v = gsl_vector_int_alloc(n);
   for (i = 0; i < (int) n; i++) gsl_vector_int_set(v, i, beg+i);
-  return Data_Wrap_Struct(cgsl_vector_int, 0, gsl_vector_int_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_int, &gsl_vector_int_data_type, v);
 }
 
 gsl_vector_int_view* rb_gsl_vector_int_view_alloc(size_t n)

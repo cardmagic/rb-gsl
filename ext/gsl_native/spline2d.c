@@ -14,6 +14,16 @@
 extern VALUE cgsl_interp2d_accel;  /* defined in interp2d.c */
 static void rb_gsl_spline2d_free(rb_gsl_spline2d *fr);
 
+static const rb_data_type_t rb_gsl_spline2d_data_type = {
+    .wrap_struct_name = "GSL::Spline2d",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))rb_gsl_spline2d_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
 static VALUE rb_gsl_spline2d_alloc(int argc, VALUE *argv, VALUE self)
 {
   rb_gsl_spline2d *sp = NULL;
@@ -44,7 +54,7 @@ static VALUE rb_gsl_spline2d_alloc(int argc, VALUE *argv, VALUE self)
 
   if (xptr && yptr && zptr) gsl_spline2d_init(sp->s, xptr, yptr, zptr, sizex, sizey);
 
-  return Data_Wrap_Struct(self, 0, rb_gsl_spline2d_free, sp);
+  return TypedData_Wrap_Struct(self, &rb_gsl_spline2d_data_type, sp);
 }
 
 static void rb_gsl_spline2d_free(rb_gsl_spline2d *fr)
@@ -64,7 +74,7 @@ static VALUE rb_gsl_spline2d_init(VALUE self, VALUE xarr, VALUE yarr, VALUE zarr
   yptr = get_vector_ptr(yarr, &stride, &ysize);
   zptr = get_vector_ptr(zarr, &stride, &zsize);
 
-  Data_Get_Struct(self, rb_gsl_spline2d, rgs);
+  TypedData_Get_Struct(self, rb_gsl_spline2d, &rb_gsl_spline2d_data_type, rgs);
   gsl_spline2d_init(rgs->s, xptr, yptr, zptr, xsize, ysize);
 
   return self;
@@ -74,10 +84,10 @@ static VALUE rb_gsl_spline2d_accel(VALUE self)
 {
   rb_gsl_spline2d *rgs = NULL;
   VALUE ary = rb_ary_new();
-  Data_Get_Struct(self, rb_gsl_spline2d, rgs);
+  TypedData_Get_Struct(self, rb_gsl_spline2d, &rb_gsl_spline2d_data_type, rgs);
 
-  rb_ary_push(ary, Data_Wrap_Struct(cgsl_interp2d_accel, 0, NULL, rgs->xacc));
-  rb_ary_push(ary, Data_Wrap_Struct(cgsl_interp2d_accel, 0, NULL, rgs->yacc));
+  rb_ary_push(ary, TypedData_Wrap_Struct(cgsl_interp2d_accel, &gsl_interp_accel_data_type, rgs->xacc));
+  rb_ary_push(ary, TypedData_Wrap_Struct(cgsl_interp2d_accel, &gsl_interp_accel_data_type, rgs->yacc));
 
   return ary;
 }
@@ -102,7 +112,7 @@ static VALUE rb_gsl_spline2d_evaluate(VALUE self, VALUE xx, VALUE yy,
   double val;
   size_t i, j;
 
-  Data_Get_Struct(self, rb_gsl_spline2d, rgs);
+  TypedData_Get_Struct(self, rb_gsl_spline2d, &rb_gsl_spline2d_data_type, rgs);
 
   if (CLASS_OF(xx) == rb_cRange) xx = rb_gsl_range2ary(xx);
   if (CLASS_OF(yy) == rb_cRange) yy = rb_gsl_range2ary(yy);
@@ -135,8 +145,8 @@ static VALUE rb_gsl_spline2d_evaluate(VALUE self, VALUE xx, VALUE yy,
     return ary;
   default:
     if (VECTOR_P(xx)) {
-      Data_Get_Struct(xx, gsl_vector, vx);
-      Data_Get_Struct(yy, gsl_vector, vy);
+      TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, vx);
+      TypedData_Get_Struct(yy, gsl_vector, &gsl_vector_data_type, vy);
       if (vx->size != vy->size) {
         rb_raise(rb_eRuntimeError, "xx and yy must be same size Vectors.");
       }
@@ -147,10 +157,10 @@ static VALUE rb_gsl_spline2d_evaluate(VALUE self, VALUE xx, VALUE yy,
           rgs->xacc, rgs->yacc);
         gsl_vector_set(vnew, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
     } else if (MATRIX_P(xx)) {
-      Data_Get_Struct(xx, gsl_matrix, mx);
-      Data_Get_Struct(xx, gsl_matrix, my);
+      TypedData_Get_Struct(xx, gsl_matrix, &gsl_matrix_data_type, mx);
+      TypedData_Get_Struct(xx, gsl_matrix, &gsl_matrix_data_type, my);
 
       if ((mx->size1 != my->size1) || (mx->size2 != my->size2)) {
         rb_raise(rb_eRuntimeError, "xx and yy must be same sized Matrices.");
@@ -163,7 +173,7 @@ static VALUE rb_gsl_spline2d_evaluate(VALUE self, VALUE xx, VALUE yy,
           gsl_matrix_set(mnew, i, j, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mnew);
+      return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
     } else {
       rb_raise(rb_eTypeError, "wrong argument type %s", rb_class2name(CLASS_OF(xx)));
     }
@@ -179,7 +189,7 @@ static VALUE rb_gsl_spline2d_info(VALUE self)
 {
   rb_gsl_spline2d *p = NULL;
   char buf[256];
-  Data_Get_Struct(self, rb_gsl_spline2d, p);
+  TypedData_Get_Struct(self, rb_gsl_spline2d, &rb_gsl_spline2d_data_type, p);
   sprintf(buf, "Class:      %s\n", rb_class2name(CLASS_OF(self)));
   sprintf(buf, "%sSuperClass: %s\n", buf, rb_class2name(RCLASS_SUPER(CLASS_OF(self))));
   sprintf(buf, "%sType:       %s\n", buf, gsl_interp2d_name(&p->s->interp_object));

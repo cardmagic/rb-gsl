@@ -50,10 +50,10 @@ static int get_vector_complex1(int argc, VALUE *argv, VALUE obj, gsl_vector_comp
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)",
                             argc);
     CHECK_VECTOR_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_vector_complex, (*x));
+    TypedData_Get_Struct(argv[0], gsl_vector_complex, &gsl_vector_complex_data_type, (*x));
     break;
   default:
-    Data_Get_Struct(obj, gsl_vector_complex, (*x));
+    TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, (*x));
     flag = 1;
     break;
   }
@@ -97,15 +97,15 @@ static int get_vector_complex2(int argc, VALUE *argv, VALUE obj,
                             argc);
     CHECK_VECTOR_COMPLEX(argv[0]);
     CHECK_VECTOR_COMPLEX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_vector_complex, (*x));
-    Data_Get_Struct(argv[1], gsl_vector_complex, (*y));
+    TypedData_Get_Struct(argv[0], gsl_vector_complex, &gsl_vector_complex_data_type, (*x));
+    TypedData_Get_Struct(argv[1], gsl_vector_complex, &gsl_vector_complex_data_type, (*y));
     break;
   default:
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)",
                             argc);
     CHECK_VECTOR_COMPLEX(argv[0]);
-    Data_Get_Struct(obj, gsl_vector_complex, (*x));
-    Data_Get_Struct(argv[0], gsl_vector_complex, (*y));
+    TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, (*x));
+    TypedData_Get_Struct(argv[0], gsl_vector_complex, &gsl_vector_complex_data_type, (*y));
     flag = 1;
     break;
   }
@@ -132,7 +132,7 @@ static VALUE rb_gsl_blas_zdotu(int argc, VALUE *argv, VALUE obj)
   get_vector_complex2(argc, argv, obj, &x, &y);
   r = ALLOC(gsl_complex);
   /*status =*/ gsl_blas_zdotu(x, y, r);
-  return Data_Wrap_Struct(cgsl_complex, 0, free, r);
+  return TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, r);
 }
 
 static VALUE rb_gsl_blas_zdotc(int argc, VALUE *argv, VALUE obj)
@@ -144,7 +144,7 @@ static VALUE rb_gsl_blas_zdotc(int argc, VALUE *argv, VALUE obj)
   get_vector_complex2(argc, argv, obj, &x, &y);
   r = ALLOC(gsl_complex);
   /*status =*/ gsl_blas_zdotc(x, y, r);
-  return Data_Wrap_Struct(cgsl_complex, 0, free, r);
+  return TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, r);
 }
 
 static VALUE rb_gsl_blas_dnrm2(int argc, VALUE *argv, VALUE obj)
@@ -240,7 +240,7 @@ static VALUE rb_gsl_blas_daxpy(int argc, VALUE *argv, VALUE obj)
     a = NUM2DBL(argv[0]);
     break;
   default:
-    Data_Get_Struct(obj, gsl_vector, x);
+    TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, x);
     if (argc != 2) rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)",
                             argc);
     Need_Float(argv[0]);
@@ -267,20 +267,20 @@ static VALUE rb_gsl_blas_daxpy2(int argc, VALUE *argv, VALUE obj)
     a = NUM2DBL(argv[0]);
     break;
   default:
-    Data_Get_Struct(obj, gsl_vector, x);
+    TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, x);
     if (argc != 2) rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)",
                             argc);
     Need_Float(argv[0]);
     CHECK_VECTOR(argv[1]);
     //    a = RFLOAT(argv[0])->value;
     a = NUM2DBL(argv[0]);
-    Data_Get_Struct(argv[1], gsl_vector, y);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, y);
     break;
   }
   y2 = gsl_vector_alloc(y->size);
   gsl_vector_memcpy(y2, y);
   gsl_blas_daxpy(a, x, y2);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, y2);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, y2);
 }
 
 static VALUE rb_gsl_blas_zaxpy(int argc, VALUE *argv, VALUE obj)
@@ -292,17 +292,17 @@ static VALUE rb_gsl_blas_zaxpy(int argc, VALUE *argv, VALUE obj)
   case T_CLASS:
   case T_OBJECT:
     CHECK_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_complex, a);
+    TypedData_Get_Struct(argv[0], gsl_complex, &gsl_complex_data_type, a);
     get_vector_complex2(argc-1, argv+1, obj, &x, &y);
     break;
   default:
-    Data_Get_Struct(obj, gsl_vector_complex, x);
+    TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, x);
     if (argc != 2) rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)",
                             argc);
     CHECK_COMPLEX(argv[0]);
     CHECK_VECTOR_COMPLEX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_complex, a);
-    Data_Get_Struct(argv[1], gsl_vector_complex, y);
+    TypedData_Get_Struct(argv[0], gsl_complex, &gsl_complex_data_type, a);
+    TypedData_Get_Struct(argv[1], gsl_vector_complex, &gsl_vector_complex_data_type, y);
     break;
   }
 
@@ -320,22 +320,22 @@ static VALUE rb_gsl_blas_zaxpy2(int argc, VALUE *argv, VALUE obj)
   case T_OBJECT:
     get_vector_complex2(argc-1, argv+1, obj, &x, &y);
     CHECK_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_complex, a);
+    TypedData_Get_Struct(argv[0], gsl_complex, &gsl_complex_data_type, a);
     break;
   default:
-    Data_Get_Struct(obj, gsl_vector_complex, x);
+    TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, x);
     if (argc != 2) rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)",
                             argc);
     CHECK_COMPLEX(argv[0]);
     CHECK_VECTOR_COMPLEX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_complex, a);
-    Data_Get_Struct(argv[1], gsl_vector_complex, y);
+    TypedData_Get_Struct(argv[0], gsl_complex, &gsl_complex_data_type, a);
+    TypedData_Get_Struct(argv[1], gsl_vector_complex, &gsl_vector_complex_data_type, y);
     break;
   }
   y2 = gsl_vector_complex_alloc(y->size);
   gsl_vector_complex_memcpy(y2, y);
   gsl_blas_zaxpy(*a, x, y2);
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, y2);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, y2);
 }
 
 static VALUE rb_gsl_blas_dscal(int argc, VALUE *argv, VALUE obj)
@@ -352,7 +352,7 @@ static VALUE rb_gsl_blas_dscal(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[1]);
     //    a = RFLOAT(argv[0])->value;
     a = NUM2DBL(argv[0]);
-    Data_Get_Struct(argv[1], gsl_vector, x);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, x);
     gsl_blas_dscal(a, x);
     return argv[1];
     break;
@@ -362,7 +362,7 @@ static VALUE rb_gsl_blas_dscal(int argc, VALUE *argv, VALUE obj)
     Need_Float(argv[0]);
     //    a = RFLOAT(argv[0])->value;
     a = NUM2DBL(argv[0]);
-    Data_Get_Struct(obj, gsl_vector, x);
+    TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, x);
     gsl_blas_dscal(a, x);
     return obj;
     break;
@@ -383,10 +383,10 @@ static VALUE rb_gsl_blas_dscal2(int argc, VALUE *argv, VALUE obj)
     Need_Float(argv[0]);
     CHECK_VECTOR(argv[1]);
     a = NUM2DBL(argv[0]);
-    Data_Get_Struct(argv[1], gsl_vector, x);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, x);
     break;
   default:
-    Data_Get_Struct(obj, gsl_vector, x);
+    TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, x);
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)",
                             argc);
     Need_Float(argv[0]);
@@ -396,7 +396,7 @@ static VALUE rb_gsl_blas_dscal2(int argc, VALUE *argv, VALUE obj)
   xnew = gsl_vector_alloc(x->size);
   gsl_vector_memcpy(xnew, x);
   gsl_blas_dscal(a, xnew);
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, xnew);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, xnew);
 }
 
 static VALUE rb_gsl_blas_zdscal(int argc, VALUE *argv, VALUE obj)
@@ -413,12 +413,12 @@ static VALUE rb_gsl_blas_zdscal(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR_COMPLEX(argv[1]);
     //    a = RFLOAT(argv[0])->value;
     a = NUM2DBL(argv[0]);
-    Data_Get_Struct(argv[1], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[1], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     gsl_blas_zdscal(a, x);
     return argv[1];
     break;
   default:
-    Data_Get_Struct(obj, gsl_vector_complex, x);
+    TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, x);
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)",
                             argc);
     Need_Float(argv[0]);
@@ -442,10 +442,10 @@ static VALUE rb_gsl_blas_zdscal2(int argc, VALUE *argv, VALUE obj)
     Need_Float(argv[0]);
     CHECK_VECTOR_COMPLEX(argv[1]);
     a = NUM2DBL(argv[0]);
-    Data_Get_Struct(argv[1], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[1], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     break;
   default:
-    Data_Get_Struct(obj, gsl_vector_complex, x);
+    TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, x);
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)",
                             argc);
     Need_Float(argv[0]);
@@ -455,7 +455,7 @@ static VALUE rb_gsl_blas_zdscal2(int argc, VALUE *argv, VALUE obj)
   xnew = gsl_vector_complex_alloc(x->size);
   gsl_vector_complex_memcpy(xnew, x);
   gsl_blas_zdscal(a, xnew);
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, xnew);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, xnew);
 }
 
 static VALUE rb_gsl_blas_zscal(int argc, VALUE *argv, VALUE obj)
@@ -470,16 +470,16 @@ static VALUE rb_gsl_blas_zscal(int argc, VALUE *argv, VALUE obj)
     if (argc != 2) rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)",
                             argc);
     CHECK_VECTOR_COMPLEX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_complex, a);
-    Data_Get_Struct(argv[1], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[0], gsl_complex, &gsl_complex_data_type, a);
+    TypedData_Get_Struct(argv[1], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     gsl_blas_zscal(*a, x);
     return argv[1];
     break;
   default:
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)",
                             argc);
-    Data_Get_Struct(obj, gsl_vector_complex, x);
-    Data_Get_Struct(argv[0], gsl_complex, a);
+    TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, x);
+    TypedData_Get_Struct(argv[0], gsl_complex, &gsl_complex_data_type, a);
     gsl_blas_zscal(*a, x);
     return obj;
     break;
@@ -498,20 +498,20 @@ static VALUE rb_gsl_blas_zscal2(int argc, VALUE *argv, VALUE obj)
     if (argc != 2) rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)",
                             argc);
     CHECK_VECTOR_COMPLEX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_complex, a);
-    Data_Get_Struct(argv[1], gsl_vector_complex, x);
+    TypedData_Get_Struct(argv[0], gsl_complex, &gsl_complex_data_type, a);
+    TypedData_Get_Struct(argv[1], gsl_vector_complex, &gsl_vector_complex_data_type, x);
     break;
   default:
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)",
                             argc);
-    Data_Get_Struct(obj, gsl_vector_complex, x);
-    Data_Get_Struct(argv[0], gsl_complex, a);
+    TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, x);
+    TypedData_Get_Struct(argv[0], gsl_complex, &gsl_complex_data_type, a);
     break;
   }
   xnew = gsl_vector_complex_alloc(x->size);
   gsl_vector_complex_memcpy(xnew, x);
   gsl_blas_zscal(*a, xnew);
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, xnew);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, xnew);
 }
 
 static VALUE rb_gsl_blas_drot(VALUE obj, VALUE xx, VALUE yy, VALUE cc, VALUE ss)
@@ -522,8 +522,8 @@ static VALUE rb_gsl_blas_drot(VALUE obj, VALUE xx, VALUE yy, VALUE cc, VALUE ss)
   CHECK_VECTOR(yy);
   Need_Float(cc);
   Need_Float(ss);
-  Data_Get_Struct(xx, gsl_vector, x);
-  Data_Get_Struct(yy, gsl_vector, y);
+  TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, x);
+  TypedData_Get_Struct(yy, gsl_vector, &gsl_vector_data_type, y);
   c = NUM2DBL(cc);
   s = NUM2DBL(ss);
   gsl_blas_drot(x, y, c, s);
@@ -538,8 +538,8 @@ static VALUE rb_gsl_blas_drot2(VALUE obj, VALUE xx, VALUE yy, VALUE cc, VALUE ss
   CHECK_VECTOR(yy);
   Need_Float(cc);
   Need_Float(ss);
-  Data_Get_Struct(xx, gsl_vector, x);
-  Data_Get_Struct(yy, gsl_vector, y);
+  TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, x);
+  TypedData_Get_Struct(yy, gsl_vector, &gsl_vector_data_type, y);
   c = NUM2DBL(cc);
   s = NUM2DBL(ss);
   xnew = gsl_vector_alloc(x->size);
@@ -547,8 +547,8 @@ static VALUE rb_gsl_blas_drot2(VALUE obj, VALUE xx, VALUE yy, VALUE cc, VALUE ss
   gsl_vector_memcpy(xnew, x);
   gsl_vector_memcpy(ynew, y);
   gsl_blas_drot(xnew, ynew, c, s);
-  return rb_ary_new3(2, Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, xnew),
-                     Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, ynew));
+  return rb_ary_new3(2, TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, xnew),
+                     TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, ynew));
 }
 
 static VALUE rb_gsl_blas_drotm(VALUE obj, VALUE xx, VALUE yy, VALUE PP)
@@ -557,10 +557,10 @@ static VALUE rb_gsl_blas_drotm(VALUE obj, VALUE xx, VALUE yy, VALUE PP)
   int flag = 0, i;
   CHECK_VECTOR(xx);
   CHECK_VECTOR(yy);
-  Data_Get_Struct(xx, gsl_vector, x);
-  Data_Get_Struct(yy, gsl_vector, y);
+  TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, x);
+  TypedData_Get_Struct(yy, gsl_vector, &gsl_vector_data_type, y);
   if (rb_obj_is_kind_of(PP, cgsl_vector)) {
-    Data_Get_Struct(PP, gsl_vector, p);
+    TypedData_Get_Struct(PP, gsl_vector, &gsl_vector_data_type, p);
   } else {
     if (TYPE(PP) != T_ARRAY) rb_raise(rb_eTypeError, "wrong argument type %s (Array of Vector expected", rb_class2name(CLASS_OF(PP)));
     //    p = gsl_vector_alloc(RARRAY(PP)->len);
@@ -581,10 +581,10 @@ static VALUE rb_gsl_blas_drotm2(VALUE obj, VALUE xx, VALUE yy, VALUE PP)
   int flag = 0, i;
   CHECK_VECTOR(xx);
   CHECK_VECTOR(yy);
-  Data_Get_Struct(xx, gsl_vector, x);
-  Data_Get_Struct(yy, gsl_vector, y);
+  TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, x);
+  TypedData_Get_Struct(yy, gsl_vector, &gsl_vector_data_type, y);
   if (rb_obj_is_kind_of(PP, cgsl_vector)) {
-    Data_Get_Struct(PP, gsl_vector, p);
+    TypedData_Get_Struct(PP, gsl_vector, &gsl_vector_data_type, p);
   } else {
     if (TYPE(PP) != T_ARRAY) rb_raise(rb_eTypeError, "wrong argument type %s (Array of Vector expected", rb_class2name(CLASS_OF(PP)));
     //    p = gsl_vector_alloc(RARRAY(PP)->len);
@@ -600,8 +600,8 @@ static VALUE rb_gsl_blas_drotm2(VALUE obj, VALUE xx, VALUE yy, VALUE PP)
   gsl_vector_memcpy(ynew, y);
   gsl_blas_drotm(xnew, ynew, p->data);
   if (flag == 1) gsl_vector_free(p);
-  return rb_ary_new3(2, Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, xnew),
-                     Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, ynew));
+  return rb_ary_new3(2, TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, xnew),
+                     TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, ynew));
 }
 
 void Init_gsl_blas1(VALUE module)
