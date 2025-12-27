@@ -98,7 +98,7 @@ static VALUE rb_gsl_bspline_eval(int argc, VALUE *argv, VALUE obj)
     break;
   case 1:
     x = NUM2DBL(argv[0]);
-    B = gsl_vector_alloc(w->nbreak+w->k-2);
+    B = gsl_vector_alloc(gsl_bspline_ncontrol(w));
     vB = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, B);
     break;
   default:

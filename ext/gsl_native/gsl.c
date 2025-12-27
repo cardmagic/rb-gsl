@@ -27,8 +27,9 @@ static VALUE rb_gsl_object_inspect(VALUE obj)
   return rb_str_new2(buf);
 }
 
-static VALUE rb_gsl_call_rescue(VALUE obj)
+static VALUE rb_gsl_call_rescue(VALUE obj, VALUE exc)
 {
+  (void)exc;
   return Qfalse;
 }
 

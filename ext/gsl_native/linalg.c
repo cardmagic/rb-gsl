@@ -1696,8 +1696,7 @@ static VALUE rb_gsl_linalg_R_solve(int argc, VALUE *argv, VALUE obj)
 }
 
 /* singleton */
-static VALUE rb_gsl_linalg_QR_QRsolve(int argc, VALUE *argv, VALUE obj,
-                                      int flag)
+static VALUE rb_gsl_linalg_QR_QRsolve(int argc, VALUE *argv, VALUE obj)
 {
   return rb_gsl_linalg_QRLQ_QRLQsolve(argc, argv, obj, LINALG_QR_DECOMP);
 }
@@ -1718,8 +1717,7 @@ static VALUE rb_gsl_linalg_L_solve(int argc, VALUE *argv, VALUE obj)
 }
 
 /* singleton */
-static VALUE rb_gsl_linalg_LQ_LQsolve(int argc, VALUE *argv, VALUE obj,
-                                      int flag)
+static VALUE rb_gsl_linalg_LQ_LQsolve(int argc, VALUE *argv, VALUE obj)
 {
   return rb_gsl_linalg_QRLQ_QRLQsolve(argc, argv, obj, LINALG_LQ_DECOMP);
 }
@@ -4049,7 +4047,7 @@ void Init_gsl_linalg(VALUE module)
   rb_define_method(cgsl_matrix_QR, "Rsolve", rb_gsl_linalg_QR_Rsolve, -1);
 
   rb_define_module_function(mgsl_linalg_QR, "Rsvx", rb_gsl_linalg_QR_Rsvx, -1);
-  rb_define_method(cgsl_matrix_QR, "Rsvx", rb_gsl_linalg_QR_Rsvx, 1);
+  rb_define_method(cgsl_matrix_QR, "Rsvx", rb_gsl_linalg_QR_Rsvx, -1);
 
   rb_define_module_function(mgsl_linalg_QR, "unpack", rb_gsl_linalg_QR_unpack, -1);
   rb_define_method(cgsl_matrix_QR, "unpack", rb_gsl_linalg_QR_unpack, -1);
@@ -4250,7 +4248,7 @@ void Init_gsl_linalg(VALUE module)
   rb_define_method(cgsl_matrix_LQ, "Lsolve_T", rb_gsl_linalg_LQ_Lsolve, -1);
 
   rb_define_module_function(mgsl_linalg_LQ, "Lsvx_T", rb_gsl_linalg_LQ_Lsvx, -1);
-  rb_define_method(cgsl_matrix_LQ, "Lsvx_T", rb_gsl_linalg_LQ_Lsvx, 1);
+  rb_define_method(cgsl_matrix_LQ, "Lsvx_T", rb_gsl_linalg_LQ_Lsvx, -1);
 
   rb_define_module_function(mgsl_linalg_LQ, "unpack", rb_gsl_linalg_LQ_unpack, -1);
   rb_define_method(cgsl_matrix_LQ, "unpack", rb_gsl_linalg_LQ_unpack, -1);

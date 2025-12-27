@@ -11,3 +11,4 @@ extconf.h
 Gemfile.lock
 *~
 *.gem
+ext/gsl_native/gsl_config.h

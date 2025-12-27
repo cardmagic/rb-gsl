@@ -147,7 +147,7 @@ static VALUE rb_gsl_sf_mathieu_a(VALUE module, VALUE order, VALUE qq)
   return sf_mathieu_eval(order, qq, gsl_sf_mathieu_a);
 #endif
 }
-static VALUE rb_gsl_sf_mathieu_a_array(VALUE module, int argc, VALUE *argv)
+static VALUE rb_gsl_sf_mathieu_a_array(int argc, VALUE *argv, VALUE module)
 {
   return sf_mathieu_array_eval(argc, argv, gsl_sf_mathieu_a_array);
 }
@@ -167,7 +167,7 @@ static VALUE rb_gsl_sf_mathieu_b(VALUE module, VALUE order, VALUE qq)
   return sf_mathieu_eval(order, qq, gsl_sf_mathieu_b);
 #endif
 }
-static VALUE rb_gsl_sf_mathieu_b_array(VALUE module, int argc, VALUE *argv)
+static VALUE rb_gsl_sf_mathieu_b_array(int argc, VALUE *argv, VALUE module)
 {
   return sf_mathieu_array_eval(argc, argv, gsl_sf_mathieu_b_array);
 }
@@ -187,7 +187,7 @@ static VALUE rb_gsl_sf_mathieu_ce(VALUE module, VALUE order, VALUE qq, VALUE zz)
   return sf_mathieu_eval_int_double2(order, qq, zz, gsl_sf_mathieu_ce);
 #endif
 }
-static VALUE rb_gsl_sf_mathieu_ce_array(VALUE module, int argc, VALUE *argv)
+static VALUE rb_gsl_sf_mathieu_ce_array(int argc, VALUE *argv, VALUE module)
 {
   return sf_mathieu_array_eval2(argc, argv, gsl_sf_mathieu_ce_array);
 }
@@ -207,7 +207,7 @@ static VALUE rb_gsl_sf_mathieu_se(VALUE module, VALUE order, VALUE qq, VALUE zz)
   return sf_mathieu_eval_int_double2(order, qq, zz, gsl_sf_mathieu_se);
 #endif
 }
-static VALUE rb_gsl_sf_mathieu_se_array(VALUE module, int argc, VALUE *argv)
+static VALUE rb_gsl_sf_mathieu_se_array(int argc, VALUE *argv, VALUE module)
 {
   return sf_mathieu_array_eval2(argc, argv, gsl_sf_mathieu_se_array);
 }
@@ -229,7 +229,7 @@ static VALUE rb_gsl_sf_mathieu_Mc(VALUE module, VALUE n1, VALUE n2, VALUE q, VAL
   return sf_mathieu_eval2(n1, n2, q, x, gsl_sf_mathieu_Mc);
 #endif
 }
-static VALUE rb_gsl_sf_mathieu_Mc_array(VALUE module, int argc, VALUE *argv)
+static VALUE rb_gsl_sf_mathieu_Mc_array(int argc, VALUE *argv, VALUE module)
 {
   return sf_mathieu_array_eval3(argc, argv, gsl_sf_mathieu_Mc_array);
 }
@@ -249,7 +249,7 @@ static VALUE rb_gsl_sf_mathieu_Ms(VALUE module, VALUE n1, VALUE n2, VALUE q, VAL
   return sf_mathieu_eval2(n1, n2, q, x, gsl_sf_mathieu_Ms);
 #endif
 }
-static VALUE rb_gsl_sf_mathieu_Ms_array(VALUE module, int argc, VALUE *argv)
+static VALUE rb_gsl_sf_mathieu_Ms_array(int argc, VALUE *argv, VALUE module)
 {
   return sf_mathieu_array_eval3(argc, argv, gsl_sf_mathieu_Ms_array);
 }

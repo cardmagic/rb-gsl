@@ -1094,17 +1094,7 @@ static VALUE rb_gsl_matrix_complex_imag(VALUE obj)
   return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, m);
 }
 
-static void gsl_matrix_complex_conjugate(gsl_matrix_complex *cm)
-{
-  gsl_complex z;
-  size_t i, j;
-  for (i = 0; i < cm->size1; i++) {
-    for (j = 0; j < cm->size2; j++) {
-      z = gsl_matrix_complex_get(cm, i, j);
-      gsl_matrix_complex_set(cm, i, j, gsl_complex_conjugate(z));
-    }
-  }
-}
+/* gsl_matrix_complex_conjugate is now provided by GSL 2.8+ */
 
 static void gsl_matrix_complex_conjugate2(gsl_matrix_complex *cmnew, gsl_matrix_complex *cm)
 {
@@ -1424,7 +1414,7 @@ static VALUE rb_gsl_matrix_complex_arccoth(VALUE obj)
   return rb_gsl_matrix_complex_XXX_complex(obj, gsl_complex_arccoth);
 }
 
-static VALUE rb_gsl_matrix_complex_indgen_bang(int argc, VALUE *argv[], VALUE obj)
+static VALUE rb_gsl_matrix_complex_indgen_bang(int argc, VALUE *argv, VALUE obj)
 {
   gsl_matrix_complex *m = NULL;
   double start = 0, step = 1, x;
