@@ -45,11 +45,11 @@ static const gsl_multimin_fdfminimizer_type* get_fdfminimizer_type(VALUE t);
 static const gsl_multimin_fminimizer_type* get_fminimizer_type(VALUE t);
 static void define_const();
 
-static void gsl_multimin_function_free(gsl_multimin_function *f);
+void gsl_multimin_function_free(gsl_multimin_function *f);
 static double rb_gsl_multimin_function_f(const gsl_vector *x, void *p);
 static void set_function(int i, VALUE *argv, gsl_multimin_function *F);
 
-static void gsl_multimin_function_fdf_free(gsl_multimin_function_fdf *f);
+void gsl_multimin_function_fdf_free(gsl_multimin_function_fdf *f);
 
 double rb_gsl_multimin_function_fdf_f(const gsl_vector *x, void *p);
 void rb_gsl_multimin_function_fdf_df(const gsl_vector *x, void *p,
@@ -59,15 +59,15 @@ void rb_gsl_multimin_function_fdf_fdf(const gsl_vector *x, void *p,
 static void set_function_fdf(int i, VALUE *argv, gsl_multimin_function_fdf *F);
 
 /*** multimin_funcion ***/
-static void gsl_multimin_function_mark(gsl_multimin_function *F);
-static void gsl_multimin_function_fdf_mark(gsl_multimin_function_fdf *F);
+void gsl_multimin_function_mark(gsl_multimin_function *F);
+void gsl_multimin_function_fdf_mark(gsl_multimin_function_fdf *F);
 
-static void gsl_multimin_function_mark(gsl_multimin_function *F)
+void gsl_multimin_function_mark(gsl_multimin_function *F)
 {
   rb_gc_mark((VALUE) F->params);
 }
 
-static void gsl_multimin_function_fdf_mark(gsl_multimin_function_fdf *F)
+void gsl_multimin_function_fdf_mark(gsl_multimin_function_fdf *F)
 {
   rb_gc_mark((VALUE) F->params);
 }
@@ -101,7 +101,7 @@ static VALUE rb_gsl_multimin_function_new(int argc, VALUE *argv, VALUE klass)
   return Data_Wrap_Struct(klass, gsl_multimin_function_mark, gsl_multimin_function_free, F);
 }
 
-static void gsl_multimin_function_free(gsl_multimin_function *f)
+void gsl_multimin_function_free(gsl_multimin_function *f)
 {
   free((gsl_multimin_function *) f);
 }
@@ -109,7 +109,7 @@ static void gsl_multimin_function_free(gsl_multimin_function *f)
 static VALUE rb_gsl_multimin_function_n(VALUE obj)
 {
   gsl_multimin_function *F = NULL;
-  Data_Get_Struct(obj, gsl_multimin_function, F);
+  TypedData_Get_Struct(obj, gsl_multimin_function, &gsl_multimin_function_data_type, F);
   return INT2FIX(F->n);
 }
 
@@ -128,7 +128,7 @@ static VALUE rb_gsl_multimin_function_eval(VALUE obj, VALUE vx)
 {
   gsl_multimin_function *F = NULL;
   VALUE vp, proc, ary, result;
-  Data_Get_Struct(obj, gsl_multimin_function, F);
+  TypedData_Get_Struct(obj, gsl_multimin_function, &gsl_multimin_function_data_type, F);
   ary = (VALUE) F->params;
   proc = rb_ary_entry(ary, 0);
   vp = rb_ary_entry(ary, 1);
@@ -157,7 +157,7 @@ static VALUE rb_gsl_multimin_function_set_f(int argc, VALUE *argv, VALUE obj)
   gsl_multimin_function *F = NULL;
   VALUE ary;
   size_t i;
-  Data_Get_Struct(obj, gsl_multimin_function, F);
+  TypedData_Get_Struct(obj, gsl_multimin_function, &gsl_multimin_function_data_type, F);
   ary = (VALUE) F->params;
   if (rb_block_given_p()) rb_ary_store(ary, 0, rb_block_proc());
   switch (argc) {
@@ -180,7 +180,7 @@ static VALUE rb_gsl_multimin_function_set_params(int argc, VALUE *argv, VALUE ob
   VALUE ary, ary2;
   size_t i;
   if (argc == 0) return obj;
-  Data_Get_Struct(obj, gsl_multimin_function, F);
+  TypedData_Get_Struct(obj, gsl_multimin_function, &gsl_multimin_function_data_type, F);
   if (F->params == NULL) {
     ary = rb_ary_new2(4);
     /*    (VALUE) F->params = ary;*/
@@ -200,7 +200,7 @@ static VALUE rb_gsl_multimin_function_set_params(int argc, VALUE *argv, VALUE ob
 static VALUE rb_gsl_multimin_function_params(VALUE obj)
 {
   gsl_multimin_function *F = NULL;
-  Data_Get_Struct(obj, gsl_multimin_function, F);
+  TypedData_Get_Struct(obj, gsl_multimin_function, &gsl_multimin_function_data_type, F);
   return rb_ary_entry((VALUE) F->params, 1);
 }
 
@@ -223,7 +223,7 @@ static VALUE rb_gsl_multimin_function_fdf_new(int argc, VALUE *argv, VALUE klass
   return Data_Wrap_Struct(klass, gsl_multimin_function_fdf_mark, gsl_multimin_function_fdf_free, F);
 }
 
-static void gsl_multimin_function_fdf_free(gsl_multimin_function_fdf *f)
+void gsl_multimin_function_fdf_free(gsl_multimin_function_fdf *f)
 {
   free((gsl_multimin_function_fdf *) f);
 }
@@ -231,7 +231,7 @@ static void gsl_multimin_function_fdf_free(gsl_multimin_function_fdf *f)
 static VALUE rb_gsl_multimin_function_fdf_n(VALUE obj)
 {
   gsl_multimin_function_fdf *F = NULL;
-  Data_Get_Struct(obj, gsl_multimin_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_multimin_function_fdf, &gsl_multimin_function_fdf_data_type, F);
   return INT2FIX(F->n);
 }
 
@@ -289,7 +289,7 @@ static VALUE rb_gsl_multimin_function_fdf_set_procs(int argc, VALUE *argv, VALUE
 {
   VALUE ary;
   gsl_multimin_function_fdf *F = NULL;
-  Data_Get_Struct(obj, gsl_multimin_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_multimin_function_fdf, &gsl_multimin_function_fdf_data_type, F);
   if (F->params == NULL) {
     ary = rb_ary_new2(4);
     /*    (VALUE) F->params = ary;*/
@@ -340,7 +340,7 @@ static VALUE rb_gsl_multimin_function_fdf_set_params(int argc, VALUE *argv, VALU
   VALUE ary, ary2;
   size_t i;
   if (argc == 0) return obj;
-  Data_Get_Struct(obj, gsl_multimin_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_multimin_function_fdf, &gsl_multimin_function_fdf_data_type, F);
   if (F->params == NULL) {
     ary = rb_ary_new2(4);
     /*    (VALUE) F->params = ary;*/
@@ -361,7 +361,7 @@ static VALUE rb_gsl_multimin_function_fdf_set_params(int argc, VALUE *argv, VALU
 static VALUE rb_gsl_multimin_function_fdf_set(int argc, VALUE *argv, VALUE obj)
 {
   gsl_multimin_function_fdf *F = NULL;
-  Data_Get_Struct(obj, gsl_multimin_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_multimin_function_fdf, &gsl_multimin_function_fdf_data_type, F);
   set_function_fdf(argc, argv, F);
   return obj;
 }
@@ -417,7 +417,7 @@ void rb_gsl_multimin_function_fdf_fdf(const gsl_vector *x, void *p,
 static VALUE rb_gsl_multimin_function_fdf_params(VALUE obj)
 {
   gsl_multimin_function_fdf *F = NULL;
-  Data_Get_Struct(obj, gsl_multimin_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_multimin_function_fdf, &gsl_multimin_function_fdf_data_type, F);
   return rb_ary_entry((VALUE) F->params, 3);
 }
 
@@ -503,7 +503,7 @@ static VALUE rb_gsl_fdfminimizer_set(VALUE obj, VALUE ff, VALUE xx, VALUE ss,
   CHECK_MULTIMIN_FUNCTION_FDF(ff);
   Need_Float(ss); Need_Float(tt);
   TypedData_Get_Struct(obj, gsl_multimin_fdfminimizer, &gsl_multimin_fdfminimizer_data_type, gmf);
-  Data_Get_Struct(ff, gsl_multimin_function_fdf, F);
+  TypedData_Get_Struct(ff, gsl_multimin_function_fdf, &gsl_multimin_function_fdf_data_type, F);
   Data_Get_Vector(xx, x);
   stepsize = NUM2DBL(ss);
   tol = NUM2DBL(tt);
@@ -634,7 +634,7 @@ static VALUE rb_gsl_fminimizer_set(VALUE obj, VALUE ff, VALUE xx, VALUE ss)
   gsl_vector *x = NULL, *s = NULL;
   CHECK_MULTIMIN_FUNCTION(ff);
   TypedData_Get_Struct(obj, gsl_multimin_fminimizer, &gsl_multimin_fminimizer_data_type, gmf);
-  Data_Get_Struct(ff, gsl_multimin_function, F);
+  TypedData_Get_Struct(ff, gsl_multimin_function, &gsl_multimin_function_data_type, F);
   Data_Get_Vector(xx, x);
   Data_Get_Vector(ss, s);
   return INT2FIX(gsl_multimin_fminimizer_set(gmf, F, x, s));

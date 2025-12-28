@@ -306,7 +306,7 @@ static VALUE rb_gsl_function_graph(int argc, VALUE *argv, VALUE obj)
 
 
 static double rb_gsl_function_fdf_f(double x, void *p);
-static void gsl_function_fdf_free(gsl_function_fdf *f);
+void gsl_function_fdf_free(gsl_function_fdf *f);
 
 static double rb_gsl_function_fdf_f(double x, void *p);
 static double rb_gsl_function_fdf_df(double x, void *p);
@@ -334,7 +334,7 @@ static void setfunc(int i, VALUE *argv, gsl_function_fdf *F)
   }
 }
 
-static void gsl_function_fdf_mark(gsl_function_fdf *f);
+void gsl_function_fdf_mark(gsl_function_fdf *f);
 static VALUE rb_gsl_function_fdf_new(int argc, VALUE *argv, VALUE klass)
 {
   gsl_function_fdf *F = NULL;
@@ -353,12 +353,12 @@ static VALUE rb_gsl_function_fdf_new(int argc, VALUE *argv, VALUE klass)
   return Data_Wrap_Struct(klass, gsl_function_fdf_mark, gsl_function_fdf_free, F);
 }
 
-static void gsl_function_fdf_free(gsl_function_fdf *f)
+void gsl_function_fdf_free(gsl_function_fdf *f)
 {
   free((gsl_function_fdf *) f);
 }
 
-static void gsl_function_fdf_mark(gsl_function_fdf *f)
+void gsl_function_fdf_mark(gsl_function_fdf *f)
 {
   rb_gc_mark((VALUE) f->params);
 }
@@ -368,7 +368,7 @@ static VALUE rb_gsl_function_fdf_set(int argc, VALUE *argv, VALUE obj)
   gsl_function_fdf *F = NULL;
   VALUE ary;
   size_t i;
-  Data_Get_Struct(obj, gsl_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_function_fdf, &gsl_function_fdf_data_type, F);
   ary = (VALUE) F->params;
   rb_ary_store(ary, 2, Qnil);
   rb_ary_store(ary, 3, Qnil);
@@ -381,7 +381,7 @@ static VALUE rb_gsl_function_fdf_set_f(VALUE obj, VALUE procf)
   gsl_function_fdf *F = NULL;
   VALUE ary;
   CHECK_PROC(procf);
-  Data_Get_Struct(obj, gsl_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_function_fdf, &gsl_function_fdf_data_type, F);
   if (F->params == NULL) {
     ary = rb_ary_new2(4);
     /*    (VALUE) F->params = ary;*/
@@ -398,7 +398,7 @@ static VALUE rb_gsl_function_fdf_set_df(VALUE obj, VALUE procdf)
   gsl_function_fdf *F = NULL;
   VALUE ary;
   CHECK_PROC(procdf);
-  Data_Get_Struct(obj, gsl_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_function_fdf, &gsl_function_fdf_data_type, F);
   if (F->params == NULL) {
     ary = rb_ary_new2(4);
     /*    (VALUE) F->params = ary;*/
@@ -415,7 +415,7 @@ static VALUE rb_gsl_function_fdf_set_fdf(VALUE obj, VALUE procfdf)
   gsl_function_fdf *F = NULL;
   VALUE ary;
   CHECK_PROC(procfdf);
-  Data_Get_Struct(obj, gsl_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_function_fdf, &gsl_function_fdf_data_type, F);
   if (F->params == NULL) {
     ary = rb_ary_new2(4);
     /*    (VALUE) F->params = ary;*/
@@ -432,7 +432,7 @@ static VALUE rb_gsl_function_fdf_set_params(int argc, VALUE *argv, VALUE obj)
   gsl_function_fdf *F = NULL;
   VALUE ary, ary2;
   size_t i;
-  Data_Get_Struct(obj, gsl_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_function_fdf, &gsl_function_fdf_data_type, F);
   ary = (VALUE) F->params;
   if (argc == 0) return obj;
   if (argc == 1) {

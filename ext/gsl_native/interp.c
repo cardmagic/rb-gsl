@@ -14,7 +14,7 @@
 VALUE cgsl_interp_accel; /* this is used also in spline.c */
 extern VALUE cgsl_vector, cgsl_matrix;
 
-static void rb_gsl_interp_free(rb_gsl_interp *sp);
+void rb_gsl_interp_free(rb_gsl_interp *sp);
 
 static VALUE rb_gsl_interp_new(int argc, VALUE *argv, VALUE klass)
 {
@@ -51,7 +51,7 @@ static VALUE rb_gsl_interp_new(int argc, VALUE *argv, VALUE klass)
   return Data_Wrap_Struct(klass, 0, rb_gsl_interp_free, sp);
 }
 
-static void rb_gsl_interp_free(rb_gsl_interp *sp)
+void rb_gsl_interp_free(rb_gsl_interp *sp)
 {
   gsl_interp_free(sp->p);
   gsl_interp_accel_free(sp->a);
@@ -65,7 +65,7 @@ static VALUE rb_gsl_interp_init(VALUE obj, VALUE xxa, VALUE yya)
   size_t size, stride;
   ptrx = get_vector_ptr(xxa, &stride, &size);
   ptry = get_vector_ptr(yya, &stride, &size);
-  Data_Get_Struct(obj, rb_gsl_interp, rgi);
+  TypedData_Get_Struct(obj, rb_gsl_interp, &rb_gsl_interp_data_type, rgi);
   gsl_interp_init(rgi->p, ptrx, ptry, size);
   return obj;
 }
@@ -73,14 +73,14 @@ static VALUE rb_gsl_interp_init(VALUE obj, VALUE xxa, VALUE yya)
 static VALUE rb_gsl_interp_name(VALUE obj)
 {
   rb_gsl_interp *rgi = NULL;
-  Data_Get_Struct(obj, rb_gsl_interp, rgi);
+  TypedData_Get_Struct(obj, rb_gsl_interp, &rb_gsl_interp_data_type, rgi);
   return rb_str_new2(gsl_interp_name(rgi->p));
 }
 
 static VALUE rb_gsl_interp_min_size(VALUE obj)
 {
   rb_gsl_interp *rgi = NULL;
-  Data_Get_Struct(obj, rb_gsl_interp, rgi);
+  TypedData_Get_Struct(obj, rb_gsl_interp, &rb_gsl_interp_data_type, rgi);
   return INT2FIX(gsl_interp_min_size(rgi->p));
 }
 
@@ -140,7 +140,7 @@ static VALUE rb_gsl_interp_bsearch(int argc, VALUE *argv, VALUE obj)
 static VALUE rb_gsl_interp_accel(VALUE obj)
 {
   rb_gsl_interp *rgi = NULL;
-  Data_Get_Struct(obj, rb_gsl_interp, rgi);
+  TypedData_Get_Struct(obj, rb_gsl_interp, &rb_gsl_interp_data_type, rgi);
   return TypedData_Wrap_Struct(cgsl_interp_accel, &gsl_interp_accel_data_type, rgi->a);
 }
 
@@ -150,7 +150,7 @@ static VALUE rb_gsl_interp_find(VALUE obj, VALUE vv, VALUE xx)
   double *ptr = NULL, x;
   size_t size, stride;
   Need_Float(xx);
-  Data_Get_Struct(obj, rb_gsl_interp, rgi);
+  TypedData_Get_Struct(obj, rb_gsl_interp, &rb_gsl_interp_data_type, rgi);
   ptr = get_vector_ptr(vv, &stride, &size);
   x = NUM2DBL(xx);
   return INT2FIX(gsl_interp_accel_find(rgi->a, ptr, size, x));
@@ -181,7 +181,7 @@ static VALUE rb_gsl_interp_evaluate(VALUE obj, VALUE xxa, VALUE yya, VALUE xx,
   VALUE ary, x;
   double val;
   size_t n, i, j, size, stridex, stridey;
-  Data_Get_Struct(obj, rb_gsl_interp, rgi);
+  TypedData_Get_Struct(obj, rb_gsl_interp, &rb_gsl_interp_data_type, rgi);
   ptrx = get_vector_ptr(xxa, &stridex, &size);
   if (size != rgi->p->size ) {
     rb_raise(rb_eTypeError, "size mismatch (xa:%d != %d)",  (int) size, (int) rgi->p->size);
@@ -277,7 +277,7 @@ static VALUE rb_gsl_interp_eval_e(VALUE obj, VALUE xxa, VALUE yya, VALUE xx)
   double x, y;
   int status;
   Need_Float(xx);
-  Data_Get_Struct(obj, rb_gsl_interp, rgi);
+  TypedData_Get_Struct(obj, rb_gsl_interp, &rb_gsl_interp_data_type, rgi);
   ptr1 = get_vector_ptr(xxa, &stridex, &size);
   ptr2 = get_vector_ptr(yya, &stridey, &size);
   x = NUM2DBL(xx);
@@ -306,7 +306,7 @@ static VALUE rb_gsl_interp_eval_deriv_e(VALUE obj, VALUE xxa, VALUE yya, VALUE x
   double x, y;
   int status;
   Need_Float(xx);
-  Data_Get_Struct(obj, rb_gsl_interp, rgi);
+  TypedData_Get_Struct(obj, rb_gsl_interp, &rb_gsl_interp_data_type, rgi);
   ptr1 = get_vector_ptr(xxa, &stridex, &size);
   ptr2 = get_vector_ptr(yya, &stridey, &size);
   x = NUM2DBL(xx);
@@ -334,7 +334,7 @@ static VALUE rb_gsl_interp_eval_deriv2_e(VALUE obj, VALUE xxa, VALUE yya, VALUE 
   size_t size, stridex, stridey;
   int status;
   Need_Float(xx);
-  Data_Get_Struct(obj, rb_gsl_interp, rgi);
+  TypedData_Get_Struct(obj, rb_gsl_interp, &rb_gsl_interp_data_type, rgi);
   ptr1 = get_vector_ptr(xxa, &stridex, &size);
   ptr2 = get_vector_ptr(yya, &stridey, &size);
   x = NUM2DBL(xx);
@@ -358,7 +358,7 @@ static VALUE rb_gsl_interp_eval_integ(VALUE obj, VALUE xxa, VALUE yya,
   size_t size, stridex, stridey;
   double a, b;
   Need_Float(aa); Need_Float(bb);
-  Data_Get_Struct(obj, rb_gsl_interp, rgi);
+  TypedData_Get_Struct(obj, rb_gsl_interp, &rb_gsl_interp_data_type, rgi);
   ptr1 = get_vector_ptr(xxa, &stridex, &size);
   ptr2 = get_vector_ptr(yya, &stridey, &size);
   a = NUM2DBL(aa);
@@ -376,7 +376,7 @@ static VALUE rb_gsl_interp_eval_integ_e(VALUE obj, VALUE xxa, VALUE yya,
   int status;
   Need_Float(aa);
   Need_Float(bb);
-  Data_Get_Struct(obj, rb_gsl_interp, rgi);
+  TypedData_Get_Struct(obj, rb_gsl_interp, &rb_gsl_interp_data_type, rgi);
   ptr1 = get_vector_ptr(xxa, &stridex, &size);
   ptr2 = get_vector_ptr(yya, &stridey, &size);
   a = NUM2DBL(aa);
@@ -442,7 +442,7 @@ static VALUE rb_gsl_interp_info(VALUE obj)
 {
   rb_gsl_interp *p;
   char buf[256];
-  Data_Get_Struct(obj, rb_gsl_interp, p);
+  TypedData_Get_Struct(obj, rb_gsl_interp, &rb_gsl_interp_data_type, p);
   sprintf(buf, "Class:      %s\n", rb_class2name(CLASS_OF(obj)));
   sprintf(buf, "%sSuperClass: %s\n", buf, rb_class2name(RCLASS_SUPER(CLASS_OF(obj))));
   sprintf(buf, "%sType:       %s\n", buf, gsl_interp_name(p->p));

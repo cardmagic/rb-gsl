@@ -51,6 +51,7 @@
 #include "include/rb_gsl_types.h"
 #include "include/rb_gsl_function.h"
 #include "include/rb_gsl_array.h"
+#include "include/rb_gsl_interp.h"
 
 /* ============================================================
  * Vector Types
@@ -927,6 +928,108 @@ const rb_data_type_t gsl_function_data_type = {
     .function = {
         .dmark = (void (*)(void *))gsl_function_mark,
         .dfree = (void (*)(void *))gsl_function_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+/* Forward declarations for function_fdf mark/free */
+extern void gsl_function_fdf_mark(gsl_function_fdf *f);
+extern void gsl_function_fdf_free(gsl_function_fdf *f);
+
+const rb_data_type_t gsl_function_fdf_data_type = {
+    .wrap_struct_name = "GSL::Function_fdf",
+    .function = {
+        .dmark = (void (*)(void *))gsl_function_fdf_mark,
+        .dfree = (void (*)(void *))gsl_function_fdf_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+/* ============================================================
+ * Multi-root Function Types
+ * ============================================================ */
+
+/* Forward declarations for multiroot function mark/free */
+extern void gsl_multiroot_function_mark(gsl_multiroot_function *f);
+extern void gsl_multiroot_function_free(gsl_multiroot_function *f);
+extern void gsl_multiroot_function_fdf_mark(gsl_multiroot_function_fdf *f);
+extern void gsl_multiroot_function_fdf_free(gsl_multiroot_function_fdf *f);
+
+const rb_data_type_t gsl_multiroot_function_data_type = {
+    .wrap_struct_name = "GSL::MultiRoot::Function",
+    .function = {
+        .dmark = (void (*)(void *))gsl_multiroot_function_mark,
+        .dfree = (void (*)(void *))gsl_multiroot_function_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+const rb_data_type_t gsl_multiroot_function_fdf_data_type = {
+    .wrap_struct_name = "GSL::MultiRoot::Function_fdf",
+    .function = {
+        .dmark = (void (*)(void *))gsl_multiroot_function_fdf_mark,
+        .dfree = (void (*)(void *))gsl_multiroot_function_fdf_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+/* ============================================================
+ * Multi-min Function Types
+ * ============================================================ */
+
+/* Forward declarations for multimin function mark/free */
+extern void gsl_multimin_function_mark(gsl_multimin_function *F);
+extern void gsl_multimin_function_free(gsl_multimin_function *F);
+extern void gsl_multimin_function_fdf_mark(gsl_multimin_function_fdf *F);
+extern void gsl_multimin_function_fdf_free(gsl_multimin_function_fdf *F);
+
+const rb_data_type_t gsl_multimin_function_data_type = {
+    .wrap_struct_name = "GSL::MultiMin::Function",
+    .function = {
+        .dmark = (void (*)(void *))gsl_multimin_function_mark,
+        .dfree = (void (*)(void *))gsl_multimin_function_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+const rb_data_type_t gsl_multimin_function_fdf_data_type = {
+    .wrap_struct_name = "GSL::MultiMin::Function_fdf",
+    .function = {
+        .dmark = (void (*)(void *))gsl_multimin_function_fdf_mark,
+        .dfree = (void (*)(void *))gsl_multimin_function_fdf_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+/* ============================================================
+ * Interpolation Wrapper Types
+ * ============================================================ */
+
+/* Forward declarations for interp/spline free */
+extern void rb_gsl_interp_free(rb_gsl_interp *sp);
+extern void rb_gsl_spline_free(rb_gsl_spline *sp);
+
+const rb_data_type_t rb_gsl_interp_data_type = {
+    .wrap_struct_name = "GSL::Interp",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))rb_gsl_interp_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+const rb_data_type_t rb_gsl_spline_data_type = {
+    .wrap_struct_name = "GSL::Spline",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))rb_gsl_spline_free,
         .dsize = NULL,
     },
     .flags = RUBY_TYPED_FREE_IMMEDIATELY,

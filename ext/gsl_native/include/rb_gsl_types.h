@@ -136,6 +136,19 @@ extern const rb_data_type_t gsl_dht_data_type;
 
 /* GSL Function Types */
 extern const rb_data_type_t gsl_function_data_type;
+extern const rb_data_type_t gsl_function_fdf_data_type;
+
+/* Multi-root Function Types */
+extern const rb_data_type_t gsl_multiroot_function_data_type;
+extern const rb_data_type_t gsl_multiroot_function_fdf_data_type;
+
+/* Multi-min Function Types */
+extern const rb_data_type_t gsl_multimin_function_data_type;
+extern const rb_data_type_t gsl_multimin_function_fdf_data_type;
+
+/* Interpolation Wrapper Types */
+extern const rb_data_type_t rb_gsl_interp_data_type;
+extern const rb_data_type_t rb_gsl_spline_data_type;
 
 /* Special Function Result Types */
 extern const rb_data_type_t gsl_sf_result_data_type;

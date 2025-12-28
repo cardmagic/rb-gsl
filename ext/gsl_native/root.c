@@ -242,7 +242,7 @@ static VALUE rb_gsl_fdfsolver_set(VALUE obj, VALUE func, VALUE r)
   double root;
   CHECK_FUNCTION_FDF(func);
   TypedData_Get_Struct(obj, gsl_root_fdfsolver, &gsl_root_fdfsolver_data_type, s);
-  Data_Get_Struct(func, gsl_function_fdf, fff);
+  TypedData_Get_Struct(func, gsl_function_fdf, &gsl_function_fdf_data_type, fff);
   root = NUM2DBL(r);
   gsl_root_fdfsolver_set(s, fff, root);
   return obj;
@@ -290,7 +290,7 @@ static VALUE rb_gsl_fdfsolver_solve(int argc, VALUE *argv, VALUE obj)
     break;
   }
   CHECK_FUNCTION_FDF(argv[0]);
-  Data_Get_Struct(argv[0], gsl_function_fdf, F);
+  TypedData_Get_Struct(argv[0], gsl_function_fdf, &gsl_function_fdf_data_type, F);
   TypedData_Get_Struct(obj, gsl_root_fdfsolver, &gsl_root_fdfsolver_data_type, s);
   gsl_root_fdfsolver_set(s, F, x0);
   do {

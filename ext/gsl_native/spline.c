@@ -13,7 +13,7 @@
 
 extern VALUE cgsl_interp_accel;  /* defined in interp.c */
 
-static void rb_gsl_spline_free(rb_gsl_spline *sp);
+void rb_gsl_spline_free(rb_gsl_spline *sp);
 
 static VALUE rb_gsl_spline_new(int argc, VALUE *argv, VALUE klass)
 {
@@ -50,7 +50,7 @@ static VALUE rb_gsl_spline_new(int argc, VALUE *argv, VALUE klass)
   return Data_Wrap_Struct(klass, 0, rb_gsl_spline_free, sp);
 }
 
-static void rb_gsl_spline_free(rb_gsl_spline *sp)
+void rb_gsl_spline_free(rb_gsl_spline *sp)
 {
   gsl_spline_free(sp->s);
   gsl_interp_accel_free(sp->a);
@@ -65,7 +65,7 @@ static VALUE rb_gsl_spline_init(VALUE obj, VALUE xxa, VALUE yya)
   size_t i, size;
   int flagx = 0, flagy = 0;
   double *ptr1 = NULL, *ptr2 = NULL;
-  Data_Get_Struct(obj, rb_gsl_spline, sp);
+  TypedData_Get_Struct(obj, rb_gsl_spline, &rb_gsl_spline_data_type, sp);
   p = sp->s;
   if (TYPE(xxa) == T_ARRAY) {
     //    size = RARRAY(xxa)->len;
@@ -129,7 +129,7 @@ static VALUE rb_gsl_spline_init(VALUE obj, VALUE xxa, VALUE yya)
 static VALUE rb_gsl_spline_accel(VALUE obj)
 {
   rb_gsl_spline *rgi = NULL;
-  Data_Get_Struct(obj, rb_gsl_spline, rgi);
+  TypedData_Get_Struct(obj, rb_gsl_spline, &rb_gsl_spline_data_type, rgi);
   return TypedData_Wrap_Struct(cgsl_interp_accel, &gsl_interp_accel_data_type, rgi->a);
 }
 
@@ -143,7 +143,7 @@ static VALUE rb_gsl_spline_evaluate(VALUE obj, VALUE xx,
   VALUE ary, x;
   double val;
   size_t n, i, j;
-  Data_Get_Struct(obj, rb_gsl_spline, rgs);
+  TypedData_Get_Struct(obj, rb_gsl_spline, &rb_gsl_spline_data_type, rgs);
   if (CLASS_OF(xx) == rb_cRange) xx = rb_gsl_range2ary(xx);
   switch (TYPE(xx)) {
   case T_FIXNUM:  case T_BIGNUM:  case T_FLOAT:
@@ -243,7 +243,7 @@ static VALUE rb_gsl_spline_eval_integ(VALUE obj, VALUE aa, VALUE bb)
   double a, b;
   Need_Float(aa);
   Need_Float(bb);
-  Data_Get_Struct(obj, rb_gsl_spline, sp);
+  TypedData_Get_Struct(obj, rb_gsl_spline, &rb_gsl_spline_data_type, sp);
   s = sp->s;
   acc = sp->a;
   a = NUM2DBL(aa);
@@ -256,7 +256,7 @@ static VALUE rb_gsl_spline_find(VALUE obj, VALUE vv, VALUE xx)
   rb_gsl_spline *sp = NULL;
   double *ptr = NULL, x;
   size_t size, stride;
-  Data_Get_Struct(obj, rb_gsl_spline, sp);
+  TypedData_Get_Struct(obj, rb_gsl_spline, &rb_gsl_spline_data_type, sp);
   ptr = get_vector_ptr(vv, &stride, &size);
   //  x = RFLOAT(xx)->value;
   x = NUM2DBL(xx);
@@ -268,7 +268,7 @@ static VALUE rb_gsl_spline_eval_e(VALUE obj, VALUE xx)
   rb_gsl_spline *rgs = NULL;
   double val;
   int status;
-  Data_Get_Struct(obj, rb_gsl_spline, rgs);
+  TypedData_Get_Struct(obj, rb_gsl_spline, &rb_gsl_spline_data_type, rgs);
   Need_Float(xx);
   status = gsl_spline_eval_e(rgs->s, NUM2DBL(xx), rgs->a, &val);
   switch (status) {
@@ -287,7 +287,7 @@ static VALUE rb_gsl_spline_eval_deriv_e(VALUE obj, VALUE xx)
   rb_gsl_spline *rgs = NULL;
   double val;
   int status;
-  Data_Get_Struct(obj, rb_gsl_spline, rgs);
+  TypedData_Get_Struct(obj, rb_gsl_spline, &rb_gsl_spline_data_type, rgs);
   Need_Float(xx);
   status = gsl_spline_eval_deriv_e(rgs->s, NUM2DBL(xx), rgs->a, &val);
   switch (status) {
@@ -306,7 +306,7 @@ static VALUE rb_gsl_spline_eval_deriv2_e(VALUE obj, VALUE xx)
   rb_gsl_spline *rgs = NULL;
   double val;
   int status;
-  Data_Get_Struct(obj, rb_gsl_spline, rgs);
+  TypedData_Get_Struct(obj, rb_gsl_spline, &rb_gsl_spline_data_type, rgs);
   Need_Float(xx);
   status = gsl_spline_eval_deriv2_e(rgs->s, NUM2DBL(xx), rgs->a, &val);
   switch (status) {
@@ -325,7 +325,7 @@ static VALUE rb_gsl_spline_eval_integ_e(VALUE obj, VALUE a, VALUE b)
   rb_gsl_spline *rgs = NULL;
   double val;
   int status;
-  Data_Get_Struct(obj, rb_gsl_spline, rgs);
+  TypedData_Get_Struct(obj, rb_gsl_spline, &rb_gsl_spline_data_type, rgs);
   Need_Float(a); Need_Float(b);
   status = gsl_spline_eval_integ_e(rgs->s, NUM2DBL(a), NUM2DBL(b), rgs->a, &val);
   switch (status) {
@@ -343,7 +343,7 @@ static VALUE rb_gsl_spline_info(VALUE obj)
 {
   rb_gsl_spline *p = NULL;
   char buf[256];
-  Data_Get_Struct(obj, rb_gsl_spline, p);
+  TypedData_Get_Struct(obj, rb_gsl_spline, &rb_gsl_spline_data_type, p);
   sprintf(buf, "Class:      %s\n", rb_class2name(CLASS_OF(obj)));
   sprintf(buf, "%sSuperClass: %s\n", buf, rb_class2name(RCLASS_SUPER(CLASS_OF(obj))));
   sprintf(buf, "%sType:       %s\n", buf, gsl_interp_name(p->s->interp));
@@ -356,13 +356,13 @@ static VALUE rb_gsl_spline_info(VALUE obj)
 static VALUE rb_gsl_spline_name(VALUE obj)
 {
   rb_gsl_spline *p = NULL;
-  Data_Get_Struct(obj, rb_gsl_spline, p);
+  TypedData_Get_Struct(obj, rb_gsl_spline, &rb_gsl_spline_data_type, p);
   return rb_str_new2(gsl_spline_name(p->s));
 }
 static VALUE rb_gsl_spline_min_size(VALUE obj)
 {
   rb_gsl_spline *sp = NULL;
-  Data_Get_Struct(obj, rb_gsl_spline, sp);
+  TypedData_Get_Struct(obj, rb_gsl_spline, &rb_gsl_spline_data_type, sp);
   return UINT2NUM(gsl_spline_min_size(sp->s));
 }
 

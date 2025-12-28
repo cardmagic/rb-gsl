@@ -256,6 +256,16 @@ class TypedDataMigrator
     'gsl_dht' => 'gsl_dht_data_type',
     # GSL Function
     'gsl_function' => 'gsl_function_data_type',
+    'gsl_function_fdf' => 'gsl_function_fdf_data_type',
+    # Multi-root Functions
+    'gsl_multiroot_function' => 'gsl_multiroot_function_data_type',
+    'gsl_multiroot_function_fdf' => 'gsl_multiroot_function_fdf_data_type',
+    # Multi-min Functions
+    'gsl_multimin_function' => 'gsl_multimin_function_data_type',
+    'gsl_multimin_function_fdf' => 'gsl_multimin_function_fdf_data_type',
+    # Interpolation wrappers
+    'rb_gsl_interp' => 'rb_gsl_interp_data_type',
+    'rb_gsl_spline' => 'rb_gsl_spline_data_type',
     # Special Functions
     'gsl_sf_result' => 'gsl_sf_result_data_type',
     'gsl_sf_result_e10' => 'gsl_sf_result_e10_data_type',

@@ -42,13 +42,13 @@ enum {
   GSL_MULTIROOT_FSOLVER_BROYDEN,
 };
 
-static void gsl_multiroot_function_fdf_mark(gsl_multiroot_function_fdf *f);
-static void gsl_multiroot_function_mark(gsl_multiroot_function *f);
-static void gsl_multiroot_function_free(gsl_multiroot_function *f);
+void gsl_multiroot_function_fdf_mark(gsl_multiroot_function_fdf *f);
+void gsl_multiroot_function_mark(gsl_multiroot_function *f);
+void gsl_multiroot_function_free(gsl_multiroot_function *f);
 static int rb_gsl_multiroot_function_f(const gsl_vector *x, void *p, gsl_vector *f);
 static void set_function(int i, VALUE *argv, gsl_multiroot_function *F);
 
-static void gsl_multiroot_function_fdf_free(gsl_multiroot_function_fdf *f);
+void gsl_multiroot_function_fdf_free(gsl_multiroot_function_fdf *f);
 static int rb_gsl_multiroot_function_fdf_f(const gsl_vector *x, void *p,
                                            gsl_vector *f);
 static int rb_gsl_multiroot_function_fdf_df(const gsl_vector *x, void *p,
@@ -89,12 +89,12 @@ static VALUE rb_gsl_multiroot_function_new(int argc, VALUE *argv, VALUE klass)
   return Data_Wrap_Struct(klass, gsl_multiroot_function_mark, gsl_multiroot_function_free, F);
 }
 
-static void gsl_multiroot_function_free(gsl_multiroot_function *f)
+void gsl_multiroot_function_free(gsl_multiroot_function *f)
 {
   free((gsl_multiroot_function *) f);
 }
 
-static void gsl_multiroot_function_mark(gsl_multiroot_function *f)
+void gsl_multiroot_function_mark(gsl_multiroot_function *f)
 {
   size_t i;
   rb_gc_mark((VALUE) f->params);
@@ -121,7 +121,7 @@ static VALUE rb_gsl_multiroot_function_eval(VALUE obj, VALUE vx)
   gsl_multiroot_function *F = NULL;
   gsl_vector *f = NULL;
   VALUE vp, proc, vf, ary;
-  Data_Get_Struct(obj, gsl_multiroot_function, F);
+  TypedData_Get_Struct(obj, gsl_multiroot_function, &gsl_multiroot_function_data_type, F);
   ary = (VALUE) F->params;
   f = gsl_vector_alloc(F->n);
   vf = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, f);
@@ -152,7 +152,7 @@ static VALUE rb_gsl_multiroot_function_set_f(int argc, VALUE *argv, VALUE obj)
   gsl_multiroot_function *F = NULL;
   VALUE ary;
   size_t i;
-  Data_Get_Struct(obj, gsl_multiroot_function, F);
+  TypedData_Get_Struct(obj, gsl_multiroot_function, &gsl_multiroot_function_data_type, F);
   ary = (VALUE) F->params;
   if (rb_block_given_p()) rb_ary_store(ary, 0, rb_block_proc());
   switch (argc) {
@@ -176,7 +176,7 @@ static VALUE rb_gsl_multiroot_function_set_params(int argc, VALUE *argv, VALUE o
   VALUE ary, ary2;
   size_t i;
   if (argc == 0) return obj;
-  Data_Get_Struct(obj, gsl_multiroot_function, F);
+  TypedData_Get_Struct(obj, gsl_multiroot_function, &gsl_multiroot_function_data_type, F);
   if (F->params == NULL) {
     ary = rb_ary_new2(4);
     /*    (VALUE) F->params = ary;*/
@@ -196,14 +196,14 @@ static VALUE rb_gsl_multiroot_function_set_params(int argc, VALUE *argv, VALUE o
 static VALUE rb_gsl_multiroot_function_params(VALUE obj)
 {
   gsl_multiroot_function *F = NULL;
-  Data_Get_Struct(obj, gsl_multiroot_function, F);
+  TypedData_Get_Struct(obj, gsl_multiroot_function, &gsl_multiroot_function_data_type, F);
   return rb_ary_entry((VALUE) F->params, 1);
 }
 
 static VALUE rb_gsl_multiroot_function_n(VALUE obj)
 {
   gsl_multiroot_function *F = NULL;
-  Data_Get_Struct(obj, gsl_multiroot_function, F);
+  TypedData_Get_Struct(obj, gsl_multiroot_function, &gsl_multiroot_function_data_type, F);
   return INT2FIX(F->n);
 }
 
@@ -226,12 +226,12 @@ static VALUE rb_gsl_multiroot_function_fdf_new(int argc, VALUE *argv, VALUE klas
   return Data_Wrap_Struct(klass, gsl_multiroot_function_fdf_mark, gsl_multiroot_function_fdf_free, F);
 }
 
-static void gsl_multiroot_function_fdf_free(gsl_multiroot_function_fdf *f)
+void gsl_multiroot_function_fdf_free(gsl_multiroot_function_fdf *f)
 {
   free((gsl_multiroot_function_fdf *) f);
 }
 
-static void gsl_multiroot_function_fdf_mark(gsl_multiroot_function_fdf *f)
+void gsl_multiroot_function_fdf_mark(gsl_multiroot_function_fdf *f)
 {
   size_t i;
   rb_gc_mark((VALUE) f->params);
@@ -311,7 +311,7 @@ static VALUE rb_gsl_multiroot_function_fdf_set_params(int argc, VALUE *argv, VAL
   VALUE ary, ary2;
   size_t i;
   if (argc == 0) return obj;
-  Data_Get_Struct(obj, gsl_multiroot_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_multiroot_function_fdf, &gsl_multiroot_function_fdf_data_type, F);
   if (F->params == NULL) {
     ary = rb_ary_new2(4);
     /*    (VALUE) F->params = ary;*/
@@ -331,7 +331,7 @@ static VALUE rb_gsl_multiroot_function_fdf_set_params(int argc, VALUE *argv, VAL
 static VALUE rb_gsl_multiroot_function_fdf_set(int argc, VALUE *argv, VALUE obj)
 {
   gsl_multiroot_function_fdf *F = NULL;
-  Data_Get_Struct(obj, gsl_multiroot_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_multiroot_function_fdf, &gsl_multiroot_function_fdf_data_type, F);
   set_function_fdf(argc, argv, F);
   return obj;
 }
@@ -397,14 +397,14 @@ static int rb_gsl_multiroot_function_fdf_fdf(const gsl_vector *x, void *p,
 static VALUE rb_gsl_multiroot_function_fdf_params(VALUE obj)
 {
   gsl_multiroot_function_fdf *F = NULL;
-  Data_Get_Struct(obj, gsl_multiroot_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_multiroot_function_fdf, &gsl_multiroot_function_fdf_data_type, F);
   return rb_ary_entry((VALUE) F->params, 3);
 }
 
 static VALUE rb_gsl_multiroot_function_fdf_n(VALUE obj)
 {
   gsl_multiroot_function_fdf *F = NULL;
-  Data_Get_Struct(obj, gsl_multiroot_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_multiroot_function_fdf, &gsl_multiroot_function_fdf_data_type, F);
   return INT2FIX(F->n);
 }
 
@@ -501,7 +501,7 @@ static VALUE rb_gsl_multiroot_fsolver_set(VALUE obj, VALUE vf, VALUE vx)
   int flag = 0, status;
   CHECK_MULTIROOT_FUNCTION(vf);
   TypedData_Get_Struct(obj, gsl_multiroot_fsolver, &gsl_multiroot_fsolver_data_type, s);
-  Data_Get_Struct(vf, gsl_multiroot_function, f);
+  TypedData_Get_Struct(vf, gsl_multiroot_function, &gsl_multiroot_function_data_type, f);
   if (TYPE(vx) == T_ARRAY) {
     x = gsl_vector_alloc(s->f->size);
     cvector_set_from_rarray(x, vx);
@@ -592,7 +592,7 @@ static VALUE rb_gsl_multiroot_fdfsolver_set(VALUE obj, VALUE vf, VALUE vx)
   int flag = 0, status;
   CHECK_MULTIROOT_FUNCTION_FDF(vf);
   TypedData_Get_Struct(obj, gsl_multiroot_fdfsolver, &gsl_multiroot_fdfsolver_data_type, s);
-  Data_Get_Struct(vf, gsl_multiroot_function_fdf, f);
+  TypedData_Get_Struct(vf, gsl_multiroot_function_fdf, &gsl_multiroot_function_fdf_data_type, f);
   if (TYPE(vx) == T_ARRAY) {
     x = gsl_vector_alloc(s->f->size);
     cvector_set_from_rarray(x, vx);
@@ -746,13 +746,13 @@ static VALUE rb_gsl_multiroot_fdjacobian(int argc, VALUE *argv, VALUE obj)
   if (argc != 4 && argc != 5)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 4 or 5)", argc);
   if (rb_obj_is_kind_of(argv[0], cgsl_multiroot_function_fdf)) {
-    Data_Get_Struct(argv[0], gsl_multiroot_function_fdf, fdf);
+    TypedData_Get_Struct(argv[0], gsl_multiroot_function_fdf, &gsl_multiroot_function_fdf_data_type, fdf);
     func.f = fdf->f;
     func.n = fdf->n;
     func.params = fdf->params;
     F = &func;
   } else if (rb_obj_is_kind_of(argv[0], cgsl_multiroot_function)) {
-    Data_Get_Struct(argv[0], gsl_multiroot_function, F);
+    TypedData_Get_Struct(argv[0], gsl_multiroot_function, &gsl_multiroot_function_data_type, F);
   } else {
     rb_raise(rb_eArgError, "wrong argument type %s (MultiRoot::Function or MultiRoot::Function_fdf expected)", rb_class2name(CLASS_OF(argv[0])));
   }
@@ -775,21 +775,21 @@ static VALUE rb_gsl_multiroot_fdjacobian(int argc, VALUE *argv, VALUE obj)
 static VALUE rb_gsl_multiroot_function_get_f(VALUE obj)
 {
   gsl_multiroot_function_fdf *F = NULL;
-  Data_Get_Struct(obj, gsl_multiroot_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_multiroot_function_fdf, &gsl_multiroot_function_fdf_data_type, F);
   return rb_ary_entry(((VALUE) F->params), 0);
 }
 
 static VALUE rb_gsl_multiroot_function_fdf_get_f(VALUE obj)
 {
   gsl_multiroot_function_fdf *F = NULL;
-  Data_Get_Struct(obj, gsl_multiroot_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_multiroot_function_fdf, &gsl_multiroot_function_fdf_data_type, F);
   return rb_ary_entry(((VALUE) F->params), 0);
 }
 
 static VALUE rb_gsl_multiroot_function_fdf_get_df(VALUE obj)
 {
   gsl_multiroot_function_fdf *F = NULL;
-  Data_Get_Struct(obj, gsl_multiroot_function_fdf, F);
+  TypedData_Get_Struct(obj, gsl_multiroot_function_fdf, &gsl_multiroot_function_fdf_data_type, F);
   return rb_ary_entry(((VALUE) F->params), 1);
 }
 
@@ -805,7 +805,7 @@ static VALUE rb_gsl_multiroot_function_solve(int argc, VALUE *argv, VALUE obj)
   gsl_multiroot_fsolver *s = NULL;
   int status;
   if (argc < 1) rb_raise(rb_eArgError, "too few arguments (%d for >= 1)", argc);
-  Data_Get_Struct(obj, gsl_multiroot_function, F);
+  TypedData_Get_Struct(obj, gsl_multiroot_function, &gsl_multiroot_function_data_type, F);
   switch (argc) {
   case 4:
   case 3:
