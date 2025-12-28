@@ -85,6 +85,12 @@ end
 
 $CFLAGS += ' -Wall -Iinclude'
 
+# Enable gcov coverage when GCOV=1
+if ENV['GCOV']
+  $CFLAGS += ' --coverage -fprofile-arcs -ftest-coverage'
+  $LDFLAGS += ' --coverage'
+end
+
 gsl_config_arg(:version) { |version, check|
   gsl_def(:GSL_VERSION, check[version])
 

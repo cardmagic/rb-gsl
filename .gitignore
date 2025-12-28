@@ -16,3 +16,6 @@ Gemfile.lock
 *.gem
 ext/gsl_native/gsl_config.h
 coverage/
+coverage-c/
+*.gcda
+*.gcno
