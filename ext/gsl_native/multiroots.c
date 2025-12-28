@@ -609,7 +609,7 @@ static VALUE rb_gsl_multiroot_fdfsolver_set(VALUE obj, VALUE vf, VALUE vx)
     Data_Get_Vector(vx, x);
   }
   status = gsl_multiroot_fdfsolver_set(s, f, x);
-  if (flag == 0) gsl_vector_free(x);
+  if (flag == 1) gsl_vector_free(x);
   return INT2FIX(status);
 }
 
@@ -664,7 +664,8 @@ static VALUE rb_gsl_multiroot_fdfsolver_J(VALUE obj)
 {
   gsl_multiroot_fdfsolver *s = NULL;
   TypedData_Get_Struct(obj, gsl_multiroot_fdfsolver, &gsl_multiroot_fdfsolver_data_type, s);
-  return TypedData_Wrap_Struct(cgsl_matrix_view_ro, &gsl_matrix_view_data_type, s->J);
+  /* Use tmp type: matrix is owned by solver and must not be freed by Ruby */
+  return TypedData_Wrap_Struct(cgsl_matrix_view_ro, &gsl_matrix_tmp_data_type, s->J);
 }
 
 static VALUE rb_gsl_multiroot_fdfsolver_test_delta(VALUE obj, VALUE ea, VALUE er)
