@@ -64,11 +64,11 @@ static VALUE rb_gsl_linalg_LU_decomp_narray(int argc, VALUE *argv, VALUE obj,
   gsl_linalg_LU_decomp(&mv.matrix, p, &signum);
   if (flag == LINALG_DECOMP) {
     return rb_ary_new3(3, m,
-                       Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, p),
+                       TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, p),
                        INT2FIX(signum));
   } else {
     return rb_ary_new3(3, argv[0],
-                       Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, p),
+                       TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, p),
                        INT2FIX(signum));
   }
 }
@@ -105,11 +105,11 @@ static VALUE rb_gsl_linalg_LU_decomp_nmatrix(int argc, VALUE *argv, VALUE obj,
   gsl_linalg_LU_decomp(&mv.matrix, p, &signum);
   if (flag == LINALG_DECOMP) {
     return rb_ary_new3(3, m,
-                       Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, p),
+                       TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, p),
                        INT2FIX(signum));
   } else {
     return rb_ary_new3(3, argv[0],
-                       Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, p),
+                       TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, p),
                        INT2FIX(signum));
   }
 }
@@ -148,27 +148,27 @@ static VALUE rb_gsl_linalg_LU_decomposition(int argc, VALUE *argv, VALUE obj, in
     break;
   }
   CHECK_MATRIX(omatrix);
-  Data_Get_Struct(omatrix, gsl_matrix, mtmp);
+  TypedData_Get_Struct(omatrix, gsl_matrix, &gsl_matrix_data_type, mtmp);
   if (flag == LINALG_DECOMP_BANG) {
     m = mtmp;
     RBGSL_SET_CLASS(omatrix, cgsl_matrix_LU);
     objm = omatrix;
   } else {
     m = make_matrix_clone(mtmp);
-    objm = Data_Wrap_Struct(cgsl_matrix_LU, 0, gsl_matrix_free, m);
+    objm = TypedData_Wrap_Struct(cgsl_matrix_LU, &gsl_matrix_data_type, m);
   }
   size = m->size1;
   switch (argc-itmp) {
   case 0:
     p = gsl_permutation_alloc(size);
     gsl_linalg_LU_decomp(m, p, &signum);
-    objp = Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, p);
+    objp = TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, p);
     if (flag == LINALG_DECOMP_BANG) return rb_ary_new3(2, objp, INT2FIX(signum));
     else return rb_ary_new3(3, objm, objp, INT2FIX(signum));
     break;
   case 1:
     CHECK_PERMUTATION(argv[itmp]);
-    Data_Get_Struct(argv[itmp], gsl_permutation, p);
+    TypedData_Get_Struct(argv[itmp], gsl_permutation, &gsl_permutation_data_type, p);
     gsl_linalg_LU_decomp(m, p, &signum);
     if (flag == LINALG_DECOMP_BANG) return INT2FIX(signum);
     else return rb_ary_new3(2, objm, INT2FIX(signum));
@@ -198,7 +198,7 @@ static gsl_matrix* get_matrix(VALUE obj, VALUE klass, int *flagm)
 {
   gsl_matrix *mtmp = NULL, *m = NULL;
   if (CLASS_OF(obj) == klass) {
-    Data_Get_Struct(obj, gsl_matrix, m);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
     *flagm = 0;
 #ifdef HAVE_NARRAY_H
   } else if (NA_IsNArray(obj)) {
@@ -211,7 +211,7 @@ static gsl_matrix* get_matrix(VALUE obj, VALUE klass, int *flagm)
 #endif
   } else {
     CHECK_MATRIX(obj);
-    Data_Get_Struct(obj, gsl_matrix, mtmp);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, mtmp);
     m = make_matrix_clone(mtmp);
     *flagm = 1;
   }
@@ -222,7 +222,7 @@ static gsl_permutation* get_permutation(VALUE obj, size_t size, int *flagp)
 {
   gsl_permutation *p = NULL;
   if (CLASS_OF(obj) == cgsl_permutation) {
-    Data_Get_Struct(obj, gsl_permutation, p);
+    TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
     *flagp = 0;
   } else {
     p = gsl_permutation_alloc(size);
@@ -248,7 +248,7 @@ static gsl_vector* get_vector2(VALUE obj, int *flagv)
 #endif
   } else {
     CHECK_VECTOR(obj);
-    Data_Get_Struct(obj, gsl_vector, v);
+    TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
     *flagv = 0;
   }
   return v;
@@ -271,7 +271,7 @@ static VALUE rb_gsl_linalg_LU_solve_narray(int argc, VALUE *argv, VALUE obj)
   GetNArray(argv[0], na);
   mv = gsl_matrix_view_array((double*) na->ptr, na->shape[1], na->shape[0]);
   CHECK_PERMUTATION(argv[1]);
-  Data_Get_Struct(argv[1], gsl_permutation, p);
+  TypedData_Get_Struct(argv[1], gsl_permutation, &gsl_permutation_data_type, p);
   GetNArray(argv[2], b);
   bv = gsl_vector_view_array((double*) b->ptr, b->total);
   if (argc == 3) {
@@ -307,7 +307,7 @@ static VALUE rb_gsl_linalg_LU_solve_nmatrix(int argc, VALUE *argv, VALUE obj)
   mv = gsl_matrix_view_array((double*) input_nmatrix->elements, 
     input_nmatrix->shape[0], input_nmatrix->shape[1]);
   CHECK_PERMUTATION(argv[1]);
-  Data_Get_Struct(argv[1], gsl_permutation, p);
+  TypedData_Get_Struct(argv[1], gsl_permutation, &gsl_permutation_data_type, p);
   b = NM_STORAGE_DENSE(argv[2]);
   bv = gsl_vector_view_array((double*) b->elements, b->shape[0]);
   if (argc == 3) {
@@ -368,7 +368,7 @@ VALUE rb_gsl_linalg_LU_solve(int argc, VALUE *argv, VALUE obj)
     flagx = 1;
   } else {
     CHECK_VECTOR(argv[itmp]);
-    Data_Get_Struct(argv[itmp], gsl_vector, x);
+    TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, x);
   }
   if (flagm == 1) gsl_linalg_LU_decomp(m, p, &signum);
   gsl_linalg_LU_solve(m, p, b, x);
@@ -393,7 +393,7 @@ static VALUE rb_gsl_linalg_LU_svx_narray(int argc, VALUE *argv, VALUE obj)
   GetNArray(argv[0], na);
   mv = gsl_matrix_view_array((double*) na->ptr, na->shape[1], na->shape[0]);
   CHECK_PERMUTATION(argv[1]);
-  Data_Get_Struct(argv[1], gsl_permutation, p);
+  TypedData_Get_Struct(argv[1], gsl_permutation, &gsl_permutation_data_type, p);
   GetNArray(argv[2], b);
   bv = gsl_vector_view_array((double*) b->ptr, b->total);
   gsl_linalg_LU_svx(&mv.matrix, p, &bv.vector);
@@ -453,20 +453,20 @@ static VALUE rb_gsl_linalg_LU_refine(VALUE obj, VALUE vm,
   VALUE vr;
   CHECK_MATRIX(vm);  CHECK_MATRIX(lu);
   CHECK_PERMUTATION(pp);  CHECK_VECTOR(xx);
-  Data_Get_Struct(vm, gsl_matrix, m);
-  Data_Get_Struct(lu, gsl_matrix, mlu);
-  Data_Get_Struct(pp, gsl_permutation, p);
+  TypedData_Get_Struct(vm, gsl_matrix, &gsl_matrix_data_type, m);
+  TypedData_Get_Struct(lu, gsl_matrix, &gsl_matrix_data_type, mlu);
+  TypedData_Get_Struct(pp, gsl_permutation, &gsl_permutation_data_type, p);
   if (TYPE(bb) == T_ARRAY) {
     b = make_cvector_from_rarray(bb);
     flagb = 1;
   } else {
     CHECK_VECTOR(bb);
-    Data_Get_Struct(bb, gsl_vector, b);
+    TypedData_Get_Struct(bb, gsl_vector, &gsl_vector_data_type, b);
   }
-  Data_Get_Struct(xx, gsl_vector, x);
+  TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, x);
   r = gsl_vector_alloc(m->size1);
   gsl_linalg_LU_refine(m, mlu, p, b, x, r);
-  vr = Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, r);
+  vr = TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, r);
   if (flagb == 1) gsl_vector_free(b);
   return rb_ary_new3(2, xx, vr);
 }
@@ -487,7 +487,7 @@ static VALUE rb_gsl_linalg_LU_invert_narray(int argc, VALUE *argv, VALUE obj)
   mv1 = gsl_matrix_view_array((double*)na->ptr, na->shape[1], na->shape[0]);
   mv2 = gsl_matrix_view_array(NA_PTR_TYPE(inv, double*), na->shape[1], na->shape[0]);
   CHECK_PERMUTATION(argv[1]);
-  Data_Get_Struct(argv[1], gsl_permutation, p);
+  TypedData_Get_Struct(argv[1], gsl_permutation, &gsl_permutation_data_type, p);
   gsl_linalg_LU_invert(&mv1.matrix, p, &mv2.matrix);
   return inv;
 }
@@ -549,7 +549,7 @@ static VALUE rb_gsl_linalg_LU_invert_nmatrix(int argc, VALUE *argv, VALUE obj)
   mv2 = gsl_matrix_view_array((double*)NM_DENSE_ELEMENTS(inv), 
     lu_nmatrix->shape[0], lu_nmatrix->shape[1]);
 
-  Data_Get_Struct(argv[1], gsl_permutation, p);
+  TypedData_Get_Struct(argv[1], gsl_permutation, &gsl_permutation_data_type, p);
   gsl_linalg_LU_invert(&mv1.matrix, p, &mv2.matrix);
   return inv;
 }
@@ -596,7 +596,7 @@ static VALUE rb_gsl_linalg_LU_invert(int argc, VALUE *argv, VALUE obj)
   }
   if (argc-1 == itmp) {
     CHECK_MATRIX(argv[itmp]);
-    Data_Get_Struct(argv[itmp], gsl_matrix, inverse);
+    TypedData_Get_Struct(argv[itmp], gsl_matrix, &gsl_matrix_data_type, inverse);
   } else {
     inverse = gsl_matrix_alloc(size, size);
   }
@@ -604,7 +604,7 @@ static VALUE rb_gsl_linalg_LU_invert(int argc, VALUE *argv, VALUE obj)
   if (flagm == 1) gsl_matrix_free(m);
   if (flagp == 1) gsl_permutation_free(p);
   if (argc-1 == itmp) return argv[itmp];
-  else return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, inverse);
+  else return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, inverse);
 }
 
 #ifdef HAVE_NMATRIX_H
@@ -799,13 +799,13 @@ static VALUE rb_gsl_linalg_QR_LQ_decomposition(int argc, VALUE *argv, VALUE obj,
     break;
   }
   CHECK_MATRIX(omatrix);
-  Data_Get_Struct(omatrix, gsl_matrix, mtmp);
+  TypedData_Get_Struct(omatrix, gsl_matrix, &gsl_matrix_data_type, mtmp);
 
   switch (flag) {
   case LINALG_QR_DECOMP:
     fdecomp = &gsl_linalg_QR_decomp;
     m = make_matrix_clone(mtmp);
-    mdecomp = Data_Wrap_Struct(cgsl_matrix_QR, 0, gsl_matrix_free, m);
+    mdecomp = TypedData_Wrap_Struct(cgsl_matrix_QR, &gsl_matrix_data_type, m);
     break;
   case LINALG_QR_DECOMP_BANG:
     fdecomp = &gsl_linalg_QR_decomp;
@@ -816,7 +816,7 @@ static VALUE rb_gsl_linalg_QR_LQ_decomposition(int argc, VALUE *argv, VALUE obj,
   case LINALG_LQ_DECOMP:
     fdecomp = &gsl_linalg_LQ_decomp;
     m = make_matrix_clone(mtmp);
-    mdecomp = Data_Wrap_Struct(cgsl_matrix_LQ, 0, gsl_matrix_free, m);
+    mdecomp = TypedData_Wrap_Struct(cgsl_matrix_LQ, &gsl_matrix_data_type, m);
     break;
   case LINALG_LQ_DECOMP_BANG:
     fdecomp = &gsl_linalg_LQ_decomp;
@@ -834,7 +834,7 @@ static VALUE rb_gsl_linalg_QR_LQ_decomposition(int argc, VALUE *argv, VALUE obj,
     break;
   case 1:
     CHECK_VECTOR(argv[itmp]);
-    Data_Get_Struct(argv[itmp], gsl_vector, tau);
+    TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, tau);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments");
@@ -845,7 +845,7 @@ static VALUE rb_gsl_linalg_QR_LQ_decomposition(int argc, VALUE *argv, VALUE obj,
   case LINALG_QR_DECOMP:
   case LINALG_LQ_DECOMP:
     if (argc == itmp) {
-      vtau = Data_Wrap_Struct(cgsl_vector_tau, 0, gsl_vector_free, tau);
+      vtau = TypedData_Wrap_Struct(cgsl_vector_tau, &gsl_vector_data_type, tau);
       return rb_ary_new3(2, mdecomp, vtau);
     } else {
       RBGSL_SET_CLASS(argv[itmp], cgsl_vector_tau);
@@ -855,7 +855,7 @@ static VALUE rb_gsl_linalg_QR_LQ_decomposition(int argc, VALUE *argv, VALUE obj,
   case LINALG_QR_DECOMP_BANG:
   case LINALG_LQ_DECOMP_BANG:
     if (argc == itmp) {
-      return Data_Wrap_Struct(cgsl_vector_tau, 0, gsl_vector_free, tau);
+      return TypedData_Wrap_Struct(cgsl_vector_tau, &gsl_vector_data_type, tau);
     } else {
       RBGSL_SET_CLASS(argv[itmp], cgsl_vector_tau);
       return INT2FIX(status);
@@ -1048,12 +1048,12 @@ static VALUE rb_gsl_linalg_QR_LQ_solve(int argc, VALUE *argv, VALUE obj, int fla
   if (flagm == 0) { /* the matrix given is already decomped */
     if (CLASS_OF(argv[itmp]) != cgsl_vector_tau)
       rb_raise(rb_eArgError, "tau vector must be given");
-    Data_Get_Struct(argv[itmp], gsl_vector, tau);
+    TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, tau);
     flagt = 0;
     itmp++;
   } else {
     if (CLASS_OF(argv[itmp]) == cgsl_vector_tau) {
-      Data_Get_Struct(argv[itmp], gsl_vector, tau);
+      TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, tau);
       flagt = 0;
       itmp++;
     } else {
@@ -1068,7 +1068,7 @@ static VALUE rb_gsl_linalg_QR_LQ_solve(int argc, VALUE *argv, VALUE obj, int fla
     flagx = 1;
   } else {
     CHECK_VECTOR(argv[itmp]);
-    Data_Get_Struct(argv[itmp], gsl_vector, x);
+    TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, x);
     flagx = 0;
   }
   if (flagm == 1) (*fdecomp)(m, tau);
@@ -1076,7 +1076,7 @@ static VALUE rb_gsl_linalg_QR_LQ_solve(int argc, VALUE *argv, VALUE obj, int fla
   if (flagm == 1) gsl_matrix_free(m);
   if (flagt == 1) gsl_vector_free(tau);
   if (flagb == 1) gsl_vector_free(b);
-  if (flagx == 1) return Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, x);
+  if (flagx == 1) return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, x);
   else return argv[itmp];
 }
 
@@ -1123,12 +1123,12 @@ static VALUE rb_gsl_linalg_QR_LQ_svx(int argc, VALUE *argv, VALUE obj, int flag)
   if (flagm == 0) { /* the matrix given is already decomped */
     if (CLASS_OF(argv[itmp]) != cgsl_vector_tau)
       rb_raise(rb_eArgError, "tau vector must be given");
-    Data_Get_Struct(argv[itmp], gsl_vector, tau);
+    TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, tau);
     flagt = 0;
     itmp++;
   } else {
     if (CLASS_OF(argv[itmp]) == cgsl_vector_tau) {
-      Data_Get_Struct(argv[itmp], gsl_vector, tau);
+      TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, tau);
       flagt = 0;
       itmp++;
     } else {
@@ -1188,12 +1188,12 @@ static VALUE rb_gsl_linalg_QR_LQ_lssolve(int argc, VALUE *argv, VALUE obj, int f
   if (flagm == 0) { /* the matrix given is already decomped */
     if (CLASS_OF(argv[itmp]) != cgsl_vector_tau)
       rb_raise(rb_eArgError, "tau vector must be given");
-    Data_Get_Struct(argv[itmp], gsl_vector, tau);
+    TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, tau);
     flagt = 0;
     itmp++;
   } else {
     if (CLASS_OF(argv[itmp]) == cgsl_vector_tau) {
-      Data_Get_Struct(argv[itmp], gsl_vector, tau);
+      TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, tau);
       flagt = 0;
       itmp++;
     } else {
@@ -1206,13 +1206,13 @@ static VALUE rb_gsl_linalg_QR_LQ_lssolve(int argc, VALUE *argv, VALUE obj, int f
   switch (argc - itmp) {
   case 2:
     CHECK_VECTOR(argv[argc-2]);
-    Data_Get_Struct(argv[argc-2], gsl_vector, x);
+    TypedData_Get_Struct(argv[argc-2], gsl_vector, &gsl_vector_data_type, x);
     CHECK_VECTOR(argv[argc-1]);
-    Data_Get_Struct(argv[argc-1], gsl_vector, r);
+    TypedData_Get_Struct(argv[argc-1], gsl_vector, &gsl_vector_data_type, r);
     break;
   case 1:
     CHECK_VECTOR(argv[argc-1]);
-    Data_Get_Struct(argv[argc-1], gsl_vector, x);
+    TypedData_Get_Struct(argv[argc-1], gsl_vector, &gsl_vector_data_type, x);
     r = gsl_vector_alloc(x->size);
     break;
   case 0:
@@ -1233,11 +1233,11 @@ static VALUE rb_gsl_linalg_QR_LQ_lssolve(int argc, VALUE *argv, VALUE obj, int f
     return INT2FIX(status);
     break;
   case 1:
-    return Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, r);
+    return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, r);
     break;
   default:
-    return rb_ary_new3(2, Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, x),
-                       Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, r));
+    return rb_ary_new3(2, TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, x),
+                       TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, r));
   }
   return Qnil;
 }
@@ -1320,18 +1320,18 @@ static VALUE rb_gsl_linalg_QRLQ_QTvec(int argc, VALUE *argv, VALUE obj,
     if (argc != 3) rb_raise(rb_eArgError,
                             "wrong number of arguments (%d for 3)", argc);
     CHECK_MATRIX(argv[0]); CHECK_VECTOR(argv[1]); CHECK_VECTOR(argv[2]);
-    Data_Get_Struct(argv[0], gsl_matrix, QR);
-    Data_Get_Struct(argv[1], gsl_vector, tau);
-    Data_Get_Struct(argv[2], gsl_vector, v);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, QR);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, tau);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, v);
     ret = argv[2];
     break;
   default:
     if (argc != 2) rb_raise(rb_eArgError,
                             "wrong number of arguments (%d for 2)", argc);
     CHECK_VECTOR(argv[2]); CHECK_VECTOR(argv[1]);
-    Data_Get_Struct(obj, gsl_matrix, QR);
-    Data_Get_Struct(argv[0], gsl_vector, tau);
-    Data_Get_Struct(argv[1], gsl_vector, v);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, QR);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, tau);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, v);
     ret = argv[1];
     break;
   }
@@ -1410,22 +1410,22 @@ static VALUE rb_gsl_linalg_QRLQ_unpack(int argc, VALUE *argv, VALUE obj,
   if (CLASS_OF(vtmp) != klass) {
     rb_raise(rb_eTypeError, "not a QR matrix");
   }
-  Data_Get_Struct(vtmp, gsl_matrix, QR);
+  TypedData_Get_Struct(vtmp, gsl_matrix, &gsl_matrix_data_type, QR);
   if (CLASS_OF(argv[itmp]) != cgsl_vector_tau)
     rb_raise(rb_eTypeError, "tau vector must be given.");
-  Data_Get_Struct(argv[itmp], gsl_vector, tau);
+  TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, tau);
   Q = gsl_matrix_alloc(QR->size1, QR->size1);
   R = gsl_matrix_alloc(QR->size1, QR->size2);
   switch (flag) {
   case LINALG_QR_UNPACK:
     gsl_linalg_QR_unpack(QR, tau, Q, R);
-    vQ = Data_Wrap_Struct(cgsl_matrix_Q, 0, gsl_matrix_free, Q);
-    vR = Data_Wrap_Struct(cgsl_matrix_R, 0, gsl_matrix_free, R);
+    vQ = TypedData_Wrap_Struct(cgsl_matrix_Q, &gsl_matrix_data_type, Q);
+    vR = TypedData_Wrap_Struct(cgsl_matrix_R, &gsl_matrix_data_type, R);
     break;
   case LINALG_LQ_UNPACK:
     gsl_linalg_LQ_unpack(QR, tau, Q, R);
-    vQ = Data_Wrap_Struct(cgsl_matrix_L, 0, gsl_matrix_free, Q);
-    vR = Data_Wrap_Struct(cgsl_matrix_Q, 0, gsl_matrix_free, R);
+    vQ = TypedData_Wrap_Struct(cgsl_matrix_L, &gsl_matrix_data_type, Q);
+    vR = TypedData_Wrap_Struct(cgsl_matrix_Q, &gsl_matrix_data_type, R);
     break;
   default:
     rb_raise(rb_eRuntimeError, "unknown operation");
@@ -1460,17 +1460,17 @@ static VALUE rb_gsl_linalg_QRLQ_QRLQsolve(int argc, VALUE *argv, VALUE obj,
   switch (argc) {
   case 3:
     CHECK_MATRIX(argv[0]); CHECK_MATRIX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, Q);
-    Data_Get_Struct(argv[1], gsl_matrix, R);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, Q);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, R);
     x = gsl_vector_alloc(Q->size1);
-    retval = Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, x);
+    retval = TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, x);
     break;
   case 4:
     CHECK_MATRIX(argv[0]); CHECK_MATRIX(argv[1]);
     CHECK_VECTOR(argv[3]);
-    Data_Get_Struct(argv[0], gsl_matrix, Q);
-    Data_Get_Struct(argv[1], gsl_matrix, R);
-    Data_Get_Struct(argv[3], gsl_vector, x);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, Q);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, R);
+    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, x);
     retval = argv[3];
     break;
   default:
@@ -1501,7 +1501,7 @@ static VALUE rb_gsl_linalg_QRLQ_QRLQsolve(int argc, VALUE *argv, VALUE obj,
     flagb = 1;
   } else {
     CHECK_VECTOR(argv[2]);
-    Data_Get_Struct(argv[2], gsl_vector, b);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, b);
   }
   (*fsolve)(Q, R, b, x);
   if (flagb == 1) gsl_vector_free(b);
@@ -1530,14 +1530,14 @@ static VALUE rb_gsl_linalg_QRLQ_RLsolve(int argc, VALUE *argv, VALUE obj,
     break;
   }
   CHECK_MATRIX(omatrix);
-  Data_Get_Struct(omatrix, gsl_matrix, mtmp);
+  TypedData_Get_Struct(omatrix, gsl_matrix, &gsl_matrix_data_type, mtmp);
   switch (argc - istart) {
   case 1:
     x = gsl_vector_alloc(mtmp->size1);
-    retval = Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, x);
+    retval = TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, x);
     break;
   case 2:
-    Data_Get_Struct(argv[istart+1], gsl_vector, x);
+    TypedData_Get_Struct(argv[istart+1], gsl_vector, &gsl_vector_data_type, x);
     retval = argv[istart+1];
     break;
   default:
@@ -1591,7 +1591,7 @@ static VALUE rb_gsl_linalg_QRLQ_RLsolve(int argc, VALUE *argv, VALUE obj,
     flagb = 1;
   } else {
     CHECK_VECTOR(argv[istart]);
-    Data_Get_Struct(argv[istart], gsl_vector, b);
+    TypedData_Get_Struct(argv[istart], gsl_vector, &gsl_vector_data_type, b);
   }
   (*fsolve)(QR, b, x);
   if (flagb == 1) gsl_vector_free(b);
@@ -1623,14 +1623,14 @@ static VALUE rb_gsl_linalg_QRLQ_RLsvx(int argc, VALUE *argv, VALUE obj,
     break;
   }
   CHECK_MATRIX(omatrix);
-  Data_Get_Struct(omatrix, gsl_matrix, mtmp);
+  TypedData_Get_Struct(omatrix, gsl_matrix, &gsl_matrix_data_type, mtmp);
   switch (argc - istart) {
   case 0:
     x = gsl_vector_alloc(mtmp->size1);
-    retval = Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, x);
+    retval = TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, x);
     break;
   case 1:
-    Data_Get_Struct(argv[istart+1], gsl_vector, x);
+    TypedData_Get_Struct(argv[istart+1], gsl_vector, &gsl_vector_data_type, x);
     retval = argv[istart+1];
     break;
   default:
@@ -1730,10 +1730,10 @@ static VALUE rb_gsl_linalg_QRLQ_update(VALUE obj, VALUE qq, VALUE rr, VALUE ww,
   int status;
   CHECK_MATRIX(qq); CHECK_MATRIX(rr);
   CHECK_VECTOR(ww); CHECK_VECTOR(vv);
-  Data_Get_Struct(qq, gsl_matrix, Q);
-  Data_Get_Struct(rr, gsl_matrix, R);
-  Data_Get_Struct(ww, gsl_vector, w);
-  Data_Get_Struct(vv, gsl_vector, v);
+  TypedData_Get_Struct(qq, gsl_matrix, &gsl_matrix_data_type, Q);
+  TypedData_Get_Struct(rr, gsl_matrix, &gsl_matrix_data_type, R);
+  TypedData_Get_Struct(ww, gsl_vector, &gsl_vector_data_type, w);
+  TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
   switch (flag) {
   case LINALG_QR_DECOMP:
     status = gsl_linalg_QR_update(Q, R, w, v);
@@ -1786,7 +1786,7 @@ static VALUE rb_gsl_linalg_QRLQPT_decomp(int argc, VALUE *argv, VALUE obj, int f
     break;
   }
   CHECK_MATRIX(vA);
-  Data_Get_Struct(vA, gsl_matrix, A);
+  TypedData_Get_Struct(vA, gsl_matrix, &gsl_matrix_data_type, A);
   QR = make_matrix_clone(A);
   size0 = GSL_MIN(A->size1, A->size2);
   tau = gsl_vector_alloc(size0);
@@ -1794,15 +1794,15 @@ static VALUE rb_gsl_linalg_QRLQPT_decomp(int argc, VALUE *argv, VALUE obj, int f
   norm = gsl_vector_alloc(size0);
   switch (flag) {
   case LINALG_QRPT:
-    vQR = Data_Wrap_Struct(cgsl_matrix_QRPT, 0, gsl_matrix_free, QR);
-    vtau = Data_Wrap_Struct(cgsl_vector_tau, 0, gsl_vector_free, tau);
-    vp = Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, p);
+    vQR = TypedData_Wrap_Struct(cgsl_matrix_QRPT, &gsl_matrix_data_type, QR);
+    vtau = TypedData_Wrap_Struct(cgsl_vector_tau, &gsl_vector_data_type, tau);
+    vp = TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, p);
     gsl_linalg_QRPT_decomp(QR, tau, p, &signum, norm);
     break;
   case LINALG_PTLQ:
-    vQR = Data_Wrap_Struct(cgsl_matrix_PTLQ, 0, gsl_matrix_free, QR);
-    vtau = Data_Wrap_Struct(cgsl_vector_tau, 0, gsl_vector_free, tau);
-    vp = Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, p);
+    vQR = TypedData_Wrap_Struct(cgsl_matrix_PTLQ, &gsl_matrix_data_type, QR);
+    vtau = TypedData_Wrap_Struct(cgsl_vector_tau, &gsl_vector_data_type, tau);
+    vp = TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, p);
     gsl_linalg_PTLQ_decomp(QR, tau, p, &signum, norm);
     break;
   default:
@@ -1832,7 +1832,7 @@ static VALUE rb_gsl_linalg_QRLQPT_decomp_bang(int argc, VALUE *argv, VALUE obj, 
     break;
   }
   CHECK_MATRIX(vA);
-  Data_Get_Struct(vA, gsl_matrix, A);
+  TypedData_Get_Struct(vA, gsl_matrix, &gsl_matrix_data_type, A);
   size0 = GSL_MIN(A->size1, A->size2);
   tau = gsl_vector_alloc(size0);
   p = gsl_permutation_alloc(size0);
@@ -1840,14 +1840,14 @@ static VALUE rb_gsl_linalg_QRLQPT_decomp_bang(int argc, VALUE *argv, VALUE obj, 
   switch (flag) {
   case LINALG_QRPT:
     RBGSL_SET_CLASS(vA, cgsl_matrix_QRPT);
-    vtau = Data_Wrap_Struct(cgsl_vector_tau, 0, gsl_vector_free, tau);
-    vp = Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, p);
+    vtau = TypedData_Wrap_Struct(cgsl_vector_tau, &gsl_vector_data_type, tau);
+    vp = TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, p);
     gsl_linalg_QRPT_decomp(A, tau, p, &signum, norm);
     break;
   case LINALG_PTLQ:
     RBGSL_SET_CLASS(vA, cgsl_matrix_PTLQ);
-    vtau = Data_Wrap_Struct(cgsl_vector_tau, 0, gsl_vector_free, tau);
-    vp = Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, p);
+    vtau = TypedData_Wrap_Struct(cgsl_vector_tau, &gsl_vector_data_type, tau);
+    vp = TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, p);
     gsl_linalg_PTLQ_decomp(A, tau, p, &signum, norm);
     break;
   default:
@@ -1897,26 +1897,26 @@ static VALUE rb_gsl_linalg_QRLQPT_decomp2(int argc, VALUE *argv, VALUE obj,int f
     break;
   }
   CHECK_MATRIX(vA);
-  Data_Get_Struct(vA, gsl_matrix, A);
+  TypedData_Get_Struct(vA, gsl_matrix, &gsl_matrix_data_type, A);
   Q = gsl_matrix_alloc(A->size1, A->size2);
   R = gsl_matrix_alloc(A->size1, A->size2);
   size0 = GSL_MIN(A->size1, A->size2);
   tau = gsl_vector_alloc(size0);
   p = gsl_permutation_alloc(size0);
   norm = gsl_vector_alloc(size0);
-  /*  vQ = Data_Wrap_Struct(cgsl_matrix_Q, 0, gsl_matrix_free, Q);
-      vR = Data_Wrap_Struct(cgsl_matrix_R, 0, gsl_matrix_free, R);*/
-  vtau = Data_Wrap_Struct(cgsl_vector_tau, 0, gsl_vector_free, tau);
-  vp = Data_Wrap_Struct(cgsl_permutation, 0, gsl_permutation_free, p);
+  /*  vQ = TypedData_Wrap_Struct(cgsl_matrix_Q, &gsl_matrix_data_type, Q);
+      vR = TypedData_Wrap_Struct(cgsl_matrix_R, &gsl_matrix_data_type, R);*/
+  vtau = TypedData_Wrap_Struct(cgsl_vector_tau, &gsl_vector_data_type, tau);
+  vp = TypedData_Wrap_Struct(cgsl_permutation, &gsl_permutation_data_type, p);
   switch (flag) {
   case LINALG_QRPT:
-    vQ = Data_Wrap_Struct(cgsl_matrix_Q, 0, gsl_matrix_free, Q);
-    vR = Data_Wrap_Struct(cgsl_matrix_R, 0, gsl_matrix_free, R);
+    vQ = TypedData_Wrap_Struct(cgsl_matrix_Q, &gsl_matrix_data_type, Q);
+    vR = TypedData_Wrap_Struct(cgsl_matrix_R, &gsl_matrix_data_type, R);
     gsl_linalg_QRPT_decomp2(A, Q, R, tau, p, &signum, norm);
     break;
   case LINALG_PTLQ:
-    vR = Data_Wrap_Struct(cgsl_matrix_L, 0, gsl_matrix_free, R);
-    vQ = Data_Wrap_Struct(cgsl_matrix_Q, 0, gsl_matrix_free, Q);
+    vR = TypedData_Wrap_Struct(cgsl_matrix_L, &gsl_matrix_data_type, R);
+    vQ = TypedData_Wrap_Struct(cgsl_matrix_Q, &gsl_matrix_data_type, Q);
     gsl_linalg_PTLQ_decomp2(A, Q, R, tau, p, &signum, norm);
     break;
   default:
@@ -2001,15 +2001,15 @@ static VALUE rb_gsl_linalg_QRLQPT_solve(int argc, VALUE *argv, VALUE obj, int fl
     if (CLASS_OF(argv[itmp]) != cgsl_vector_tau)
       rb_raise(rb_eTypeError, "not a tau vector");
     CHECK_PERMUTATION(argv[itmp+1]);
-    Data_Get_Struct(argv[itmp], gsl_vector, tau);
-    Data_Get_Struct(argv[itmp+1], gsl_permutation, p);
-    Data_Get_Struct(vtmp, gsl_matrix, QR);
+    TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, tau);
+    TypedData_Get_Struct(argv[itmp+1], gsl_permutation, &gsl_permutation_data_type, p);
+    TypedData_Get_Struct(vtmp, gsl_matrix, &gsl_matrix_data_type, QR);
     size0 = GSL_MIN(QR->size1, QR->size2);
     itmp += 2;
   } else {
     if (argc-itmp != 1) rb_raise(rb_eArgError,
                                  "wrong number of arguments (%d for %d)", argc, 2-itmp);
-    Data_Get_Struct(vtmp, gsl_matrix, A);
+    TypedData_Get_Struct(vtmp, gsl_matrix, &gsl_matrix_data_type, A);
     QR = make_matrix_clone(A);
     size0 = GSL_MIN(QR->size1, QR->size2);
     flagq = 1;
@@ -2022,7 +2022,7 @@ static VALUE rb_gsl_linalg_QRLQPT_solve(int argc, VALUE *argv, VALUE obj, int fl
     flagb = 1;
   } else {
     CHECK_VECTOR(argv[itmp]);
-    Data_Get_Struct(argv[itmp], gsl_vector, b);
+    TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, b);
   }
   x = gsl_vector_alloc(b->size);
   if (flagq == 1) (*fdecomp)(QR, tau, p, &signum, norm);
@@ -2034,7 +2034,7 @@ static VALUE rb_gsl_linalg_QRLQPT_solve(int argc, VALUE *argv, VALUE obj, int fl
     gsl_vector_free(tau);
     gsl_vector_free(norm);
   }
-  return Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, x);
+  return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, x);
 }
 
 static VALUE rb_gsl_linalg_QRPT_solve(int argc, VALUE *argv, VALUE obj)
@@ -2095,15 +2095,15 @@ static VALUE rb_gsl_linalg_QRLQPT_svx(int argc, VALUE *argv, VALUE obj, int flag
     if (CLASS_OF(argv[itmp]) != cgsl_vector_tau)
       rb_raise(rb_eTypeError, "not a tau vector");
     CHECK_PERMUTATION(argv[itmp+1]);
-    Data_Get_Struct(argv[itmp], gsl_vector, tau);
-    Data_Get_Struct(argv[itmp+1], gsl_permutation, p);
-    Data_Get_Struct(vtmp, gsl_matrix, QR);
+    TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, tau);
+    TypedData_Get_Struct(argv[itmp+1], gsl_permutation, &gsl_permutation_data_type, p);
+    TypedData_Get_Struct(vtmp, gsl_matrix, &gsl_matrix_data_type, QR);
     size0 = GSL_MIN(QR->size1, QR->size2);
     itmp += 2;
   } else {
     if (argc-itmp != 1) rb_raise(rb_eArgError,
                                  "wrong number of arguments (%d for %d)", argc, 2+itmp);
-    Data_Get_Struct(vtmp, gsl_matrix, A);
+    TypedData_Get_Struct(vtmp, gsl_matrix, &gsl_matrix_data_type, A);
     QR = make_matrix_clone(A);
     size0 = GSL_MIN(QR->size1, QR->size2);
     flagq = 1;
@@ -2112,7 +2112,7 @@ static VALUE rb_gsl_linalg_QRLQPT_svx(int argc, VALUE *argv, VALUE obj, int flag
   }
   norm = gsl_vector_alloc(size0);
   CHECK_VECTOR(argv[itmp]);
-  Data_Get_Struct(argv[itmp], gsl_vector, b);
+  TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, b);
   if (flagq == 1) (*fdecomp)(QR, tau, p, &signum, norm);
   (*fsvx)(QR, tau, p, b);
   if (flagq == 1) {
@@ -2164,16 +2164,16 @@ static VALUE rb_gsl_linalg_QRLQPT_QRLQsolve(VALUE obj, VALUE qq, VALUE rr,
     flagb = 1;
   } else {
     CHECK_VECTOR(bb);
-    Data_Get_Struct(bb, gsl_vector, b);
+    TypedData_Get_Struct(bb, gsl_vector, &gsl_vector_data_type, b);
   }
   CHECK_PERMUTATION(pp);
-  Data_Get_Struct(qq, gsl_matrix, Q);
-  Data_Get_Struct(rr, gsl_matrix, R);
-  Data_Get_Struct(pp, gsl_permutation, p);
+  TypedData_Get_Struct(qq, gsl_matrix, &gsl_matrix_data_type, Q);
+  TypedData_Get_Struct(rr, gsl_matrix, &gsl_matrix_data_type, R);
+  TypedData_Get_Struct(pp, gsl_permutation, &gsl_permutation_data_type, p);
   x = gsl_vector_alloc(b->size);
   (*fsolve)(Q, R, p, b, x);
   if (flagb == 1) gsl_vector_free(b);
-  return Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, x);
+  return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, x);
 }
 
 static VALUE rb_gsl_linalg_QRPT_QRsolve(VALUE obj, VALUE qq, VALUE rr,
@@ -2206,11 +2206,11 @@ static VALUE rb_gsl_linalg_QRLQPT_update(VALUE obj, VALUE qq, VALUE rr,
     break;
   }
   CHECK_PERMUTATION(pp);
-  Data_Get_Struct(qq, gsl_matrix, Q);
-  Data_Get_Struct(rr, gsl_matrix, R);
-  Data_Get_Struct(pp, gsl_permutation, p);
-  Data_Get_Struct(ww, gsl_vector, w);
-  Data_Get_Struct(vv, gsl_vector, v);
+  TypedData_Get_Struct(qq, gsl_matrix, &gsl_matrix_data_type, Q);
+  TypedData_Get_Struct(rr, gsl_matrix, &gsl_matrix_data_type, R);
+  TypedData_Get_Struct(pp, gsl_permutation, &gsl_permutation_data_type, p);
+  TypedData_Get_Struct(ww, gsl_vector, &gsl_vector_data_type, w);
+  TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
   switch (flag) {
   case LINALG_QRPT:
     gsl_linalg_QRPT_update(Q, R, p, w, v);
@@ -2275,20 +2275,20 @@ static VALUE rb_gsl_linalg_QRLQPT_RLsolve(int argc, VALUE *argv, VALUE obj, int 
     rb_raise(rb_eArgError, "not a QR matrix");
   }
   CHECK_PERMUTATION(argv[itmp]);
-  Data_Get_Struct(argv[itmp], gsl_permutation, p);
-  Data_Get_Struct(vtmp, gsl_matrix, QR);
+  TypedData_Get_Struct(argv[itmp], gsl_permutation, &gsl_permutation_data_type, p);
+  TypedData_Get_Struct(vtmp, gsl_matrix, &gsl_matrix_data_type, QR);
   itmp++;
   if (TYPE(argv[itmp]) == T_ARRAY) {
     b = make_cvector_from_rarray(argv[itmp]);
     flagb = 1;
   } else {
     CHECK_VECTOR(argv[itmp]);
-    Data_Get_Struct(argv[itmp], gsl_vector, b);
+    TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, b);
   }
   x = gsl_vector_alloc(b->size);
   (*fsolve)(QR, p, b, x);
   if (flagb == 1) gsl_vector_free(b);
-  return Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, x);
+  return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, x);
 }
 
 static VALUE rb_gsl_linalg_QRPT_Rsolve(int argc, VALUE *argv, VALUE obj)
@@ -2340,14 +2340,14 @@ static VALUE rb_gsl_linalg_QRLQPT_RLsvx(int argc, VALUE *argv, VALUE obj, int fl
     rb_raise(rb_eArgError, "not a QR matrix");
   }
   CHECK_PERMUTATION(argv[itmp]);
-  Data_Get_Struct(argv[itmp], gsl_permutation, p);
-  Data_Get_Struct(vtmp, gsl_matrix, QR);
+  TypedData_Get_Struct(argv[itmp], gsl_permutation, &gsl_permutation_data_type, p);
+  TypedData_Get_Struct(vtmp, gsl_matrix, &gsl_matrix_data_type, QR);
   itmp++;
   if (TYPE(argv[itmp]) == T_ARRAY) {
     b = make_cvector_from_rarray(argv[itmp]);
   } else {
     CHECK_VECTOR(argv[itmp]);
-    Data_Get_Struct(argv[itmp], gsl_vector, b);
+    TypedData_Get_Struct(argv[itmp], gsl_vector, &gsl_vector_data_type, b);
   }
   (*fsvx)(QR, p, b);
   return argv[itmp];
@@ -2468,7 +2468,7 @@ static VALUE rb_gsl_linalg_SV_decomp(int argc, VALUE *argv, VALUE obj)
     switch (argc) {
     case 2:
       CHECK_VECTOR(argv[1]);
-      Data_Get_Struct(argv[1], gsl_vector, w);
+      TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, w);
       flag = 0;
     /* no break, do next */
     case 1:
@@ -2483,7 +2483,7 @@ static VALUE rb_gsl_linalg_SV_decomp(int argc, VALUE *argv, VALUE obj)
       }
 #endif
       CHECK_MATRIX(argv[0]);
-      Data_Get_Struct(argv[0], gsl_matrix, A);
+      TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 2)", argc);
@@ -2497,14 +2497,14 @@ static VALUE rb_gsl_linalg_SV_decomp(int argc, VALUE *argv, VALUE obj)
       break;
     case 1:
       CHECK_VECTOR(argv[0]);
-      Data_Get_Struct(argv[0], gsl_vector, w);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, w);
       flag = 0;
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 0 or 1)", argc);
       break;
     }
-    Data_Get_Struct(obj, gsl_matrix, A);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
     break;
   }
   U = make_matrix_clone(A);
@@ -2513,9 +2513,9 @@ static VALUE rb_gsl_linalg_SV_decomp(int argc, VALUE *argv, VALUE obj)
   if (flag == 1) w = gsl_vector_alloc(A->size2);
   gsl_linalg_SV_decomp(U, V, S, w);
   if (flag == 1) gsl_vector_free(w);
-  vu = Data_Wrap_Struct(cgsl_matrix_U, 0, gsl_matrix_free, U);
-  vv = Data_Wrap_Struct(cgsl_matrix_V, 0, gsl_matrix_free, V);
-  vs = Data_Wrap_Struct(cgsl_vector_S, 0, gsl_vector_free, S);
+  vu = TypedData_Wrap_Struct(cgsl_matrix_U, &gsl_matrix_data_type, U);
+  vv = TypedData_Wrap_Struct(cgsl_matrix_V, &gsl_matrix_data_type, V);
+  vs = TypedData_Wrap_Struct(cgsl_vector_S, &gsl_vector_data_type, S);
   return rb_ary_new3(3, vu, vv, vs);
 }
 
@@ -2529,10 +2529,10 @@ static VALUE rb_gsl_linalg_SV_decomp_mod(int argc, VALUE *argv, VALUE obj)
     if (argc != 1) rb_raise(rb_eArgError,
                             "wrong number of argument (%d for 1)", argc);
     CHECK_MATRIX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix, A);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix, A);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
     break;
   }
   U = make_matrix_clone(A);
@@ -2543,9 +2543,9 @@ static VALUE rb_gsl_linalg_SV_decomp_mod(int argc, VALUE *argv, VALUE obj)
   gsl_linalg_SV_decomp_mod(U, X, V, S, w);
   gsl_vector_free(w);
   gsl_matrix_free(X);
-  vu = Data_Wrap_Struct(cgsl_matrix_U, 0, gsl_matrix_free, U);
-  vv = Data_Wrap_Struct(cgsl_matrix_V, 0, gsl_matrix_free, V);
-  vs = Data_Wrap_Struct(cgsl_vector_S, 0, gsl_vector_free, S);
+  vu = TypedData_Wrap_Struct(cgsl_matrix_U, &gsl_matrix_data_type, U);
+  vv = TypedData_Wrap_Struct(cgsl_matrix_V, &gsl_matrix_data_type, V);
+  vs = TypedData_Wrap_Struct(cgsl_vector_S, &gsl_vector_data_type, S);
   return rb_ary_new3(3, vu, vv, vs);
 }
 
@@ -2563,19 +2563,19 @@ static VALUE rb_gsl_linalg_SV_decomp_jacobi(int argc, VALUE *argv, VALUE obj)
       return rb_gsl_linalg_SV_decomp_jacobi_narray(argc, argv, obj);
 #endif
     CHECK_MATRIX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix, A);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix, A);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
     break;
   }
   U = make_matrix_clone(A);
   S = gsl_vector_alloc(A->size2);   /* see manual p 123 */
   V = gsl_matrix_alloc(A->size2, A->size2);
   gsl_linalg_SV_decomp_jacobi(U, V, S);
-  vu = Data_Wrap_Struct(cgsl_matrix_U, 0, gsl_matrix_free, U);
-  vv = Data_Wrap_Struct(cgsl_matrix_V, 0, gsl_matrix_free, V);
-  vs = Data_Wrap_Struct(cgsl_vector_S, 0, gsl_vector_free, S);
+  vu = TypedData_Wrap_Struct(cgsl_matrix_U, &gsl_matrix_data_type, U);
+  vv = TypedData_Wrap_Struct(cgsl_matrix_V, &gsl_matrix_data_type, V);
+  vs = TypedData_Wrap_Struct(cgsl_vector_S, &gsl_vector_data_type, S);
   return rb_ary_new3(3, vu, vv, vs);
 }
 
@@ -2624,33 +2624,33 @@ static VALUE rb_gsl_linalg_SV_solve(int argc, VALUE *argv, VALUE obj)
     if (CLASS_OF(argv[0]) == cgsl_matrix_U) {
       if (argc != 4) rb_raise(rb_eArgError,
                               "wrong number of arguments (%d for 4)", argc);
-      Data_Get_Struct(argv[0], gsl_matrix, U);
+      TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, U);
       CHECK_MATRIX(argv[1]);
       if (CLASS_OF(argv[1]) != cgsl_matrix_V)
         rb_raise(rb_eTypeError, "not a V matrix");
-      Data_Get_Struct(argv[1], gsl_matrix, V);
+      TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, V);
       CHECK_VECTOR(argv[2]);
       if (CLASS_OF(argv[2]) != cgsl_vector_S)
         rb_raise(rb_eTypeError, "not a S vector");
-      Data_Get_Struct(argv[2], gsl_vector, S);
+      TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, S);
       if (TYPE(argv[3]) == T_ARRAY) {
         b = make_cvector_from_rarray(argv[3]);
         flagb = 1;
       } else {
         CHECK_VECTOR(argv[3]);
-        Data_Get_Struct(argv[3], gsl_vector, b);
+        TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, b);
       }
     } else {
       if (argc != 2) rb_raise(rb_eArgError,
                               "wrong number of arguments (%d for 2)", argc);
-      Data_Get_Struct(argv[0], gsl_matrix, A);
+      TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
       U = make_matrix_clone(A);
       if (TYPE(argv[1]) == T_ARRAY) {
         b = make_cvector_from_rarray(argv[1]);
         flagb = 1;
       } else {
         CHECK_VECTOR(argv[1]);
-        Data_Get_Struct(argv[1], gsl_vector, b);
+        TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, b);
       }
       S = gsl_vector_alloc(A->size2);   /* see manual p 123 */
       V = gsl_matrix_alloc(A->size2, A->size2);
@@ -2661,14 +2661,14 @@ static VALUE rb_gsl_linalg_SV_solve(int argc, VALUE *argv, VALUE obj)
   default:
     if (argc != 1) rb_raise(rb_eArgError,
                             "wrong number of arguments (%d for 1)", argc);
-    Data_Get_Struct(obj, gsl_matrix, A);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
     U = make_matrix_clone(A);
     if (TYPE(argv[0]) == T_ARRAY) {
       b = make_cvector_from_rarray(argv[0]);
       flagb = 1;
     } else {
       CHECK_VECTOR(argv[0]);
-      Data_Get_Struct(argv[0], gsl_vector, b);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, b);
     }
     S = gsl_vector_alloc(A->size2);   /* see manual p 123 */
     V = gsl_matrix_alloc(A->size2, A->size2);
@@ -2686,7 +2686,7 @@ static VALUE rb_gsl_linalg_SV_solve(int argc, VALUE *argv, VALUE obj)
     gsl_vector_free(S);
   }
   if (flagb == 1) gsl_vector_free(b);
-  return Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, x);
+  return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, x);
 }
 
 /*****/
@@ -2781,16 +2781,16 @@ static VALUE rb_gsl_linalg_cholesky_decomp(int argc, VALUE *argv, VALUE obj)
       return rb_gsl_linalg_cholesky_decomp_nmatrix(argc, argv, obj);
 #endif
     CHECK_MATRIX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix, Atmp);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, Atmp);
     break;
   default:
     CHECK_MATRIX(obj);
-    Data_Get_Struct(obj, gsl_matrix, Atmp);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, Atmp);
     break;
   }
   A = make_matrix_clone(Atmp);
   gsl_linalg_cholesky_decomp(A);
-  return Data_Wrap_Struct(cgsl_matrix_C, 0, gsl_matrix_free, A);
+  return TypedData_Wrap_Struct(cgsl_matrix_C, &gsl_matrix_data_type, A);
 }
 
 #ifdef HAVE_NMATRIX_H
@@ -2853,13 +2853,13 @@ static VALUE rb_gsl_linalg_cholesky_solve(int argc, VALUE *argv, VALUE obj)
     break;
   }
   CHECK_MATRIX(vA);
-  Data_Get_Struct(vA, gsl_matrix, Atmp);
+  TypedData_Get_Struct(vA, gsl_matrix, &gsl_matrix_data_type, Atmp);
   if (TYPE(vb) == T_ARRAY) {
     b = make_cvector_from_rarray(vb);
     flagb = 1;
   } else {
     CHECK_VECTOR(vb);
-    Data_Get_Struct(vb, gsl_vector, b);
+    TypedData_Get_Struct(vb, gsl_vector, &gsl_vector_data_type, b);
   }
   if (CLASS_OF(vA) == cgsl_matrix_C) {
     A = Atmp;
@@ -2872,7 +2872,7 @@ static VALUE rb_gsl_linalg_cholesky_solve(int argc, VALUE *argv, VALUE obj)
   gsl_linalg_cholesky_solve(A, b, x);
   if (flaga == 1) gsl_matrix_free(A);
   if (flagb == 1) gsl_vector_free(b);
-  return Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, x);
+  return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, x);
 }
 
 #ifdef HAVE_NMATRIX_H
@@ -2922,9 +2922,9 @@ static VALUE rb_gsl_linalg_cholesky_svx(int argc, VALUE *argv, VALUE obj)
     break;
   }
   CHECK_MATRIX(vA);
-  Data_Get_Struct(vA, gsl_matrix, Atmp);
+  TypedData_Get_Struct(vA, gsl_matrix, &gsl_matrix_data_type, Atmp);
   CHECK_VECTOR(vb);
-  Data_Get_Struct(vb, gsl_vector, b);
+  TypedData_Get_Struct(vb, gsl_vector, &gsl_vector_data_type, b);
   if (CLASS_OF(vA) == cgsl_matrix_C) {
     A = Atmp;
   } else {
@@ -2947,18 +2947,18 @@ static VALUE rb_gsl_linalg_symmtd_decomp(int argc, VALUE *argv, VALUE obj)
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of argument (%d for 1)",
                             argc);
     CHECK_MATRIX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix, Atmp);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, Atmp);
     break;
   default:
     CHECK_MATRIX(obj);
-    Data_Get_Struct(obj, gsl_matrix, Atmp);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, Atmp);
     break;
   }
   A = make_matrix_clone(Atmp);
   tau = gsl_vector_alloc(A->size1);
   gsl_linalg_symmtd_decomp(A, tau);
-  vQ = Data_Wrap_Struct(cgsl_matrix_Q, 0, gsl_matrix_free, A);
-  vtau = Data_Wrap_Struct(cgsl_vector_tau, 0, gsl_vector_free, tau);
+  vQ = TypedData_Wrap_Struct(cgsl_matrix_Q, &gsl_matrix_data_type, A);
+  vtau = TypedData_Wrap_Struct(cgsl_vector_tau, &gsl_vector_data_type, tau);
   return rb_ary_new3(2, vQ, vtau);
 }
 
@@ -2972,16 +2972,16 @@ static VALUE rb_gsl_linalg_symmtd_decomp2(int argc, VALUE *argv, VALUE obj)
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of argument (%d for 1)",
                             argc);
     CHECK_MATRIX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix, A);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
     break;
   default:
     CHECK_MATRIX(obj);
-    Data_Get_Struct(obj, gsl_matrix, A);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
     break;
   }
   tau = gsl_vector_alloc(A->size1);
   gsl_linalg_symmtd_decomp(A, tau);
-  return Data_Wrap_Struct(cgsl_vector_tau, 0, gsl_vector_free, tau);
+  return TypedData_Wrap_Struct(cgsl_vector_tau, &gsl_vector_data_type, tau);
 }
 
 static VALUE rb_gsl_linalg_symmtd_unpack(int argc, VALUE *argv, VALUE obj)
@@ -2994,15 +2994,15 @@ static VALUE rb_gsl_linalg_symmtd_unpack(int argc, VALUE *argv, VALUE obj)
     if (argc != 2) rb_raise(rb_eArgError, "wrong number of argument (%d for 2)",
                             argc);
     CHECK_MATRIX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix, A);
-    Data_Get_Struct(argv[1], gsl_vector, tau);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, tau);
     break;
   default:
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of argument (%d for 1)",
                             argc);
     CHECK_MATRIX(obj);
-    Data_Get_Struct(obj, gsl_matrix, A);
-    Data_Get_Struct(argv[0], gsl_vector, tau);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, tau);
     break;
   }
   Q = gsl_matrix_alloc(A->size1, A->size2);
@@ -3010,9 +3010,9 @@ static VALUE rb_gsl_linalg_symmtd_unpack(int argc, VALUE *argv, VALUE obj)
   sd = gsl_vector_alloc(tau->size);
   gsl_linalg_symmtd_unpack(A, tau, Q, d, sd);
 
-  vq = Data_Wrap_Struct(cgsl_matrix_Q, 0, gsl_matrix_free, Q);
-  vd = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, d);
-  vsd = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, sd);
+  vq = TypedData_Wrap_Struct(cgsl_matrix_Q, &gsl_matrix_data_type, Q);
+  vd = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, d);
+  vsd = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, sd);
 
   return rb_ary_new3(3, vq, vd, vsd);
 }
@@ -3027,18 +3027,18 @@ static VALUE rb_gsl_linalg_symmtd_unpack_T(int argc, VALUE *argv, VALUE obj)
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of argument (%d for 2)",
                             argc);
     CHECK_MATRIX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix, A);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix, A);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
     break;
   }
   d = gsl_vector_alloc(A->size1);
   sd = gsl_vector_alloc(A->size1);
   gsl_linalg_symmtd_unpack_T(A, d, sd);
 
-  vd = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, d);
-  vsd = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, sd);
+  vd = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, d);
+  vsd = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, sd);
 
   return rb_ary_new3(2, vd, vsd);
 }
@@ -3055,18 +3055,18 @@ static VALUE rb_gsl_linalg_hermtd_decomp(int argc, VALUE *argv, VALUE obj)
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of argument (%d for 1)",
                             argc);
     CHECK_MATRIX_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, Atmp);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, Atmp);
     break;
   default:
     CHECK_MATRIX_COMPLEX(obj);
-    Data_Get_Struct(obj, gsl_matrix_complex, Atmp);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, Atmp);
     break;
   }
   A = make_matrix_complex_clone(Atmp);
   tau = gsl_vector_complex_alloc(A->size1);
   gsl_linalg_hermtd_decomp(A, tau);
-  vQ = Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, A);
-  vtau = Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, tau);
+  vQ = TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+  vtau = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, tau);
   return rb_ary_new3(2, vQ, vtau);
 }
 
@@ -3079,16 +3079,16 @@ static VALUE rb_gsl_linalg_hermtd_decomp2(int argc, VALUE *argv, VALUE obj)
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of argument (%d for 1)",
                             argc);
     CHECK_MATRIX_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, A);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
     break;
   default:
     CHECK_MATRIX_COMPLEX(obj);
-    Data_Get_Struct(obj, gsl_matrix_complex, A);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
     break;
   }
   tau = gsl_vector_complex_alloc(A->size1);
   gsl_linalg_hermtd_decomp(A, tau);
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, tau);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, tau);
 }
 
 static VALUE rb_gsl_linalg_hermtd_unpack(int argc, VALUE *argv, VALUE obj)
@@ -3102,15 +3102,15 @@ static VALUE rb_gsl_linalg_hermtd_unpack(int argc, VALUE *argv, VALUE obj)
     if (argc != 2) rb_raise(rb_eArgError, "wrong number of argument (%d for 1)",
                             argc);
     CHECK_MATRIX_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, A);
-    Data_Get_Struct(argv[1], gsl_vector_complex, tau);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[1], gsl_vector_complex, &gsl_vector_complex_data_type, tau);
     break;
   default:
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of argument (%d for 1)",
                             argc);
     CHECK_MATRIX_COMPLEX(obj);
-    Data_Get_Struct(obj, gsl_matrix_complex, A);
-    Data_Get_Struct(argv[0], gsl_vector_complex, tau);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
+    TypedData_Get_Struct(argv[0], gsl_vector_complex, &gsl_vector_complex_data_type, tau);
     break;
   }
   Q = gsl_matrix_complex_alloc(A->size1, A->size2);
@@ -3118,9 +3118,9 @@ static VALUE rb_gsl_linalg_hermtd_unpack(int argc, VALUE *argv, VALUE obj)
   sd = gsl_vector_alloc(tau->size);
   gsl_linalg_hermtd_unpack(A, tau, Q, d, sd);
 
-  vq = Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, Q);
-  vd = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, d);
-  vsd = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, sd);
+  vq = TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, Q);
+  vd = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, d);
+  vsd = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, sd);
 
   return rb_ary_new3(3, vq, vd, vsd);
 }
@@ -3135,18 +3135,18 @@ static VALUE rb_gsl_linalg_hermtd_unpack_T(int argc, VALUE *argv, VALUE obj)
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of argument (%d for 1)",
                             argc);
     CHECK_MATRIX_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, A);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix_complex, A);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
     break;
   }
   d = gsl_vector_alloc(A->size1);
   sd = gsl_vector_alloc(A->size1);
   gsl_linalg_hermtd_unpack_T(A, d, sd);
 
-  vd = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, d);
-  vsd = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, sd);
+  vd = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, d);
+  vsd = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, sd);
 
   return rb_ary_new3(2, vd, vsd);
 }
@@ -3166,10 +3166,10 @@ static VALUE rb_gsl_linalg_bidiag_decomp(int argc, VALUE *argv, VALUE obj)
   case T_MODULE:  case T_CLASS:  case T_OBJECT:
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)",
                             argc);
-    Data_Get_Struct(argv[0], gsl_matrix, Atmp);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, Atmp);
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix, Atmp);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, Atmp);
     break;
   }
   A = make_matrix_clone(Atmp);
@@ -3177,9 +3177,9 @@ static VALUE rb_gsl_linalg_bidiag_decomp(int argc, VALUE *argv, VALUE obj)
   tau_U = gsl_vector_alloc(size0);
   tau_V = gsl_vector_alloc(size0-1);
   /*status =*/ gsl_linalg_bidiag_decomp(A, tau_U, tau_V);
-  vA = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, A);
-  vu = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, tau_U);
-  vv = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, tau_V);
+  vA = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, A);
+  vu = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, tau_U);
+  vv = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, tau_V);
   return rb_ary_new3(3, vA, vu, vv);
 }
 
@@ -3194,18 +3194,18 @@ static VALUE rb_gsl_linalg_bidiag_decomp2(int argc, VALUE *argv, VALUE obj)
   case T_MODULE:  case T_CLASS:  case T_OBJECT:
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)",
                             argc);
-    Data_Get_Struct(argv[0], gsl_matrix, A);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix, A);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
     break;
   }
   size0 = GSL_MIN(A->size1, A->size2);
   tau_U = gsl_vector_alloc(size0);
   tau_V = gsl_vector_alloc(size0-1);
   gsl_linalg_bidiag_decomp(A, tau_U, tau_V);
-  vu = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, tau_U);
-  vv = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, tau_V);
+  vu = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, tau_U);
+  vv = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, tau_V);
   return rb_ary_new3(2, vu, vv);
 }
 
@@ -3223,9 +3223,9 @@ static VALUE rb_gsl_linalg_bidiag_unpack(int argc, VALUE *argv, VALUE obj)
     CHECK_MATRIX(argv[0]);
     CHECK_VECTOR(argv[1]);
     CHECK_VECTOR(argv[2]);
-    Data_Get_Struct(argv[0], gsl_matrix, A);
-    Data_Get_Struct(argv[1], gsl_vector, tau_U);
-    Data_Get_Struct(argv[2], gsl_vector, tau_V);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, tau_U);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, tau_V);
     break;
   default:
     if (argc != 2) rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)",
@@ -3233,9 +3233,9 @@ static VALUE rb_gsl_linalg_bidiag_unpack(int argc, VALUE *argv, VALUE obj)
     CHECK_MATRIX(obj);
     CHECK_VECTOR(argv[0]);
     CHECK_VECTOR(argv[1]);
-    Data_Get_Struct(obj, gsl_matrix, A);
-    Data_Get_Struct(argv[0], gsl_vector, tau_U);
-    Data_Get_Struct(argv[1], gsl_vector, tau_V);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, tau_U);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, tau_V);
     break;
   }
   size0 = GSL_MIN(A->size1, A->size2);
@@ -3245,10 +3245,10 @@ static VALUE rb_gsl_linalg_bidiag_unpack(int argc, VALUE *argv, VALUE obj)
   d = gsl_vector_alloc(size0);
   s = gsl_vector_alloc(size0-1);
   gsl_linalg_bidiag_unpack(A, tau_U, U, tau_V, V, d, s);
-  vu = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, U);
-  vv = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, V);
-  vd = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, d);
-  vs = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, s);
+  vu = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, U);
+  vv = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, V);
+  vd = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, d);
+  vs = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, s);
   return rb_ary_new3(4, vu, vv, vd, vs);
 }
 
@@ -3265,9 +3265,9 @@ static VALUE rb_gsl_linalg_bidiag_unpack2(int argc, VALUE *argv, VALUE obj)
     CHECK_MATRIX(argv[0]);
     CHECK_VECTOR(argv[1]);
     CHECK_VECTOR(argv[2]);
-    Data_Get_Struct(argv[0], gsl_matrix, A);
-    Data_Get_Struct(argv[1], gsl_vector, tau_U);
-    Data_Get_Struct(argv[2], gsl_vector, tau_V);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, tau_U);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, tau_V);
     break;
   default:
     if (argc != 2) rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)",
@@ -3275,14 +3275,14 @@ static VALUE rb_gsl_linalg_bidiag_unpack2(int argc, VALUE *argv, VALUE obj)
     CHECK_MATRIX(obj);
     CHECK_VECTOR(argv[0]);
     CHECK_VECTOR(argv[1]);
-    Data_Get_Struct(obj, gsl_matrix, A);
-    Data_Get_Struct(argv[0], gsl_vector, tau_U);
-    Data_Get_Struct(argv[1], gsl_vector, tau_V);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, tau_U);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, tau_V);
     break;
   }
   V = gsl_matrix_alloc(A->size2, A->size2);
   gsl_linalg_bidiag_unpack2(A, tau_U, tau_V, V);
-  vv = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, V);
+  vv = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, V);
   return vv;
 }
 
@@ -3298,19 +3298,19 @@ static VALUE rb_gsl_linalg_bidiag_unpack_B(int argc, VALUE *argv, VALUE obj)
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 3)",
                             argc);
     CHECK_MATRIX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix, A);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
     break;
   default:
     CHECK_MATRIX(obj);
-    Data_Get_Struct(obj, gsl_matrix, A);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
     break;
   }
   size0 = GSL_MIN(A->size1, A->size2);
   d = gsl_vector_alloc(size0);
   s = gsl_vector_alloc(size0);
   gsl_linalg_bidiag_unpack_B(A, d, s);
-  vd = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, d);
-  vs = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, s);
+  vd = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, d);
+  vs = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, s);
   return rb_ary_new3(2, vd, vs);
 }
 
@@ -3322,10 +3322,10 @@ static VALUE rb_gsl_linalg_householder_transform(int argc, VALUE *argv, VALUE ob
   case T_MODULE:  case T_CLASS:  case T_OBJECT:
     if (argc < 1) rb_raise(rb_eArgError, "too few arguments.");
     CHECK_VECTOR(argv[0]);
-    Data_Get_Struct(argv[0], gsl_vector, v);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
     break;
   default:
-    Data_Get_Struct(obj, gsl_vector, v);
+    TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
     break;
   }
   return rb_float_new(gsl_linalg_householder_transform(v));
@@ -3340,8 +3340,8 @@ static VALUE rb_gsl_linalg_householder_hm(VALUE obj, VALUE t, VALUE vv, VALUE aa
   CHECK_VECTOR(vv);
   CHECK_MATRIX(aa);
   tau = NUM2DBL(t);
-  Data_Get_Struct(vv, gsl_vector, v);
-  Data_Get_Struct(aa, gsl_matrix, A);
+  TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
+  TypedData_Get_Struct(aa, gsl_matrix, &gsl_matrix_data_type, A);
   gsl_linalg_householder_hm(tau, v, A);
   return aa;
 }
@@ -3354,8 +3354,8 @@ static VALUE rb_gsl_linalg_householder_mh(VALUE obj, VALUE t, VALUE vv, VALUE aa
   CHECK_VECTOR(vv);
   CHECK_MATRIX(aa);
   tau = NUM2DBL(t);
-  Data_Get_Struct(vv, gsl_vector, v);
-  Data_Get_Struct(aa, gsl_matrix, A);
+  TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
+  TypedData_Get_Struct(aa, gsl_matrix, &gsl_matrix_data_type, A);
   gsl_linalg_householder_mh(tau, v, A);
   return aa;
 }
@@ -3367,8 +3367,8 @@ static VALUE rb_gsl_linalg_householder_hv(VALUE obj, VALUE t, VALUE vv, VALUE ww
   CHECK_VECTOR(vv);
   CHECK_VECTOR(ww);
   tau = NUM2DBL(t);
-  Data_Get_Struct(vv, gsl_vector, v);
-  Data_Get_Struct(ww, gsl_vector, w);
+  TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
+  TypedData_Get_Struct(ww, gsl_vector, &gsl_vector_data_type, w);
   gsl_linalg_householder_hv(tau, v, w);
   return ww;
 }
@@ -3456,20 +3456,20 @@ static VALUE rb_gsl_linalg_HH_solve(int argc, VALUE *argv, VALUE obj)
     break;
   }
   CHECK_MATRIX(vA);
-  Data_Get_Struct(vA, gsl_matrix, Atmp);
+  TypedData_Get_Struct(vA, gsl_matrix, &gsl_matrix_data_type, Atmp);
   if (TYPE(vb) == T_ARRAY) {
     b = make_cvector_from_rarray(vb);
     flagb = 1;
   } else {
     CHECK_VECTOR(vb);
-    Data_Get_Struct(vb, gsl_vector, b);
+    TypedData_Get_Struct(vb, gsl_vector, &gsl_vector_data_type, b);
   }
   A = make_matrix_clone(Atmp);
   x = gsl_vector_alloc(b->size);
   gsl_linalg_HH_solve(A, b, x);
   gsl_matrix_free(A);
   if (flagb == 1) gsl_vector_free(b);
-  return Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, x);
+  return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, x);
 }
 
 static VALUE rb_gsl_linalg_HH_solve_bang(int argc, VALUE *argv, VALUE obj)
@@ -3493,18 +3493,18 @@ static VALUE rb_gsl_linalg_HH_solve_bang(int argc, VALUE *argv, VALUE obj)
     break;
   }
   CHECK_MATRIX(vA);
-  Data_Get_Struct(vA, gsl_matrix, A);
+  TypedData_Get_Struct(vA, gsl_matrix, &gsl_matrix_data_type, A);
   if (TYPE(vb) == T_ARRAY) {
     b = make_cvector_from_rarray(vb);
     flagb = 1;
   } else {
     CHECK_VECTOR(vb);
-    Data_Get_Struct(vb, gsl_vector, b);
+    TypedData_Get_Struct(vb, gsl_vector, &gsl_vector_data_type, b);
   }
   x = gsl_vector_alloc(b->size);
   gsl_linalg_HH_solve(A, b, x);
   if (flagb == 1) gsl_vector_free(b);
-  return Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, x);
+  return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, x);
 }
 
 #ifdef HAVE_NMATRIX_H
@@ -3553,9 +3553,9 @@ static VALUE rb_gsl_linalg_HH_svx(int argc, VALUE *argv, VALUE obj)
     break;
   }
   CHECK_MATRIX(vA);
-  Data_Get_Struct(vA, gsl_matrix, Atmp);
+  TypedData_Get_Struct(vA, gsl_matrix, &gsl_matrix_data_type, Atmp);
   CHECK_VECTOR(vb);
-  Data_Get_Struct(vb, gsl_vector, b);
+  TypedData_Get_Struct(vb, gsl_vector, &gsl_vector_data_type, b);
   A = make_matrix_clone(Atmp);
   gsl_linalg_HH_svx(A, b);
   gsl_matrix_free(A);
@@ -3566,13 +3566,13 @@ static VALUE rb_gsl_linalg_solve_symm_tridiag(VALUE obj, VALUE dd, VALUE ee, VAL
 {
   gsl_vector *b = NULL, *x = NULL, *d = NULL, *e = NULL;
 
-  Data_Get_Struct(dd, gsl_vector, d);
-  Data_Get_Struct(ee, gsl_vector, e);
-  Data_Get_Struct(bb, gsl_vector, b);
+  TypedData_Get_Struct(dd, gsl_vector, &gsl_vector_data_type, d);
+  TypedData_Get_Struct(ee, gsl_vector, &gsl_vector_data_type, e);
+  TypedData_Get_Struct(bb, gsl_vector, &gsl_vector_data_type, b);
   x = gsl_vector_alloc(b->size);
 
   gsl_linalg_solve_symm_tridiag(d, e, b, x);
-  return Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, x);
+  return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, x);
 }
 
 static VALUE rb_gsl_linalg_solve_tridiag(VALUE obj, VALUE dd, VALUE ee, VALUE ff,
@@ -3580,40 +3580,40 @@ static VALUE rb_gsl_linalg_solve_tridiag(VALUE obj, VALUE dd, VALUE ee, VALUE ff
 {
   gsl_vector *b = NULL, *x = NULL, *d = NULL, *e = NULL, *f = NULL;
 
-  Data_Get_Struct(dd, gsl_vector, d);
-  Data_Get_Struct(ee, gsl_vector, e);
-  Data_Get_Struct(ff, gsl_vector, f);
-  Data_Get_Struct(bb, gsl_vector, b);
+  TypedData_Get_Struct(dd, gsl_vector, &gsl_vector_data_type, d);
+  TypedData_Get_Struct(ee, gsl_vector, &gsl_vector_data_type, e);
+  TypedData_Get_Struct(ff, gsl_vector, &gsl_vector_data_type, f);
+  TypedData_Get_Struct(bb, gsl_vector, &gsl_vector_data_type, b);
   x = gsl_vector_alloc(b->size);
 
   gsl_linalg_solve_tridiag(d, e, f, b, x);
-  return Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, x);
+  return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, x);
 }
 
 static VALUE rb_gsl_linalg_solve_symm_cyc_tridiag(VALUE obj, VALUE dd, VALUE ee, VALUE bb)
 {
   gsl_vector *b = NULL, *x = NULL, *d = NULL, *e = NULL;
 
-  Data_Get_Struct(dd, gsl_vector, d);
-  Data_Get_Struct(ee, gsl_vector, e);
-  Data_Get_Struct(bb, gsl_vector, b);
+  TypedData_Get_Struct(dd, gsl_vector, &gsl_vector_data_type, d);
+  TypedData_Get_Struct(ee, gsl_vector, &gsl_vector_data_type, e);
+  TypedData_Get_Struct(bb, gsl_vector, &gsl_vector_data_type, b);
   x = gsl_vector_alloc(b->size);
 
   gsl_linalg_solve_symm_cyc_tridiag(d, e, b, x);
-  return Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, x);
+  return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, x);
 }
 
 static VALUE rb_gsl_linalg_solve_cyc_tridiag(VALUE obj, VALUE dd, VALUE ee,
                                              VALUE ff, VALUE bb)
 {
   gsl_vector *b = NULL, *x = NULL, *d = NULL, *e = NULL, *f = NULL;
-  Data_Get_Struct(dd, gsl_vector, d);
-  Data_Get_Struct(ee, gsl_vector, e);
-  Data_Get_Struct(ff, gsl_vector, f);
-  Data_Get_Struct(bb, gsl_vector, b);
+  TypedData_Get_Struct(dd, gsl_vector, &gsl_vector_data_type, d);
+  TypedData_Get_Struct(ee, gsl_vector, &gsl_vector_data_type, e);
+  TypedData_Get_Struct(ff, gsl_vector, &gsl_vector_data_type, f);
+  TypedData_Get_Struct(bb, gsl_vector, &gsl_vector_data_type, b);
   x = gsl_vector_alloc(b->size);
   gsl_linalg_solve_cyc_tridiag(d, e, f, b, x);
-  return Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, x);
+  return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, x);
 }
 
 static void rb_gsl_linalg_balance_columns_init(int argc, VALUE *argv, VALUE obj,
@@ -3627,15 +3627,15 @@ static void rb_gsl_linalg_balance_columns_init(int argc, VALUE *argv, VALUE obj,
     switch (argc) {
     case 2:
       CHECK_MATRIX(argv[0]); CHECK_VECTOR(argv[1]);
-      Data_Get_Struct(argv[0], gsl_matrix, A);
-      Data_Get_Struct(argv[1], gsl_vector, D);
+      TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
+      TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, D);
       *vec = argv[1];
       break;
     case 1:
       CHECK_MATRIX(argv[0]);
-      Data_Get_Struct(argv[0], gsl_matrix, A);
+      TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
       D = gsl_vector_alloc(A->size2);
-      *vec = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, D);
+      *vec = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, D);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 2)", argc);
@@ -3644,16 +3644,16 @@ static void rb_gsl_linalg_balance_columns_init(int argc, VALUE *argv, VALUE obj,
     *mat = argv[0];
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix, A);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
     switch (argc) {
     case 1:
       CHECK_VECTOR(argv[0]);
-      Data_Get_Struct(argv[0], gsl_vector, D);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, D);
       *vec = argv[0];
       break;
     case 0:
       D = gsl_vector_alloc(A->size2);
-      *vec = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, D);
+      *vec = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, D);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%d for 0 or 1)", argc);
@@ -3687,7 +3687,7 @@ static VALUE rb_gsl_linalg_balance_columns(int argc, VALUE *argv, VALUE obj)
   //int status;
   rb_gsl_linalg_balance_columns_init(argc, argv, obj, &mat, &vec, &A, &D);
   Anew = make_matrix_clone(A);
-  mat = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Anew);
+  mat = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Anew);
   /*status =*/ gsl_linalg_balance_columns(Anew, D);
   return rb_ary_new3(2, mat, vec);
 }
@@ -3698,12 +3698,12 @@ static VALUE rb_gsl_linalg_hessenberg_decomp(VALUE module, VALUE AA)
   gsl_vector *tau = NULL;
   VALUE vH, vtau;
   CHECK_MATRIX(AA);
-  Data_Get_Struct(AA, gsl_matrix, Atmp);
+  TypedData_Get_Struct(AA, gsl_matrix, &gsl_matrix_data_type, Atmp);
   A = make_matrix_clone(Atmp);
   tau = gsl_vector_alloc(A->size1);
   gsl_linalg_hessenberg_decomp(A, tau);
-  vH = Data_Wrap_Struct(cgsl_matrix_Q, 0, gsl_matrix_free, A);
-  vtau = Data_Wrap_Struct(cgsl_vector_tau, 0, gsl_vector_free, tau);
+  vH = TypedData_Wrap_Struct(cgsl_matrix_Q, &gsl_matrix_data_type, A);
+  vtau = TypedData_Wrap_Struct(cgsl_vector_tau, &gsl_vector_data_type, tau);
   return rb_ary_new3(2, vH, vtau);
 }
 
@@ -3713,12 +3713,12 @@ static VALUE rb_gsl_linalg_hessenberg_unpack(VALUE module, VALUE HH, VALUE tt)
   gsl_vector *tau = NULL;
   CHECK_MATRIX(HH);
   CHECK_VECTOR(tt);
-  Data_Get_Struct(HH, gsl_matrix, H);
-  Data_Get_Struct(tt, gsl_vector, tau);
+  TypedData_Get_Struct(HH, gsl_matrix, &gsl_matrix_data_type, H);
+  TypedData_Get_Struct(tt, gsl_vector, &gsl_vector_data_type, tau);
   U = gsl_matrix_alloc(H->size1, H->size2);
   gsl_linalg_hessenberg_unpack(H, tau, U);
 
-  return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, U);
+  return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, U);
 }
 
 static VALUE rb_gsl_linalg_hessenberg_unpack_accum(int argc, VALUE *argv, VALUE module)
@@ -3733,7 +3733,7 @@ static VALUE rb_gsl_linalg_hessenberg_unpack_accum(int argc, VALUE *argv, VALUE 
     break;
   case 3:
     CHECK_MATRIX(argv[2]);
-    Data_Get_Struct(argv[2], gsl_matrix, V);
+    TypedData_Get_Struct(argv[2], gsl_matrix, &gsl_matrix_data_type, V);
     val = argv[2];
     break;
   default:
@@ -3741,11 +3741,11 @@ static VALUE rb_gsl_linalg_hessenberg_unpack_accum(int argc, VALUE *argv, VALUE 
   }
   CHECK_MATRIX(argv[0]);
   CHECK_VECTOR(argv[1]);
-  Data_Get_Struct(argv[0], gsl_matrix, H);
-  Data_Get_Struct(argv[1], gsl_vector, tau);
+  TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, H);
+  TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, tau);
   if (argc == 2) {
     V = gsl_matrix_alloc(H->size1, H->size2);
-    val = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, V);
+    val = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, V);
     for (i = 0; i < V->size1; i++) gsl_matrix_set(V, i, i, 1.0);
   }
   gsl_linalg_hessenberg_unpack_accum(H, tau, V);
@@ -3755,7 +3755,7 @@ static VALUE rb_gsl_linalg_hessenberg_set_zero(VALUE module, VALUE HH)
 {
   gsl_matrix *H;
   CHECK_MATRIX(HH);
-  Data_Get_Struct(HH, gsl_matrix, H);
+  TypedData_Get_Struct(HH, gsl_matrix, &gsl_matrix_data_type, H);
   return INT2FIX(gsl_linalg_hessenberg_set_zero(H));
   /*  gsl_linalg_hessenberg_set_zero(H);
       return INT2FIX(0);*/
@@ -3773,22 +3773,22 @@ static VALUE rb_gsl_linalg_hesstri_decomp(int argc, VALUE *argv, VALUE module)
     break;
   case 3:
     CHECK_VECTOR(argv[2]);
-    Data_Get_Struct(argv[2], gsl_vector, work);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, work);
     break;
   case 4:
     CHECK_MATRIX(argv[2]);
     CHECK_MATRIX(argv[3]);
-    Data_Get_Struct(argv[2], gsl_matrix, U);
-    Data_Get_Struct(argv[3], gsl_matrix, V);
+    TypedData_Get_Struct(argv[2], gsl_matrix, &gsl_matrix_data_type, U);
+    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, V);
     flag = 1;
     break;
   case 5:
     CHECK_MATRIX(argv[2]);
     CHECK_MATRIX(argv[3]);
     CHECK_VECTOR(argv[4]);
-    Data_Get_Struct(argv[2], gsl_matrix, U);
-    Data_Get_Struct(argv[3], gsl_matrix, V);
-    Data_Get_Struct(argv[4], gsl_vector, work);
+    TypedData_Get_Struct(argv[2], gsl_matrix, &gsl_matrix_data_type, U);
+    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, V);
+    TypedData_Get_Struct(argv[4], gsl_vector, &gsl_vector_data_type, work);
     vU = argv[2];
     vV = argv[3];
     break;
@@ -3797,15 +3797,15 @@ static VALUE rb_gsl_linalg_hesstri_decomp(int argc, VALUE *argv, VALUE module)
   }
   CHECK_MATRIX(argv[0]);
   CHECK_MATRIX(argv[1]);
-  Data_Get_Struct(argv[0], gsl_matrix, A);
-  Data_Get_Struct(argv[1], gsl_matrix, B);
+  TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
+  TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, B);
   Anew = make_matrix_clone(A);
   Bnew = make_matrix_clone(B);
   if (flag == 1) work = gsl_vector_alloc(A->size1);
   gsl_linalg_hesstri_decomp(Anew, Bnew, U, V, work);
   if (flag == 1) gsl_vector_free(work);
-  vH = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Anew);
-  vR = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Bnew);
+  vH = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Anew);
+  vR = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Bnew);
   if (argc == 2 || argc == 3) {
     ary = rb_ary_new3(2, vH, vR);
   } else {
@@ -3826,22 +3826,22 @@ static VALUE rb_gsl_linalg_hesstri_decomp_bang(int argc, VALUE *argv, VALUE modu
     break;
   case 3:
     CHECK_VECTOR(argv[2]);
-    Data_Get_Struct(argv[2], gsl_vector, work);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, work);
     break;
   case 4:
     CHECK_MATRIX(argv[2]);
     CHECK_MATRIX(argv[3]);
-    Data_Get_Struct(argv[2], gsl_matrix, U);
-    Data_Get_Struct(argv[3], gsl_matrix, V);
+    TypedData_Get_Struct(argv[2], gsl_matrix, &gsl_matrix_data_type, U);
+    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, V);
     flag = 1;
     break;
   case 5:
     CHECK_MATRIX(argv[2]);
     CHECK_MATRIX(argv[3]);
     CHECK_VECTOR(argv[4]);
-    Data_Get_Struct(argv[2], gsl_matrix, U);
-    Data_Get_Struct(argv[3], gsl_matrix, V);
-    Data_Get_Struct(argv[4], gsl_vector, work);
+    TypedData_Get_Struct(argv[2], gsl_matrix, &gsl_matrix_data_type, U);
+    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, V);
+    TypedData_Get_Struct(argv[4], gsl_vector, &gsl_vector_data_type, work);
     vU = argv[2];
     vV = argv[3];
     break;
@@ -3850,8 +3850,8 @@ static VALUE rb_gsl_linalg_hesstri_decomp_bang(int argc, VALUE *argv, VALUE modu
   }
   CHECK_MATRIX(argv[0]);
   CHECK_MATRIX(argv[1]);
-  Data_Get_Struct(argv[0], gsl_matrix, A);
-  Data_Get_Struct(argv[1], gsl_matrix, B);
+  TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
+  TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, B);
   if (flag == 1) work = gsl_vector_alloc(A->size1);
   gsl_linalg_hesstri_decomp(A, B, U, V, work);
   if (flag == 1) gsl_vector_free(work);
@@ -3873,16 +3873,16 @@ static VALUE rb_gsl_linalg_balance_matrix(int argc, VALUE *argv, VALUE module)
   switch (argc) {
   case 1:
     CHECK_MATRIX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix, A);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
     Anew = make_matrix_clone(A);
     D = gsl_vector_alloc(A->size1);
-    vD = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, D);
+    vD = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, D);
     break;
   case 2:
     CHECK_MATRIX(argv[0]);
     CHECK_VECTOR(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, A);
-    Data_Get_Struct(argv[1], gsl_vector, D);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, D);
     Anew = make_matrix_clone(A);
     vD = argv[1];
     break;
@@ -3890,7 +3890,7 @@ static VALUE rb_gsl_linalg_balance_matrix(int argc, VALUE *argv, VALUE module)
     rb_raise(rb_eArgError, "Wrong number of arguments (%d for 1 or 2)", argc);
   }
   gsl_linalg_balance_matrix(Anew, D);
-  vA = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Anew);
+  vA = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Anew);
   return rb_ary_new3(2, vA, vD);
 
 }
@@ -3901,16 +3901,16 @@ static VALUE rb_gsl_linalg_balance_matrix2(int argc, VALUE *argv, VALUE module)
   switch (argc) {
   case 1:
     CHECK_MATRIX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix, A);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
     D = gsl_vector_alloc(A->size1);
     gsl_linalg_balance_matrix(A, D);
-    return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, D);
+    return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, D);
     break;
   case 2:
     CHECK_MATRIX(argv[0]);
     CHECK_VECTOR(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, A);
-    Data_Get_Struct(argv[1], gsl_vector, D);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, D);
     return INT2FIX(gsl_linalg_balance_matrix(A, D));
     break;
   default:
