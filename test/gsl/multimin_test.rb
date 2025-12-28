@@ -154,4 +154,246 @@ class MultiMinTest < GSL::TestCase
     _test_f('Rosenbrock', GSL::MultiMin::Function.alloc(_rosenbrock_f, 2), _rosenbrock_initpt)
   end
 
+  # Test Function methods
+  def test_function_n
+    f = GSL::MultiMin::Function.alloc(_rosenbrock_f, 2)
+    assert_equal 2, f.n
+  end
+
+  def test_function_eval
+    f = GSL::MultiMin::Function.alloc(_rosenbrock_f, 2)
+    x = GSL::Vector.alloc(1.0, 1.0)
+    result = f.eval(x)
+    assert_in_delta 0.0, result, 1e-10
+  end
+
+  def test_function_call_alias
+    f = GSL::MultiMin::Function.alloc(_rosenbrock_f, 2)
+    x = GSL::Vector.alloc(-1.2, 1.0)
+    result = f.call(x)
+    assert result > 0
+  end
+
+  def test_function_set_proc
+    f = GSL::MultiMin::Function.alloc(2)
+    f.set_proc(_rosenbrock_f)
+    x = GSL::Vector.alloc(1.0, 1.0)
+    result = f.eval(x)
+    assert_in_delta 0.0, result, 1e-10
+  end
+
+  def test_function_set_params
+    func_with_params = lambda { |x, params|
+      scale = params[0]
+      x[0]**2 * scale + x[1]**2 * scale
+    }
+    f = GSL::MultiMin::Function.alloc(func_with_params, 2)
+    f.set_params([2.0])
+    x = GSL::Vector.alloc(1.0, 1.0)
+    result = f.eval(x)
+    assert_in_delta 4.0, result, 1e-10
+  end
+
+  def test_function_params
+    func_with_params = lambda { |x, params|
+      params[0] * x[0]**2
+    }
+    f = GSL::MultiMin::Function.alloc(func_with_params, 2)
+    f.set_params([3.0])
+    assert_equal [3.0], f.params
+  end
+
+  # Test Function_fdf methods
+  def test_function_fdf_n
+    fdf = _rosenbrockdf
+    assert_equal 2, fdf.n
+  end
+
+  def test_function_fdf_set
+    fdf = GSL::MultiMin::Function_fdf.alloc(1)
+    fdf.set(_rosenbrock_f, lambda { |x, df|
+      df[0] = 2 * (x[0] - 1) + 40 * x[0] * (x[0]**2 - x[1])
+      df[1] = -20 * (x[0]**2 - x[1])
+    }, 2)
+    assert_equal 2, fdf.n
+  end
+
+  def test_function_fdf_set_procs
+    fdf = GSL::MultiMin::Function_fdf.alloc(2)
+    fdf.set_procs(_rosenbrock_f, lambda { |x, df|
+      df[0] = 2 * (x[0] - 1) + 40 * x[0] * (x[0]**2 - x[1])
+      df[1] = -20 * (x[0]**2 - x[1])
+    })
+    assert_equal 2, fdf.n
+  end
+
+  def test_function_fdf_set_params
+    fdf = _rosenbrockdf
+    fdf.set_params([1.0, 2.0])
+    assert_equal [1.0, 2.0], fdf.params
+  end
+
+  def test_function_fdf_params
+    fdf = _rosenbrockdf
+    assert_nil fdf.params
+  end
+
+  # Test FdfMinimizer methods
+  def test_fdfminimizer_name
+    s = GSL::MultiMin::FdfMinimizer.alloc('steepest_descent', 2)
+    assert_equal 'steepest_descent', s.name
+  end
+
+  def test_fdfminimizer_x
+    fdf = _rosenbrockdf
+    x = _rosenbrock_initpt
+    s = GSL::MultiMin::FdfMinimizer.alloc('steepest_descent', 2)
+    s.set(fdf, x, 0.01, 0.1)
+    s.iterate
+    result_x = s.x
+    assert_kind_of GSL::Vector, result_x
+    assert_equal 2, result_x.size
+  end
+
+  def test_fdfminimizer_f
+    fdf = _rosenbrockdf
+    x = _rosenbrock_initpt
+    s = GSL::MultiMin::FdfMinimizer.alloc('steepest_descent', 2)
+    s.set(fdf, x, 0.01, 0.1)
+    s.iterate
+    f_val = s.f
+    assert_kind_of Float, f_val
+  end
+
+  def test_fdfminimizer_gradient
+    fdf = _rosenbrockdf
+    x = _rosenbrock_initpt
+    s = GSL::MultiMin::FdfMinimizer.alloc('steepest_descent', 2)
+    s.set(fdf, x, 0.01, 0.1)
+    s.iterate
+    grad = s.gradient
+    assert_kind_of GSL::Vector, grad
+    assert_equal 2, grad.size
+  end
+
+  def test_fdfminimizer_minimum
+    fdf = _rosenbrockdf
+    x = _rosenbrock_initpt
+    s = GSL::MultiMin::FdfMinimizer.alloc('steepest_descent', 2)
+    s.set(fdf, x, 0.01, 0.1)
+    s.iterate
+    min = s.minimum
+    assert_kind_of Float, min
+  end
+
+  def test_fdfminimizer_restart
+    fdf = _rosenbrockdf
+    x = _rosenbrock_initpt
+    s = GSL::MultiMin::FdfMinimizer.alloc('steepest_descent', 2)
+    s.set(fdf, x, 0.01, 0.1)
+    s.iterate
+    status = s.restart
+    assert_equal 0, status
+  end
+
+  def test_fdfminimizer_test_gradient
+    fdf = _rosenbrockdf
+    x = GSL::Vector.alloc(1.0, 1.0)  # At minimum
+    s = GSL::MultiMin::FdfMinimizer.alloc('steepest_descent', 2)
+    s.set(fdf, x, 0.01, 0.1)
+    status = s.test_gradient(1e-3)
+    assert_equal 0, status  # GSL_SUCCESS at minimum
+  end
+
+  # Test FMinimizer methods
+  def test_fminimizer_name
+    s = GSL::MultiMin::FMinimizer.alloc('nmsimplex', 2)
+    assert_equal 'nmsimplex', s.name
+  end
+
+  def test_fminimizer_x
+    f = GSL::MultiMin::Function.alloc(_rosenbrock_f, 2)
+    x = _rosenbrock_initpt
+    step_size = GSL::Vector.alloc(1, 1)
+    s = GSL::MultiMin::FMinimizer.alloc('nmsimplex', 2)
+    s.set(f, x, step_size)
+    s.iterate
+    result_x = s.x
+    assert_kind_of GSL::Vector, result_x
+    assert_equal 2, result_x.size
+  end
+
+  def test_fminimizer_minimum
+    f = GSL::MultiMin::Function.alloc(_rosenbrock_f, 2)
+    x = _rosenbrock_initpt
+    step_size = GSL::Vector.alloc(1, 1)
+    s = GSL::MultiMin::FMinimizer.alloc('nmsimplex', 2)
+    s.set(f, x, step_size)
+    s.iterate
+    min = s.minimum
+    assert_kind_of Float, min
+  end
+
+  def test_fminimizer_size
+    f = GSL::MultiMin::Function.alloc(_rosenbrock_f, 2)
+    x = _rosenbrock_initpt
+    step_size = GSL::Vector.alloc(1, 1)
+    s = GSL::MultiMin::FMinimizer.alloc('nmsimplex', 2)
+    s.set(f, x, step_size)
+    s.iterate
+    size = s.size
+    assert_kind_of Float, size
+    assert size > 0
+  end
+
+  def test_fminimizer_fval
+    f = GSL::MultiMin::Function.alloc(_rosenbrock_f, 2)
+    x = _rosenbrock_initpt
+    step_size = GSL::Vector.alloc(1, 1)
+    s = GSL::MultiMin::FMinimizer.alloc('nmsimplex', 2)
+    s.set(f, x, step_size)
+    s.iterate
+    fval = s.fval
+    assert_kind_of Float, fval
+  end
+
+  def test_fminimizer_test_size
+    f = GSL::MultiMin::Function.alloc(_rosenbrock_f, 2)
+    x = _rosenbrock_initpt
+    step_size = GSL::Vector.alloc(1, 1)
+    s = GSL::MultiMin::FMinimizer.alloc('nmsimplex', 2)
+    s.set(f, x, step_size)
+    10.times { s.iterate }
+    status = s.test_size(1e-1)
+    assert [GSL::SUCCESS, GSL::CONTINUE].include?(status)
+  end
+
+  # Test minimizer type selection
+  def test_fdfminimizer_types
+    types = %w[steepest_descent conjugate_pr conjugate_fr vector_bfgs vector_bfgs2]
+    types.each do |type|
+      s = GSL::MultiMin::FdfMinimizer.alloc(type, 2)
+      assert_equal type, s.name
+    end
+  end
+
+  def test_fminimizer_types
+    types = %w[nmsimplex nmsimplex2rand]
+    types.each do |type|
+      s = GSL::MultiMin::FMinimizer.alloc(type, 2)
+      assert_match type, s.name
+    end
+  end
+
+  # Test type constants
+  def test_fdfminimizer_type_constants
+    s = GSL::MultiMin::FdfMinimizer.alloc(GSL::MultiMin::FdfMinimizer::STEEPEST_DESCENT, 2)
+    assert_equal 'steepest_descent', s.name
+  end
+
+  def test_fminimizer_type_constants
+    s = GSL::MultiMin::FMinimizer.alloc(GSL::MultiMin::FMinimizer::NMSIMPLEX, 2)
+    assert_equal 'nmsimplex', s.name
+  end
+
 end
