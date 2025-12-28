@@ -29,7 +29,7 @@ static VALUE FUNCTION(rb_gsl_block,new)(VALUE klass, VALUE nn)
   GSL_TYPE(gsl_block) *block = NULL;
   CHECK_FIXNUM(nn);
   block = FUNCTION(gsl_block,alloc)(FIX2INT(nn));
-  return Data_Wrap_Struct(klass, 0, FUNCTION(gsl_block,free), block);
+  return TypedData_Wrap_Struct(klass, &BLOCK_DATA_TYPE, block);
 }
 
 static VALUE FUNCTION(rb_gsl_block,calloc)(VALUE klass, VALUE nn)
@@ -37,13 +37,13 @@ static VALUE FUNCTION(rb_gsl_block,calloc)(VALUE klass, VALUE nn)
   GSL_TYPE(gsl_block) *block = NULL;
   CHECK_FIXNUM(nn);
   block = FUNCTION(gsl_block,calloc)(FIX2INT(nn));
-  return Data_Wrap_Struct(klass, 0, FUNCTION(gsl_block,free), block);
+  return TypedData_Wrap_Struct(klass, &BLOCK_DATA_TYPE, block);
 }
 
 static VALUE FUNCTION(rb_gsl_block,size)(VALUE obj)
 {
   GSL_TYPE(gsl_block) *block = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), block);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, block);
   return INT2FIX(block->size);
 }
 
@@ -52,7 +52,7 @@ static VALUE FUNCTION(rb_gsl_block,fwrite)(VALUE obj, VALUE io)
   GSL_TYPE(gsl_block) *h = NULL;
   FILE *f = NULL;
   int status, flag = 0;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), h);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, h);
   f = rb_gsl_open_writefile(io, &flag);
   status = FUNCTION(gsl_block,fwrite)(f, h);
   if (flag == 1) fclose(f);
@@ -64,7 +64,7 @@ static VALUE FUNCTION(rb_gsl_block,fread)(VALUE obj, VALUE io)
   GSL_TYPE(gsl_block) *h = NULL;
   FILE *f = NULL;
   int status, flag = 0;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), h);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, h);
   f = rb_gsl_open_readfile(io, &flag);
   status = FUNCTION(gsl_block,fread)(f, h);
   if (flag == 1) fclose(f);
@@ -85,7 +85,7 @@ static VALUE FUNCTION(rb_gsl_block,fprintf)(int argc, VALUE *argv, VALUE obj)
   if (argc != 1 && argc != 2)
     rb_raise(rb_eArgError,
              "wrong number of arguments (%d for 1 or 2)", argc);
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), h);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, h);
   fp = rb_gsl_open_writefile(argv[0], &flag);
   if (argc == 2) {
     Check_Type(argv[1], T_STRING);
@@ -101,7 +101,7 @@ static VALUE FUNCTION(rb_gsl_block,printf)(int argc, VALUE *argv, VALUE obj)
 {
   GSL_TYPE(gsl_block) *h = NULL;
   int status;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), h);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, h);
   if (argc == 1) {
     Check_Type(argv[0], T_STRING);
     status = FUNCTION(gsl_block,fprintf)(stdout, h, STR2CSTR(argv[0]));
@@ -118,7 +118,7 @@ static VALUE FUNCTION(rb_gsl_block,fscanf)(VALUE obj, VALUE io)
   GSL_TYPE(gsl_block) *h = NULL;
   FILE *fp = NULL;
   int status, flag = 0;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), h);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, h);
   fp = rb_gsl_open_readfile(io, &flag);
   status = FUNCTION(gsl_block,fscanf)(fp, h);
   if (flag == 1) fclose(fp);
@@ -141,7 +141,7 @@ static VALUE FUNCTION(rb_gsl_block,to_s)(VALUE obj)
   char buf[32];
   size_t i, n;
   VALUE str;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, v);
   str = rb_str_new2("[ ");
   n = v->size;
   if (rb_obj_is_kind_of(obj, cgsl_block_complex)) n *= 2;
@@ -186,7 +186,7 @@ static VALUE FUNCTION(rb_gsl_block,get)(int argc, VALUE *argv, VALUE obj)
   int beg, en, i, step;
   size_t n, j, k;
 
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), b);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, b);
   switch (argc) {
   case 0:
     rb_raise(rb_eArgError, "too few arguments (%d for >= 1)", argc);
@@ -207,20 +207,20 @@ static VALUE FUNCTION(rb_gsl_block,get)(int argc, VALUE *argv, VALUE obj)
         if (i < 0) k = b->size + i; else k = i;
         bnew->data[j] = b->data[k];
       }
-      return Data_Wrap_Struct(GSL_TYPE(cgsl_block), 0, FUNCTION(gsl_block,free), bnew);
+      return TypedData_Wrap_Struct(GSL_TYPE(cgsl_block), &BLOCK_DATA_TYPE, bnew);
       break;
     default:
       if (PERMUTATION_P(argv[0])) {
-        Data_Get_Struct(argv[0], gsl_index, p);
+        TypedData_Get_Struct(argv[0], gsl_index, &gsl_permutation_data_type, p);
         bnew = FUNCTION(gsl_block,alloc)(p->size);
         for (j = 0; j < p->size; j++) bnew->data[j] = b->data[p->data[j]];
-        return Data_Wrap_Struct(GSL_TYPE(cgsl_block), 0, FUNCTION(gsl_block,free), bnew);
+        return TypedData_Wrap_Struct(GSL_TYPE(cgsl_block), &BLOCK_DATA_TYPE, bnew);
       } else if (CLASS_OF(argv[0]) == rb_cRange) {
         get_range_int_beg_en_n(argv[0], &beg, &en, &n, &step);
         bnew = FUNCTION(gsl_block,alloc)(n);
         for (j = 0; j < n; j++)
           bnew->data[j] = b->data[beg+j];
-        return Data_Wrap_Struct(GSL_TYPE(cgsl_block), 0, FUNCTION(gsl_block,free), bnew);
+        return TypedData_Wrap_Struct(GSL_TYPE(cgsl_block), &BLOCK_DATA_TYPE, bnew);
       } else {
         rb_raise(rb_eArgError, "wrong argument type %s (Fixnum, Array, or Range expected)", rb_class2name(CLASS_OF(argv[0])));
         break;
@@ -234,7 +234,7 @@ static VALUE FUNCTION(rb_gsl_block,get)(int argc, VALUE *argv, VALUE obj)
       if (i < 0) k = b->size + i; else k = i;
       bnew->data[j] = b->data[k];
     }
-    return Data_Wrap_Struct(GSL_TYPE(cgsl_block), 0, FUNCTION(gsl_block,free), bnew);
+    return TypedData_Wrap_Struct(GSL_TYPE(cgsl_block), &BLOCK_DATA_TYPE, bnew);
 
     break;
   }
@@ -249,7 +249,7 @@ static VALUE FUNCTION(rb_gsl_block,set)(VALUE obj, VALUE ii, VALUE xx)
   CHECK_FIXNUM(ii);
   i = FIX2INT(ii);
   x = (BASE) NUMCONV(xx);
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), b);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, b);
   b->data[i] = x;
   return obj;
 }
@@ -547,10 +547,10 @@ static VALUE FUNCTION(rb_gsl_block,compare)(VALUE aa, VALUE bb,
   gsl_block_uchar *c;
   // local variable "status" declared and set, but never used
   //int status;
-  Data_Get_Struct(aa, GSL_TYPE(gsl_block), a);
+  TypedData_Get_Struct(aa, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, a);
   c = gsl_block_uchar_alloc(a->size);
   if (BL_P(bb)) {
-    Data_Get_Struct(bb, GSL_TYPE(gsl_block), b);
+    TypedData_Get_Struct(bb, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, b);
     if (a->size != b->size)
       rb_raise(rb_eRuntimeError, "Block size mismatch, %d and %d", (int) a->size,
                (int) b->size);
@@ -558,7 +558,7 @@ static VALUE FUNCTION(rb_gsl_block,compare)(VALUE aa, VALUE bb,
   } else {
     /*status =*/ (*cmp2)(a, NUMCONV(bb), c);
   }
-  return Data_Wrap_Struct(cgsl_block_uchar, 0, gsl_block_uchar_free, c);
+  return TypedData_Wrap_Struct(cgsl_block_uchar, &gsl_block_uchar_data_type, c);
 }
 
 static VALUE FUNCTION(rb_gsl_block,eq)(VALUE aa, VALUE bb)
@@ -620,10 +620,10 @@ static VALUE FUNCTION(rb_gsl_block,not)(VALUE obj)
   GSL_TYPE(gsl_block) *v;
   gsl_block_uchar *vv;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, v);
   vv = gsl_block_uchar_alloc(v->size);
   for (i = 0; i < v->size; i++) vv->data[i] = (v->data[i] != 0) ? 0 : 1;
-  return Data_Wrap_Struct(cgsl_block_uchar, 0, gsl_block_uchar_free, vv);
+  return TypedData_Wrap_Struct(cgsl_block_uchar, &gsl_block_uchar_data_type, vv);
 }
 
 static VALUE FUNCTION(rb_gsl_block,any)(VALUE obj)
@@ -631,7 +631,7 @@ static VALUE FUNCTION(rb_gsl_block,any)(VALUE obj)
   GSL_TYPE(gsl_block) *v = NULL;
   size_t i;
 
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, v);
   if (rb_block_given_p()) {
     for (i = 0; i < v->size; i++) {
       if (rb_yield(C_TO_VALUE(v->data[i]))) return INT2FIX(1);
@@ -648,7 +648,7 @@ static VALUE FUNCTION(rb_gsl_block,any2)(VALUE obj)
   GSL_TYPE(gsl_block) *v = NULL;
   size_t i;
 
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, v);
   if (rb_block_given_p()) {
     for (i = 0; i < v->size; i++) {
       if (rb_yield(C_TO_VALUE(v->data[i]))) return Qtrue;
@@ -665,7 +665,7 @@ static VALUE FUNCTION(rb_gsl_block,all)(VALUE obj)
   GSL_TYPE(gsl_block) *v;
   size_t i;
 
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, v);
   if (rb_block_given_p()) {
     for (i = 0; i < v->size; i++)
       if (!rb_yield(C_TO_VALUE(v->data[i]))) return Qfalse;
@@ -682,7 +682,7 @@ static VALUE FUNCTION(rb_gsl_block,none)(VALUE obj)
   GSL_TYPE(gsl_block) *v;
   size_t i;
 
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, v);
   if (rb_block_given_p()) {
     for (i = 0; i < v->size; i++)
       if (rb_yield(C_TO_VALUE(v->data[i]))) return Qfalse;
@@ -700,7 +700,7 @@ static VALUE FUNCTION(rb_gsl_block,where)(VALUE obj)
   gsl_index *vv;
   gsl_block_uchar *btmp = NULL;
   size_t i, j, n = 0;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, v);
   /* count true elements */
   if (rb_block_given_p()) {
     btmp = gsl_block_uchar_alloc(v->size);
@@ -726,7 +726,7 @@ static VALUE FUNCTION(rb_gsl_block,where)(VALUE obj)
     }
   }
   if (btmp) gsl_block_uchar_free(btmp);
-  return Data_Wrap_Struct(cgsl_index, 0, gsl_permutation_free, vv);
+  return TypedData_Wrap_Struct(cgsl_index, &gsl_permutation_data_type, vv);
 }
 
 static VALUE FUNCTION(rb_gsl_block,where2)(VALUE obj)
@@ -737,7 +737,7 @@ static VALUE FUNCTION(rb_gsl_block,where2)(VALUE obj)
   VALUE vv1, vv2;
   size_t i, j, k, n = 0;
 
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, v);
   if (rb_block_given_p()) {
     btmp = gsl_block_uchar_alloc(v->size);
     for (i = 0; i < v->size; i++) {
@@ -755,10 +755,10 @@ static VALUE FUNCTION(rb_gsl_block,where2)(VALUE obj)
   if (n == 0) {
     v2 = gsl_permutation_calloc(v->size);  /* calloc() initializes v2 */
     vv1 = Qnil;
-    vv2 = Data_Wrap_Struct(cgsl_index, 0, gsl_permutation_free, v2);
+    vv2 = TypedData_Wrap_Struct(cgsl_index, &gsl_permutation_data_type, v2);
   } else if (v->size-n == 0) {
     v1 = gsl_permutation_calloc(n);           /* calloc() initializes v1 */
-    vv1 = Data_Wrap_Struct(cgsl_index, 0, gsl_permutation_free, v1);
+    vv1 = TypedData_Wrap_Struct(cgsl_index, &gsl_permutation_data_type, v1);
     vv2 = Qnil;
   } else {
     /* same case as 'where' */
@@ -768,8 +768,8 @@ static VALUE FUNCTION(rb_gsl_block,where2)(VALUE obj)
       if ((!btmp && v->data[i]) || (btmp && btmp->data[i])) v1->data[j++] = i;
       else v2->data[k++] = i;
     }
-    vv1 = Data_Wrap_Struct(cgsl_index, 0, gsl_permutation_free, v1);
-    vv2 = Data_Wrap_Struct(cgsl_index, 0, gsl_permutation_free, v2);
+    vv1 = TypedData_Wrap_Struct(cgsl_index, &gsl_permutation_data_type, v1);
+    vv2 = TypedData_Wrap_Struct(cgsl_index, &gsl_permutation_data_type, v2);
   }
   if (btmp) gsl_block_uchar_free(btmp);
   return rb_ary_new3(2, vv1, vv2);
@@ -779,7 +779,7 @@ static VALUE FUNCTION(rb_gsl_block,each)(VALUE obj)
 {
   GSL_TYPE(gsl_block) *b = NULL;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), b);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, b);
   for (i = 0; i < b->size; i++) {
     rb_yield(C_TO_VALUE(b->data[i]));
   }
@@ -790,7 +790,7 @@ static VALUE FUNCTION(rb_gsl_block,each_index)(VALUE obj)
 {
   GSL_TYPE(gsl_block) *b = NULL;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), b);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, b);
   for (i = 0; i < b->size; i++) {
     rb_yield(INT2FIX(i));
   }
@@ -801,19 +801,19 @@ static VALUE FUNCTION(rb_gsl_block,collect)(VALUE obj)
 {
   GSL_TYPE(gsl_block) *b = NULL, *bnew;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), b);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, b);
   bnew = FUNCTION(gsl_block,alloc)(b->size);
   for (i = 0; i < b->size; i++) {
     bnew->data[i] = NUMCONV(rb_yield(C_TO_VALUE(b->data[i])));
   }
-  return Data_Wrap_Struct(GSL_TYPE(cgsl_block), 0, FUNCTION(gsl_block,free), bnew);
+  return TypedData_Wrap_Struct(GSL_TYPE(cgsl_block), &BLOCK_DATA_TYPE, bnew);
 }
 
 static VALUE FUNCTION(rb_gsl_block,collect_bang)(VALUE obj)
 {
   GSL_TYPE(gsl_block) *b = NULL;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_block), b);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_block), &BLOCK_DATA_TYPE, b);
   for (i = 0; i < b->size; i++) {
     b->data[i] = NUMCONV(rb_yield(C_TO_VALUE(b->data[i])));
   }

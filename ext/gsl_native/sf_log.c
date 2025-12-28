@@ -64,8 +64,8 @@ static VALUE rb_gsl_sf_complex_log_e(int argc, VALUE *argv, VALUE obj)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 2)", argc);
     break;
   }
-  vlnr = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt1);
-  vtheta = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt2);
+  rslt1 = ALLOC(gsl_sf_result); vlnr = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt1);
+  rslt2 = ALLOC(gsl_sf_result); vtheta = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt2);
   /*status =*/ gsl_sf_complex_log_e(re, im, rslt1, rslt2);
   return rb_ary_new3(2, vlnr, vtheta);
 }

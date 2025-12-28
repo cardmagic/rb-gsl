@@ -34,7 +34,7 @@ static VALUE rb_gsl_sf_hyperg_1F1_int_e(VALUE obj, VALUE m, VALUE n, VALUE x)
   // local variable "status" declared and set, but never used
   //int status;
   CHECK_FIXNUM(m); CHECK_FIXNUM(n); Need_Float(x);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   /*status =*/ gsl_sf_hyperg_1F1_int_e(FIX2INT(m), FIX2INT(n), NUM2DBL(x), rslt);
   return v;
 }
@@ -61,7 +61,7 @@ static VALUE rb_gsl_sf_hyperg_U_int_e(VALUE obj, VALUE m, VALUE n, VALUE x)
   // local variable "status" declared and set, but never used
   //int status;
   CHECK_FIXNUM(m); CHECK_FIXNUM(n); Need_Float(x);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   /*status =*/ gsl_sf_hyperg_U_int_e(FIX2INT(m), FIX2INT(n), NUM2DBL(x), rslt);
   return v;
 }
@@ -73,7 +73,7 @@ static VALUE rb_gsl_sf_hyperg_U_int_e10_e(VALUE obj, VALUE m, VALUE n, VALUE x)
   // local variable "status" declared and set, but never used
   //int status;
   CHECK_FIXNUM(m); CHECK_FIXNUM(n); Need_Float(x);
-  v = Data_Make_Struct(cgsl_sf_result_e10, gsl_sf_result_e10, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result_e10); v = TypedData_Wrap_Struct(cgsl_sf_result_e10, &gsl_sf_result_e10_data_type, rslt);
   /*status =*/ gsl_sf_hyperg_U_int_e10_e(FIX2INT(m), FIX2INT(n), NUM2DBL(x), rslt);
   return v;
 }
@@ -94,7 +94,7 @@ static VALUE rb_gsl_sf_hyperg_U_e10_e(VALUE obj, VALUE a, VALUE b, VALUE x)
   VALUE v;
   int status;
   Need_Float(a); Need_Float(b); Need_Float(x);
-  v = Data_Make_Struct(cgsl_sf_result_e10, gsl_sf_result_e10, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result_e10); v = TypedData_Wrap_Struct(cgsl_sf_result_e10, &gsl_sf_result_e10_data_type, rslt);
   status = gsl_sf_hyperg_U_e10_e(NUM2DBL(a), NUM2DBL(b), NUM2DBL(x), rslt);
   return rb_ary_new3(2, v, INT2FIX(status));
 }
@@ -110,7 +110,7 @@ static VALUE rb_gsl_sf_hyperg_2F1_e(VALUE obj, VALUE a, VALUE b, VALUE c, VALUE 
   VALUE v;
   int status;
   Need_Float(a); Need_Float(b); Need_Float(c); Need_Float(x);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   status = gsl_sf_hyperg_2F1_e(NUM2DBL(a), NUM2DBL(b), NUM2DBL(c), NUM2DBL(x), rslt);
   return rb_ary_new3(2, v, INT2FIX(status));
 }
@@ -127,7 +127,7 @@ static VALUE rb_gsl_sf_hyperg_2F1_conj_e(VALUE obj, VALUE aR, VALUE aI, VALUE c,
   // local variable "status" declared and set, but never used
   //int status;
   Need_Float(aR); Need_Float(aI);  Need_Float(c); Need_Float(x);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   /*status =*/ gsl_sf_hyperg_2F1_conj_e(NUM2DBL(aR), NUM2DBL(aI), NUM2DBL(c), NUM2DBL(x), rslt);
   return v;
 }
@@ -144,7 +144,7 @@ static VALUE rb_gsl_sf_hyperg_2F1_renorm_e(VALUE obj, VALUE a, VALUE b, VALUE c,
   // local variable "status" declared and set, but never used
   //int status;
   Need_Float(a); Need_Float(b);  Need_Float(c); Need_Float(x);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   /*status =*/ gsl_sf_hyperg_2F1_renorm_e(NUM2DBL(a), NUM2DBL(b), NUM2DBL(c), NUM2DBL(x), rslt);
   return v;
 }
@@ -161,7 +161,7 @@ static VALUE rb_gsl_sf_hyperg_2F1_conj_renorm_e(VALUE obj, VALUE aR, VALUE aI, V
   // local variable "status" declared and set, but never used
   //int status;
   Need_Float(aR); Need_Float(aI);  Need_Float(c); Need_Float(x);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   /*status =*/ gsl_sf_hyperg_2F1_conj_renorm_e(NUM2DBL(aR), NUM2DBL(aI), NUM2DBL(c), NUM2DBL(x), rslt);
   return v;
 }

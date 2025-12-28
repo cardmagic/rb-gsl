@@ -33,7 +33,7 @@ static VALUE rb_gsl_sf_exp_e10_e(VALUE obj, VALUE x)
   // local variable "status" declared and set, but never used
   //int status;
   Need_Float(x);
-  v = Data_Make_Struct(cgsl_sf_result_e10, gsl_sf_result_e10, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result_e10); v = TypedData_Wrap_Struct(cgsl_sf_result_e10, &gsl_sf_result_e10_data_type, rslt);
   /*status =*/ gsl_sf_exp_e10_e(NUM2DBL(x), rslt);
   return v;
 }
@@ -56,7 +56,7 @@ static VALUE rb_gsl_sf_exp_mult_e10_e(VALUE obj, VALUE x, VALUE y)
   // local variable "status" declared and set, but never used
   //int status;
   Need_Float(x);   Need_Float(y);
-  v = Data_Make_Struct(cgsl_sf_result_e10, gsl_sf_result_e10, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result_e10); v = TypedData_Wrap_Struct(cgsl_sf_result_e10, &gsl_sf_result_e10_data_type, rslt);
   /*status =*/ gsl_sf_exp_mult_e10_e(NUM2DBL(x), NUM2DBL(y), rslt);
   return v;
 }
@@ -113,7 +113,7 @@ static VALUE rb_gsl_sf_exp_err_e10_e(VALUE obj, VALUE x, VALUE dx)
   // local variable "status" declared and set, but never used
   //int status;
   Need_Float(x);   Need_Float(dx);
-  v = Data_Make_Struct(cgsl_sf_result_e10, gsl_sf_result_e10, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result_e10); v = TypedData_Wrap_Struct(cgsl_sf_result_e10, &gsl_sf_result_e10_data_type, rslt);
   /*status =*/ gsl_sf_exp_err_e10_e(NUM2DBL(x), NUM2DBL(dx), rslt);
   return v;
 }
@@ -127,7 +127,7 @@ static VALUE rb_gsl_sf_exp_mult_err_e(VALUE obj, VALUE x, VALUE dx,
   //int status;
   Need_Float(x);   Need_Float(y);
   Need_Float(dx);   Need_Float(dy);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   /*status =*/ gsl_sf_exp_mult_err_e(NUM2DBL(x), NUM2DBL(dx), NUM2DBL(y), NUM2DBL(dy), rslt);
   return v;
 }
@@ -141,7 +141,7 @@ static VALUE rb_gsl_sf_exp_mult_err_e10_e(VALUE obj, VALUE x, VALUE dx,
   //int status;
   Need_Float(x);   Need_Float(y);
   Need_Float(dx);   Need_Float(dy);
-  v = Data_Make_Struct(cgsl_sf_result_e10, gsl_sf_result_e10, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result_e10); v = TypedData_Wrap_Struct(cgsl_sf_result_e10, &gsl_sf_result_e10_data_type, rslt);
   /*status =*/ gsl_sf_exp_mult_err_e10_e(NUM2DBL(x), NUM2DBL(dx), NUM2DBL(y), NUM2DBL(dy), rslt);
   return v;
 }

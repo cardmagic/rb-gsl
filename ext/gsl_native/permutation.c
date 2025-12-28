@@ -25,7 +25,7 @@ VALUE rb_gsl_permutation_alloc(VALUE klass, VALUE nn)
   gsl_permutation *p = NULL;
   CHECK_FIXNUM(nn);
   p = gsl_permutation_calloc(FIX2INT(nn));
-  return Data_Wrap_Struct(klass, 0, gsl_permutation_free, p);
+  return TypedData_Wrap_Struct(klass, &gsl_permutation_data_type, p);
 }
 
 static VALUE rb_gsl_permutation_calloc(VALUE klass, VALUE nn)
@@ -33,7 +33,7 @@ static VALUE rb_gsl_permutation_calloc(VALUE klass, VALUE nn)
   gsl_permutation *p = NULL;
   CHECK_FIXNUM(nn);
   p = gsl_permutation_calloc(FIX2INT(nn));
-  return Data_Wrap_Struct(klass, 0, gsl_permutation_free, p);
+  return TypedData_Wrap_Struct(klass, &gsl_permutation_data_type, p);
 }
 
 static VALUE rb_gsl_permutation_size(VALUE obj)
@@ -86,14 +86,14 @@ static VALUE rb_gsl_permutation_get(int argc, VALUE *argv, VALUE obj)
         if (i < 0) k = b->size + i; else k = (size_t) i;
         bnew->data[j] = b->data[k];
       }
-      return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_permutation_free, bnew);
+      return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_permutation_data_type, bnew);
       break;
     default:
       if (PERMUTATION_P(argv[0])) {
-        Data_Get_Struct(argv[0], gsl_index, p);
+        TypedData_Get_Struct(argv[0], gsl_index, &gsl_permutation_data_type, p);
         bnew = gsl_permutation_alloc(p->size);
         for (j = 0; j < p->size; j++) bnew->data[j] = b->data[p->data[j]];
-        return Data_Wrap_Struct(CLASS_OF(argv[0]), 0, gsl_permutation_free, bnew);
+        return TypedData_Wrap_Struct(CLASS_OF(argv[0]), &gsl_permutation_data_type, bnew);
       } else if (CLASS_OF(argv[0]) == rb_cRange) {
         rb_range_beg_len(argv[0], &beg, (long *) &n, (long) b->size, 2);
         if (n == 0) rb_raise(rb_eRangeError, "range overflow");
@@ -101,7 +101,7 @@ static VALUE rb_gsl_permutation_get(int argc, VALUE *argv, VALUE obj)
         bnew = gsl_permutation_alloc(n);
         for (j = 0; j < n; j++)
           bnew->data[j] = b->data[beg+j];
-        return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_permutation_free, bnew);
+        return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_permutation_data_type, bnew);
       } else {
         rb_raise(rb_eArgError, "wrong argument type %s (Fixnum, Array, or Range expected)", rb_class2name(CLASS_OF(argv[0])));
         break;
@@ -115,7 +115,7 @@ static VALUE rb_gsl_permutation_get(int argc, VALUE *argv, VALUE obj)
       if (i < 0) k = b->size + i; else k = i;
       bnew->data[j] = b->data[k];
     }
-    return Data_Wrap_Struct(CLASS_OF(argv[0]), 0, gsl_permutation_free, bnew);
+    return TypedData_Wrap_Struct(CLASS_OF(argv[0]), &gsl_permutation_data_type, bnew);
     break;
   }
   return Qnil;
@@ -127,7 +127,7 @@ static VALUE rb_gsl_permutation_clone(VALUE obj)
   TypedData_Get_Struct(obj, gsl_permutation, &gsl_permutation_data_type, p);
   p2 = gsl_permutation_alloc(p->size);
   gsl_permutation_memcpy(p2, p);
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_permutation_free, p2);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_permutation_data_type, p2);
 }
 
 /* singleton */

@@ -19,7 +19,7 @@ static VALUE rb_gsl_sf_multiply_e(VALUE obj, VALUE x, VALUE y)
   // local variable "status" declared and set, but never used
   //int status;
   Need_Float(x); Need_Float(y);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, r);
+  r = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, r);
   /*status =*/ gsl_sf_multiply_e(NUM2DBL(x), NUM2DBL(y), r);
   return v;
 }
@@ -33,7 +33,7 @@ static VALUE rb_gsl_sf_multiply_err_e(VALUE obj, VALUE x, VALUE dx,
   //int status;
   Need_Float(x); Need_Float(y);
   Need_Float(dx); Need_Float(dy);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, r);
+  r = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, r);
   /*status =*/ gsl_sf_multiply_err_e(NUM2DBL(x), NUM2DBL(dx),
                                      NUM2DBL(y), NUM2DBL(dy), r);
   return v;

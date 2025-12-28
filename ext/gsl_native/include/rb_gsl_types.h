@@ -29,6 +29,7 @@ extern const rb_data_type_t gsl_matrix_complex_data_type;
 /* Block Types */
 extern const rb_data_type_t gsl_block_data_type;
 extern const rb_data_type_t gsl_block_complex_data_type;
+extern const rb_data_type_t gsl_block_uchar_data_type;
 
 /* Permutation & Combination */
 extern const rb_data_type_t gsl_permutation_data_type;
@@ -111,6 +112,9 @@ extern const rb_data_type_t gsl_root_fsolver_data_type;
 extern const rb_data_type_t gsl_root_fdfsolver_data_type;
 extern const rb_data_type_t gsl_multiroot_fsolver_data_type;
 extern const rb_data_type_t gsl_multiroot_fdfsolver_data_type;
+
+/* Polynomial Types */
+extern const rb_data_type_t gsl_poly_complex_workspace_data_type;
 
 /* Fitting Types */
 extern const rb_data_type_t gsl_multifit_linear_workspace_data_type;

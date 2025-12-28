@@ -54,7 +54,7 @@ static VALUE rb_gsl_sf_gegenpoly_n_e(VALUE obj, VALUE n, VALUE lambda, VALUE x)
   //int status;
   CHECK_FIXNUM(n);
   Need_Float(lambda); Need_Float(x);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   /*status =*/ gsl_sf_gegenpoly_n_e(FIX2INT(n), NUM2DBL(lambda), NUM2DBL(x), rslt);
 
   return v;

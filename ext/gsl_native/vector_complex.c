@@ -318,7 +318,7 @@ static VALUE rb_gsl_vector_complex_each(VALUE obj)
   size_t i;
   TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   for (i = 0; i < v->size; i++) {
-    vz = Data_Make_Struct(cgsl_complex, gsl_complex, 0, free, zp);
+    zp = ALLOC(gsl_complex); vz = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, zp);
     *zp = gsl_vector_complex_get(v, i);
     rb_yield(vz);
   }
@@ -333,7 +333,7 @@ static VALUE rb_gsl_vector_complex_reverse_each(VALUE obj)
   size_t i;
   TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   for (i = v->size-1;; i--) {
-    vz = Data_Make_Struct(cgsl_complex, gsl_complex, 0, free, zp);
+    zp = ALLOC(gsl_complex); vz = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, zp);
     *zp = gsl_vector_complex_get(v, i);
     rb_yield(vz);
     if (i == 0) break;
@@ -368,7 +368,7 @@ static void rb_gsl_vector_complex_collect_native(gsl_vector_complex *src, gsl_ve
   gsl_complex * zp;
   size_t i;
   for (i = 0; i < src->size; i++) {
-    vz = Data_Make_Struct(cgsl_complex, gsl_complex, 0, free, zp);
+    zp = ALLOC(gsl_complex); vz = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, zp);
     *zp = gsl_vector_complex_get(src, i);
     vz = rb_yield(vz);
     CHECK_COMPLEX(vz);
@@ -1526,7 +1526,8 @@ static VALUE rb_gsl_vector_complex_z_stats_v(VALUE obj,
   CHECK_VECTOR_COMPLEX(obj);
   TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
 
-  zv = Data_Make_Struct(cgsl_complex, gsl_complex, 0, free, zp);
+  zp = ALLOC(gsl_complex);
+  zv = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, zp);
   *zp = func(v);
 
   return zv;

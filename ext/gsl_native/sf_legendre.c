@@ -105,7 +105,7 @@ static VALUE rb_gsl_sf_legendre_Plm_e(VALUE obj, VALUE l, VALUE m, VALUE x)
   CHECK_FIXNUM(l);
   CHECK_FIXNUM(m);
   Need_Float(x);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   status = gsl_sf_legendre_Plm_e(FIX2INT(l), FIX2INT(m), NUM2DBL(x), rslt);
   return rb_ary_new3(2, v, INT2FIX(status));
 }
@@ -137,7 +137,7 @@ static VALUE rb_gsl_sf_legendre_sphPlm_e(VALUE obj, VALUE l, VALUE m, VALUE x)
   int status;
   CHECK_FIXNUM(l); CHECK_FIXNUM(m);
   Need_Float(x);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   status = gsl_sf_legendre_sphPlm_e(FIX2INT(l), FIX2INT(m), NUM2DBL(x), rslt);
   return rb_ary_new3(2, v, INT2FIX(status));
 }
@@ -260,7 +260,7 @@ static VALUE rb_gsl_sf_legendre_H3d_e(VALUE obj,VALUE l,  VALUE lambda, VALUE et
   CHECK_FIXNUM(l);
   Need_Float(lambda);
   Need_Float(eta);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   /*status =*/ gsl_sf_legendre_H3d_e(FIX2INT(l), NUM2DBL(lambda), NUM2DBL(eta), rslt);
   return v;
 }

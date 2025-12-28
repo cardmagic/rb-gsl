@@ -81,8 +81,10 @@ static VALUE rb_gsl_sf_complex_XXX_e(int argc, VALUE *argv, VALUE obj,
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 2)", argc);
     break;
   }
-  v1 = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, r1);
-  v2 = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, r2);
+  r1 = ALLOC(gsl_sf_result);
+  v1 = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, r1);
+  r2 = ALLOC(gsl_sf_result);
+  v2 = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, r2);
   /*status =*/ (*f)(re, im, r1, r2);
   return rb_ary_new3(2, v1, v2);
 }
@@ -162,7 +164,7 @@ static VALUE rb_gsl_sf_sin_err_e(VALUE obj, VALUE x, VALUE dx)
   //int status;
   Need_Float(x);
   Need_Float(dx);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   /*status =*/ gsl_sf_sin_err_e(NUM2DBL(x), NUM2DBL(dx), rslt);
   return v;
 }
@@ -175,7 +177,7 @@ static VALUE rb_gsl_sf_cos_err_e(VALUE obj, VALUE x, VALUE dx)
   //int status;
   Need_Float(x);
   Need_Float(dx);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   /*status =*/ gsl_sf_cos_err_e(NUM2DBL(x), NUM2DBL(dx), rslt);
   return v;
 }

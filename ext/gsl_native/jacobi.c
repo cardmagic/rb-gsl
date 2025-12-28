@@ -7,7 +7,7 @@ static VALUE jac_eval3_e(VALUE x, VALUE a, VALUE b,
 {
   gsl_sf_result *result;
   VALUE obj;
-  obj = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, result);
+  result = ALLOC(gsl_sf_result); obj = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, result);
   (*f)(NUM2DBL(x), NUM2DBL(a), NUM2DBL(b), result);
   return obj;
 }

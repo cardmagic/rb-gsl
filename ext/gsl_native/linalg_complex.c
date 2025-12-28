@@ -343,7 +343,7 @@ static VALUE rb_gsl_linalg_complex_LU_det(int argc, VALUE *argv, VALUE obj)
     if (itmp != argc-1) rb_raise(rb_eArgError, "signum not given");
     signum = NUM2DBL(argv[itmp]);
   }
-  vz = Data_Make_Struct(cgsl_complex, gsl_complex, 0, free, z);
+  z = ALLOC(gsl_complex); vz = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, z);
   *z = gsl_linalg_complex_LU_det(mtmp, signum);
   if (flagm == 1) {
     gsl_matrix_complex_free(mtmp);
@@ -434,7 +434,7 @@ static VALUE rb_gsl_linalg_complex_LU_sgndet(int argc, VALUE *argv, VALUE obj)
     if (itmp != argc-1) rb_raise(rb_eArgError, "signum not given");
     signum = NUM2DBL(argv[itmp]);
   }
-  vz = Data_Make_Struct(cgsl_complex, gsl_complex, 0, free, z);
+  z = ALLOC(gsl_complex); vz = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, z);
   *z = gsl_linalg_complex_LU_sgndet(mtmp, signum);
   if (flagm == 1) {
     gsl_matrix_complex_free(mtmp);

@@ -39,7 +39,7 @@ static VALUE rb_gsl_sf_hydrogenicR_e(VALUE obj, VALUE n, VALUE l,
   //int status;
   CHECK_FIXNUM(n); CHECK_FIXNUM(l);
   Need_Float(Z); Need_Float(r);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   /*status =*/ gsl_sf_hydrogenicR_e(FIX2INT(n), FIX2INT(l),
                                     NUM2DBL(Z), NUM2DBL(r), rslt);
   return v;
@@ -55,10 +55,10 @@ static VALUE rb_gsl_sf_coulomb_wave_FG_e(VALUE obj, VALUE eta, VALUE x,
   int status;
   Need_Float(eta); Need_Float(x); Need_Float(L_F);
   CHECK_FIXNUM(k);
-  vF = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, F);
-  vFp = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, Fp);
-  vG = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, G);
-  vGp = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, Gp);
+  F = ALLOC(gsl_sf_result); vF = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, F);
+  Fp = ALLOC(gsl_sf_result); vFp = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, Fp);
+  G = ALLOC(gsl_sf_result); vG = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, G);
+  Gp = ALLOC(gsl_sf_result); vGp = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, Gp);
   status = gsl_sf_coulomb_wave_FG_e(NUM2DBL(eta), NUM2DBL(x), NUM2DBL(L_F),
                                     FIX2INT(k), F, Fp, G, Gp, &exp_F, &exp_G);
   return rb_ary_new3(7, vF, vFp, vG, vGp,

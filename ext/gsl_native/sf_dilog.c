@@ -29,8 +29,8 @@ static VALUE rb_gsl_sf_complex_dilog_e(VALUE obj, VALUE r, VALUE theta)
   // local variable "status" declared and set, but never used
   //int status;
   Need_Float(r); Need_Float(theta);
-  vre = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, re);
-  vim = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, im);
+  re = ALLOC(gsl_sf_result); vre = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, re);
+  im = ALLOC(gsl_sf_result); vim = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, im);
   /*status =*/ gsl_sf_complex_dilog_e(NUM2DBL(r), NUM2DBL(theta), re, im);
   return rb_ary_new3(2, vre, vim);
 }

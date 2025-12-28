@@ -179,11 +179,15 @@
 #define VECTOR_VIEW_DATA_TYPE gsl_vector_view_data_type
 #define MATRIX_DATA_TYPE gsl_matrix_data_type
 #define MATRIX_VIEW_DATA_TYPE gsl_matrix_view_data_type
+#define BLOCK_DATA_TYPE gsl_block_data_type
 #elif defined(BASE_INT)
 #define VECTOR_DATA_TYPE gsl_vector_int_data_type
 #define VECTOR_VIEW_DATA_TYPE gsl_vector_int_data_type
 #define MATRIX_DATA_TYPE gsl_matrix_int_data_type
 #define MATRIX_VIEW_DATA_TYPE gsl_matrix_int_data_type
+#define BLOCK_DATA_TYPE gsl_block_data_type
+#elif defined(BASE_UCHAR)
+#define BLOCK_DATA_TYPE gsl_block_uchar_data_type
 #endif
 
 #define CONCAT2x(a,b) a ## _ ## b

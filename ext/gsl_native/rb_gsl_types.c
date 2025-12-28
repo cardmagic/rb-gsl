@@ -11,6 +11,7 @@
 #include <gsl/gsl_matrix_int.h>
 #include <gsl/gsl_matrix_complex_double.h>
 #include <gsl/gsl_block.h>
+#include <gsl/gsl_block_uchar.h>
 #include <gsl/gsl_permutation.h>
 #include <gsl/gsl_combination.h>
 #include <gsl/gsl_multiset.h>
@@ -45,6 +46,7 @@
 #include <gsl/gsl_dht.h>
 #include <gsl/gsl_sf_result.h>
 #include <gsl/gsl_ntuple.h>
+#include <gsl/gsl_poly.h>
 
 #include "include/rb_gsl_types.h"
 #include "include/rb_gsl_function.h"
@@ -157,6 +159,16 @@ const rb_data_type_t gsl_block_complex_data_type = {
     .function = {
         .dmark = NULL,
         .dfree = (void (*)(void *))gsl_block_complex_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+const rb_data_type_t gsl_block_uchar_data_type = {
+    .wrap_struct_name = "GSL::Block::Byte",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))gsl_block_uchar_free,
         .dsize = NULL,
     },
     .flags = RUBY_TYPED_FREE_IMMEDIATELY,
@@ -771,6 +783,20 @@ const rb_data_type_t gsl_multiroot_fdfsolver_data_type = {
     .function = {
         .dmark = NULL,
         .dfree = (void (*)(void *))gsl_multiroot_fdfsolver_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+/* ============================================================
+ * Polynomial Types
+ * ============================================================ */
+
+const rb_data_type_t gsl_poly_complex_workspace_data_type = {
+    .wrap_struct_name = "GSL::Poly::Complex::Workspace",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))gsl_poly_complex_workspace_free,
         .dsize = NULL,
     },
     .flags = RUBY_TYPED_FREE_IMMEDIATELY,

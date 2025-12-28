@@ -98,6 +98,9 @@
 #ifdef MATRIX_VIEW_DATA_TYPE
 #undef MATRIX_VIEW_DATA_TYPE
 #endif
+#ifdef BLOCK_DATA_TYPE
+#undef BLOCK_DATA_TYPE
+#endif
 
 #ifdef RUBY_3
 #undef memcpy

@@ -31,7 +31,7 @@ static VALUE rb_gsl_sf_pow_int_e(VALUE obj, VALUE x, VALUE n)
   //int status;
   Need_Float(x);
   CHECK_FIXNUM(n);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   /*status =*/ gsl_sf_pow_int_e(NUM2DBL(x), FIX2INT(n), rslt);
   return v;
 }

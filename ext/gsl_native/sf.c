@@ -18,13 +18,14 @@ VALUE cgsl_sf_result, cgsl_sf_result_e10;
 VALUE rb_gsl_sf_result_new(VALUE klass)
 {
   gsl_sf_result *rslt = NULL;
-  return Data_Make_Struct(klass, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result);
+  return TypedData_Wrap_Struct(klass, &gsl_sf_result_data_type, rslt);
 }
 
 static VALUE rb_gsl_sf_result_print(VALUE obj)
 {
   gsl_sf_result *rslt = NULL;
-  Data_Get_Struct(obj, gsl_sf_result, rslt);
+  TypedData_Get_Struct(obj, gsl_sf_result, &gsl_sf_result_data_type, rslt);
   printf("%10.9e %10.9e\n", rslt->val, rslt->err);
   return obj;
 }
@@ -43,21 +44,21 @@ static VALUE rb_gsl_sf_result_inspect(VALUE obj)
 static VALUE rb_gsl_sf_result_val(VALUE obj)
 {
   gsl_sf_result *rslt = NULL;
-  Data_Get_Struct(obj, gsl_sf_result, rslt);
+  TypedData_Get_Struct(obj, gsl_sf_result, &gsl_sf_result_data_type, rslt);
   return rb_float_new(rslt->val);
 }
 
 static VALUE rb_gsl_sf_result_err(VALUE obj)
 {
   gsl_sf_result *rslt = NULL;
-  Data_Get_Struct(obj, gsl_sf_result, rslt);
+  TypedData_Get_Struct(obj, gsl_sf_result, &gsl_sf_result_data_type, rslt);
   return rb_float_new(rslt->err);
 }
 
 static VALUE rb_gsl_sf_result_to_a(VALUE obj)
 {
   gsl_sf_result *rslt = NULL;
-  Data_Get_Struct(obj, gsl_sf_result, rslt);
+  TypedData_Get_Struct(obj, gsl_sf_result, &gsl_sf_result_data_type, rslt);
   return rb_ary_new3(2, rb_float_new(rslt->val), rb_float_new(rslt->err));
 }
 
@@ -65,7 +66,7 @@ static VALUE rb_gsl_sf_result_to_s(VALUE obj)
 {
   gsl_sf_result *rslt = NULL;
   char str[32];
-  Data_Get_Struct(obj, gsl_sf_result, rslt);
+  TypedData_Get_Struct(obj, gsl_sf_result, &gsl_sf_result_data_type, rslt);
   sprintf(str, "%10.9e %10.9e", rslt->val, rslt->err);
   return rb_str_new2(str);
 }
@@ -73,34 +74,35 @@ static VALUE rb_gsl_sf_result_to_s(VALUE obj)
 static VALUE rb_gsl_sf_result_e10_new(VALUE klass)
 {
   gsl_sf_result_e10 *rslt = NULL;
-  return Data_Make_Struct(cgsl_sf_result, gsl_sf_result_e10, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result_e10);
+  return TypedData_Wrap_Struct(klass, &gsl_sf_result_e10_data_type, rslt);
 }
 
 static VALUE rb_gsl_sf_result_e10_val(VALUE obj)
 {
   gsl_sf_result_e10 *rslt = NULL;
-  Data_Get_Struct(obj, gsl_sf_result_e10, rslt);
+  TypedData_Get_Struct(obj, gsl_sf_result_e10, &gsl_sf_result_e10_data_type, rslt);
   return rb_float_new(rslt->val);
 }
 
 static VALUE rb_gsl_sf_result_e10_err(VALUE obj)
 {
   gsl_sf_result_e10 *rslt = NULL;
-  Data_Get_Struct(obj, gsl_sf_result_e10, rslt);
+  TypedData_Get_Struct(obj, gsl_sf_result_e10, &gsl_sf_result_e10_data_type, rslt);
   return rb_float_new(rslt->err);
 }
 
 static VALUE rb_gsl_sf_result_e10_e10(VALUE obj)
 {
   gsl_sf_result_e10 *rslt = NULL;
-  Data_Get_Struct(obj, gsl_sf_result_e10, rslt);
+  TypedData_Get_Struct(obj, gsl_sf_result_e10, &gsl_sf_result_e10_data_type, rslt);
   return INT2FIX(rslt->e10);
 }
 
 static VALUE rb_gsl_sf_result_e10_to_a(VALUE obj)
 {
   gsl_sf_result_e10 *rslt = NULL;
-  Data_Get_Struct(obj, gsl_sf_result_e10, rslt);
+  TypedData_Get_Struct(obj, gsl_sf_result_e10, &gsl_sf_result_e10_data_type, rslt);
   return rb_ary_new3(2, rb_float_new(rslt->val), rb_float_new(rslt->err));
 }
 
@@ -108,7 +110,7 @@ static VALUE rb_gsl_sf_result_e10_to_s(VALUE obj)
 {
   gsl_sf_result_e10 *rslt = NULL;
   char str[32];
-  Data_Get_Struct(obj, gsl_sf_result_e10, rslt);
+  TypedData_Get_Struct(obj, gsl_sf_result_e10, &gsl_sf_result_e10_data_type, rslt);
   sprintf(str, "%10.9e %10.9e\n", rslt->val, rslt->err);
   return rb_str_new2(str);
 }
@@ -1064,7 +1066,7 @@ VALUE rb_gsl_sf_eval_e(int (*func)(double, gsl_sf_result*), VALUE x)
   gsl_sf_result *rslt = NULL;
   VALUE v;
   Need_Float(x);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   (*func)(NUM2DBL(x), rslt);
   return v;
 }
@@ -1074,7 +1076,7 @@ VALUE rb_gsl_sf_eval_e_int(int (*func)(int, gsl_sf_result*), VALUE x)
   gsl_sf_result *rslt = NULL;
   VALUE v;
   CHECK_FIXNUM(x);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   (*func)(NUM2INT(x), rslt);
   return v;
 }
@@ -1083,7 +1085,7 @@ VALUE rb_gsl_sf_eval_e_uint(int (*func)(unsigned int, gsl_sf_result*), VALUE x)
 {
   gsl_sf_result *rslt = NULL;
   VALUE v;
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   (*func)(NUM2UINT(x), rslt);
   return v;
 }
@@ -1094,7 +1096,7 @@ VALUE rb_gsl_sf_eval_e_int_uint(int (*func)(int, unsigned int, gsl_sf_result*),
   gsl_sf_result *rslt = NULL;
   VALUE v;
   CHECK_FIXNUM(n);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   (*func)(FIX2INT(n), NUM2UINT(x), rslt);
   return v;
 }
@@ -1105,7 +1107,7 @@ VALUE rb_gsl_sf_eval_e_double_uint(int (*func)(double, unsigned int, gsl_sf_resu
   gsl_sf_result *rslt = NULL;
   VALUE v;
   Need_Float(y);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   (*func)(NUM2DBL(y), NUM2UINT(x), rslt);
   return v;
 }
@@ -1117,7 +1119,7 @@ VALUE rb_gsl_sf_eval_e_int_double(int (*func)(int, double, gsl_sf_result*),
   VALUE v;
   CHECK_FIXNUM(n);
   Need_Float(x);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   (*func)(FIX2INT(n), NUM2DBL(x), rslt);
   return v;
 }
@@ -1129,7 +1131,7 @@ VALUE rb_gsl_sf_eval_e_int_double2(int (*func)(int, double, double, gsl_sf_resul
   VALUE v;
   CHECK_FIXNUM(n);
   Need_Float(x1); Need_Float(x2);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   (*func)(FIX2INT(n), NUM2DBL(x1), NUM2DBL(x2), rslt);
   return v;
 }
@@ -1142,7 +1144,7 @@ VALUE rb_gsl_sf_eval_e_int_int_double(int (*func)(int, int, double, gsl_sf_resul
   VALUE v;
   CHECK_FIXNUM(n1); CHECK_FIXNUM(n2);
   Need_Float(x);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   (*func)(FIX2INT(n1), FIX2INT(n2), NUM2DBL(x), rslt);
   return v;
 }
@@ -1153,7 +1155,7 @@ VALUE rb_gsl_sf_eval_e_double2(int (*func)(double, double, gsl_sf_result*),
   gsl_sf_result *rslt = NULL;
   VALUE v;
   Need_Float(x1); Need_Float(x2);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   (*func)(NUM2DBL(x1), NUM2DBL(x2), rslt);
   return v;
 }
@@ -1165,7 +1167,7 @@ VALUE rb_gsl_sf_eval_e_double3(int (*func)(double, double, double, gsl_sf_result
   gsl_sf_result *rslt = NULL;
   VALUE v;
   Need_Float(x1); Need_Float(x2); Need_Float(x3);
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   (*func)(NUM2DBL(x1), NUM2DBL(x2),NUM2DBL(x3), rslt);
   return v;
 }
@@ -1194,7 +1196,7 @@ VALUE rb_gsl_sf_eval_e_m(int (*func)(double, gsl_mode_t, gsl_sf_result*),
              rb_class2name(CLASS_OF(m)));
     break;
   }
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   (*func)(NUM2DBL(x), mode, rslt);
   return v;
 }
@@ -1224,7 +1226,7 @@ VALUE rb_gsl_sf_eval_e_double2_m(int (*func)(double, double, gsl_mode_t, gsl_sf_
              rb_class2name(CLASS_OF(m)));
     break;
   }
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   (*func)(NUM2DBL(x1), NUM2DBL(x2), mode, rslt);
   return v;
 }
@@ -1253,7 +1255,7 @@ VALUE rb_gsl_sf_eval_e_double3_m(int (*func)(double, double, double, gsl_mode_t,
              rb_class2name(CLASS_OF(m)));
     break;
   }
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   (*func)(NUM2DBL(x1), NUM2DBL(x2),NUM2DBL(x3), mode, rslt);
   return v;
 }
@@ -1283,7 +1285,7 @@ VALUE rb_gsl_sf_eval_e_double4_m(int (*func)(double, double, double, double, gsl
              rb_class2name(CLASS_OF(m)));
     break;
   }
-  v = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); v = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   (*func)(NUM2DBL(x1), NUM2DBL(x2),NUM2DBL(x3), NUM2DBL(x4), mode, rslt);
   return v;
 }

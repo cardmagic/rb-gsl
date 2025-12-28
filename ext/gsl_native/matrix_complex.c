@@ -508,7 +508,7 @@ static void rb_gsl_matrix_complex_collect_native(gsl_matrix_complex *src, gsl_ma
   size_t i, j;
   for (i = 0; i < src->size1; i++) {
     for (j = 0; j < src->size2; j++) {
-      vz = Data_Make_Struct(cgsl_complex, gsl_complex, 0, free, zp);
+      zp = ALLOC(gsl_complex); vz = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, zp);
       *zp = gsl_matrix_complex_get(src, i, j);
       vz = rb_yield(vz);
       CHECK_COMPLEX(vz);
@@ -1153,7 +1153,7 @@ static VALUE rb_gsl_matrix_complex_trace(VALUE obj)
   VALUE vtrace;
   size_t i;
   TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
-  vtrace = Data_Make_Struct(cgsl_complex, gsl_complex, 0, free, trace);
+  trace = ALLOC(gsl_complex); vtrace = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, trace);
   trace->dat[0] = 0.0; trace->dat[1] = 0.0;
   for (i = 0; i < m->size1; i++) *trace = gsl_complex_add(*trace, gsl_matrix_complex_get(m, i, i));
   return vtrace;

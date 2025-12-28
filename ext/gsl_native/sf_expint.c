@@ -140,7 +140,7 @@ static VALUE rb_gsl_sf_expint_En_e(VALUE obj, VALUE n, VALUE x)
 {
   gsl_sf_result *rslt = NULL;
   VALUE val;
-  val = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, rslt);
+  rslt = ALLOC(gsl_sf_result); val = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, rslt);
   gsl_sf_expint_En_e(FIX2INT(n), NUM2DBL(x), rslt);
   return val;
 }

@@ -116,7 +116,7 @@ static VALUE sf_mathieu_eval_e_int_double2(VALUE order, VALUE qq, VALUE zz,
 {
   gsl_sf_result *r;
   VALUE val;
-  val = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, r);
+  r = ALLOC(gsl_sf_result); val = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, r);
   (*f)(FIX2INT(order), NUM2DBL(qq), NUM2DBL(zz), r);
   return val;
 }
@@ -126,7 +126,7 @@ static VALUE sf_mathieu_eval_e_int2_double2(VALUE n1, VALUE n2, VALUE qq, VALUE 
 {
   gsl_sf_result *r;
   VALUE val;
-  val = Data_Make_Struct(cgsl_sf_result, gsl_sf_result, 0, free, r);
+  r = ALLOC(gsl_sf_result); val = TypedData_Wrap_Struct(cgsl_sf_result, &gsl_sf_result_data_type, r);
   (*f)(FIX2INT(n1), FIX2INT(n2), NUM2DBL(qq), NUM2DBL(zz), r);
   return val;
 }

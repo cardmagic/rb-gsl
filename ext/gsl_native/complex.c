@@ -69,7 +69,8 @@ static VALUE rb_gsl_complex_new(int argc, VALUE *argv, VALUE klass)
 {
   gsl_complex *c = NULL;
   VALUE obj, vre, vim;
-  obj = Data_Make_Struct(klass, gsl_complex, 0, free, c);
+  c = ALLOC(gsl_complex);
+  obj = TypedData_Wrap_Struct(klass, &gsl_complex_data_type, c);
   switch (argc) {
   case 1:
     switch (TYPE(argv[0])) {
@@ -115,7 +116,8 @@ static VALUE rb_gsl_complex_polar(VALUE klass, VALUE r, VALUE theta)
   VALUE obj;
   gsl_complex *c = NULL;
   Need_Float(r); Need_Float(theta);
-  obj = Data_Make_Struct(klass, gsl_complex, 0, free, c);
+  c = ALLOC(gsl_complex);
+  obj = TypedData_Wrap_Struct(klass, &gsl_complex_data_type, c);
   *c = gsl_complex_polar(NUM2DBL(r), NUM2DBL(theta));
   return obj;
 }
@@ -216,7 +218,8 @@ static VALUE rb_gsl_complex_arithmetics2(gsl_complex (*func)(gsl_complex, double
   TypedData_Get_Struct(obj, gsl_complex, &gsl_complex_data_type, a);
   x = NUM2DBL(xx);
   tmp = (*func)(*a, x);
-  obj2 = Data_Make_Struct(cgsl_complex, gsl_complex, 0, free, c);
+  c = ALLOC(gsl_complex);
+  obj2 = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, c);
   *c = tmp;
   return obj2;
 }

@@ -306,7 +306,7 @@ static VALUE rb_Dirac_matrix_is_equal(int argc, VALUE *argv, VALUE obj)
     Data_Get_Struct(argv[0], gsl_matrix_complex, m1);
     Data_Get_Struct(argv[1], gsl_matrix_complex, m2);
     if (matrix_is_equal(m1, m2, &ztmp)) {
-      vz = Data_Make_Struct(cgsl_complex, gsl_complex, 0, free, z);
+      z = ALLOC(gsl_complex); vz = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, z);
       *z = ztmp;
       return vz;
     } else {
@@ -318,7 +318,7 @@ static VALUE rb_Dirac_matrix_is_equal(int argc, VALUE *argv, VALUE obj)
     Data_Get_Struct(obj, gsl_matrix_complex, m1);
     Data_Get_Struct(argv[0], gsl_matrix_complex, m2);
     if (matrix_is_equal(m1, m2, &ztmp)) {
-      vz = Data_Make_Struct(cgsl_complex, gsl_complex, 0, free, z);
+      z = ALLOC(gsl_complex); vz = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, z);
       *z = ztmp;
       return vz;
     } else {
@@ -361,7 +361,7 @@ static VALUE rb_Dirac_matrix_whoami(int argc, VALUE *argv, VALUE obj)
   for (i = 0; i < NUM; i++) {
     Data_Get_Struct(array[i], gsl_matrix_complex, m2);
     if(matrix_is_equal(m1, m2, &ztmp)) {
-      vz = Data_Make_Struct(cgsl_complex, gsl_complex, 0, free, z);
+      z = ALLOC(gsl_complex); vz = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, z);
       *z = ztmp;
       return rb_ary_new3(3, array[i], rb_str_new2(name[i]), vz);
     }
