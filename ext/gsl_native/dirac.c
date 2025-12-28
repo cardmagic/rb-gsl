@@ -43,8 +43,8 @@ static VALUE rb_dirac_commute(VALUE obj, VALUE mm1, VALUE mm2)
   gsl_matrix_complex_mul(mnew2, m2, m1);
   gsl_matrix_complex_sub(mnew1, mnew2);
   gsl_matrix_complex_free(mnew2);
-  return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free,
-                          mnew1);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type,
+                               mnew1);
 }
 
 static VALUE rb_dirac_anticommute(VALUE obj, VALUE mm1, VALUE mm2)
@@ -61,8 +61,8 @@ static VALUE rb_dirac_anticommute(VALUE obj, VALUE mm1, VALUE mm2)
   gsl_matrix_complex_mul(mnew2, m2, m1);
   gsl_matrix_complex_add(mnew1, mnew2);
   gsl_matrix_complex_free(mnew2);
-  return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free,
-                          mnew1);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type,
+                               mnew1);
 }
 
 static void Init_gsl_dirac_common(VALUE module)
@@ -88,16 +88,14 @@ static void define_eye(VALUE module)
   gsl_complex z;
 
   Eye2 = gsl_matrix_complex_calloc(2, 2);
-  VEye2 = Data_Wrap_Struct(cgsl_matrix_complex_const, 0,
-                           gsl_matrix_complex_free, Eye2);
+  VEye2 = TypedData_Wrap_Struct(cgsl_matrix_complex_const, &gsl_matrix_complex_data_type, Eye2);
   z.dat[0] = 1; z.dat[1] = 0;
   gsl_matrix_complex_set(Eye2, 0, 0, z);
   gsl_matrix_complex_set(Eye2, 1, 1, z);
   rb_define_const(module, "Eye2", VEye2);
 
   Eye4 = gsl_matrix_complex_calloc(4, 4);
-  VEye4 = Data_Wrap_Struct(cgsl_matrix_complex_const, 0,
-                           gsl_matrix_complex_free, Eye4);
+  VEye4 = TypedData_Wrap_Struct(cgsl_matrix_complex_const, &gsl_matrix_complex_data_type, Eye4);
   z.dat[0] = 1; z.dat[1] = 0;
   gsl_matrix_complex_set(Eye4, 0, 0, z);
   gsl_matrix_complex_set(Eye4, 1, 1, z);
@@ -106,16 +104,14 @@ static void define_eye(VALUE module)
   rb_define_const(module, "Eye4", VEye4);
 
   IEye2 = gsl_matrix_complex_calloc(2, 2);
-  VIEye2 = Data_Wrap_Struct(cgsl_matrix_complex_const, 0,
-                            gsl_matrix_complex_free, IEye2);
+  VIEye2 = TypedData_Wrap_Struct(cgsl_matrix_complex_const, &gsl_matrix_complex_data_type, IEye2);
   z.dat[0] = 0; z.dat[1] = 1;
   gsl_matrix_complex_set(IEye2, 0, 0, z);
   gsl_matrix_complex_set(IEye2, 1, 1, z);
   rb_define_const(module, "IEye2", VIEye2);
 
   IEye4 = gsl_matrix_complex_calloc(4, 4);
-  VIEye4 = Data_Wrap_Struct(cgsl_matrix_complex_const, 0,
-                            gsl_matrix_complex_free, IEye4);
+  VIEye4 = TypedData_Wrap_Struct(cgsl_matrix_complex_const, &gsl_matrix_complex_data_type, IEye4);
   gsl_matrix_complex_set(IEye4, 0, 0, z);
   gsl_matrix_complex_set(IEye4, 1, 1, z);
   gsl_matrix_complex_set(IEye4, 2, 2, z);
@@ -128,16 +124,14 @@ static void define_pauli(VALUE module)
   gsl_complex z;
 
   Pauli[0] = gsl_matrix_complex_calloc(2, 2);
-  VPauli[0] = Data_Wrap_Struct(cPauli, 0,
-                               gsl_matrix_complex_free, Pauli[0]);
+  VPauli[0] = TypedData_Wrap_Struct(cPauli, &gsl_matrix_complex_data_type, Pauli[0]);
   z.dat[0] = 1; z.dat[1] = 0;
   gsl_matrix_complex_set(Pauli[0], 0, 1, z);
   gsl_matrix_complex_set(Pauli[0], 1, 0, z);
   rb_define_const(module, "Pauli1", VPauli[0]);
 
   Pauli[1] = gsl_matrix_complex_calloc(2, 2);
-  VPauli[1] = Data_Wrap_Struct(cPauli, 0,
-                               gsl_matrix_complex_free, Pauli[1]);
+  VPauli[1] = TypedData_Wrap_Struct(cPauli, &gsl_matrix_complex_data_type, Pauli[1]);
   z.dat[0] = 0; z.dat[1] = -1;
   gsl_matrix_complex_set(Pauli[1], 0, 1, z);
   z.dat[0] = 0; z.dat[1] = 1;
@@ -145,8 +139,7 @@ static void define_pauli(VALUE module)
   rb_define_const(module, "Pauli2", VPauli[1]);
 
   Pauli[2] = gsl_matrix_complex_calloc(2, 2);
-  VPauli[2] = Data_Wrap_Struct(cPauli, 0,
-                               gsl_matrix_complex_free, Pauli[2]);
+  VPauli[2] = TypedData_Wrap_Struct(cPauli, &gsl_matrix_complex_data_type, Pauli[2]);
   z.dat[0] = 1; z.dat[1] = 0;
   gsl_matrix_complex_set(Pauli[2], 0, 0, z);
   z.dat[0] = -1; z.dat[1] = 0;
@@ -159,8 +152,7 @@ static void define_beta(VALUE module)
   gsl_complex z;
 
   Beta = gsl_matrix_complex_calloc(4, 4);
-  VGamma[0] = Data_Wrap_Struct(cGamma, 0,
-                               gsl_matrix_complex_free, Beta);
+  VGamma[0] = TypedData_Wrap_Struct(cGamma, &gsl_matrix_complex_data_type, Beta);
   z.dat[0] = 1; z.dat[1] = 0;
   gsl_matrix_complex_set(Beta, 0, 0, z);
   gsl_matrix_complex_set(Beta, 1, 1, z);
@@ -190,8 +182,7 @@ static void define_alpha(VALUE module)
                                gsl_matrix_complex_get(Pauli[i], j, k-2));
       }
     }
-    VAlpha[i] = Data_Wrap_Struct(cAlpha, 0,
-                                 gsl_matrix_complex_free, Alpha[i]);
+    VAlpha[i] = TypedData_Wrap_Struct(cAlpha, &gsl_matrix_complex_data_type, Alpha[i]);
     sprintf(name, "Alpha%d", (int) i+1);
     rb_define_const(module, name, VAlpha[i]);
   }
@@ -205,8 +196,7 @@ static void define_gamma(VALUE module)
   for (i = 1; i <= 3; i++) {
     Gamma[i] = gsl_matrix_complex_calloc(4, 4);
     gsl_matrix_complex_mul(Gamma[i], Beta, Alpha[i-1]);
-    VGamma[i] = Data_Wrap_Struct(cGamma, 0,
-                                 gsl_matrix_complex_free, Gamma[i]);
+    VGamma[i] = TypedData_Wrap_Struct(cGamma, &gsl_matrix_complex_data_type, Gamma[i]);
     sprintf(name, "Gamma%d", (int) i);
     rb_define_const(module, name, VGamma[i]);
   }
@@ -216,8 +206,7 @@ static void define_gamma(VALUE module)
   gsl_matrix_complex_set(Gamma[4], 1, 3, z);
   gsl_matrix_complex_set(Gamma[4], 2, 0, z);
   gsl_matrix_complex_set(Gamma[4], 3, 1, z);
-  VGamma[4] = Data_Wrap_Struct(cGamma, 0,
-                               gsl_matrix_complex_free, Gamma[4]);
+  VGamma[4] = TypedData_Wrap_Struct(cGamma, &gsl_matrix_complex_data_type, Gamma[4]);
   rb_define_const(module, "Gamma5", VGamma[4]);
 }
 
@@ -233,8 +222,7 @@ static void define_lambda(VALUE module)
   zmi.dat[0] = 0; zmi.dat[1] = -1;
   for (i = 0; i < 8; i++) {
     Lambda[i] = gsl_matrix_complex_calloc(3, 3);
-    VLambda[i] = Data_Wrap_Struct(cLambda, 0,
-                                  gsl_matrix_complex_free, Lambda[i]);
+    VLambda[i] = TypedData_Wrap_Struct(cLambda, &gsl_matrix_complex_data_type, Lambda[i]);
     sprintf(name, "Lambda%d", (int) i+1);
     rb_define_const(module, name, VLambda[i]);
   }

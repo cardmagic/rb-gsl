@@ -375,7 +375,7 @@ VALUE rb_gsl_linalg_LU_solve(int argc, VALUE *argv, VALUE obj)
   if (flagm == 1) gsl_matrix_free(m);
   if (flagp == 1) gsl_permutation_free(p);
   if (flagb == 1) gsl_vector_free(b);
-  if (flagx == 1) return Data_Wrap_Struct(VECTOR_ROW_COL(bb), 0, gsl_vector_free, x);
+  if (flagx == 1) return TypedData_Wrap_Struct(VECTOR_ROW_COL(bb), &gsl_vector_data_type, x);
   else return argv[argc-1];
 }
 

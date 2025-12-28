@@ -715,7 +715,7 @@ static VALUE rb_gsl_eigen_francis_alloc(VALUE klass)
 {
   gsl_eigen_francis_workspace *w = NULL;
   w = gsl_eigen_francis_alloc();
-  return Data_Wrap_Struct(klass, 0, gsl_eigen_francis_free, w);
+  return TypedData_Wrap_Struct(klass, &gsl_eigen_francis_workspace_data_type, w);
 }
 
 static VALUE rb_gsl_eigen_francis_T(int argc, VALUE *argv, VALUE obj)

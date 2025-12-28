@@ -26,7 +26,7 @@ static VALUE jac_eval3(VALUE xx, VALUE aa, VALUE bb, double (*f)(double, double,
     for (i = 0; i < x->size; i++) {
       gsl_vector_set(y, i, (*f)(gsl_vector_get(x, i), a, b));
     }
-    return Data_Wrap_Struct(VECTOR_ROW_COL(CLASS_OF(xx)), 0, gsl_vector_free, y);
+    return TypedData_Wrap_Struct(VECTOR_ROW_COL(CLASS_OF(xx)), &gsl_vector_data_type, y);
   } else if (TYPE(xx) == T_ARRAY) {
     //    len = RARRAY(xx)->len;
     len = RARRAY_LEN(xx);
@@ -67,7 +67,7 @@ static VALUE rb_jac_jacobi_eval(int argc, VALUE *argv,
   if (VECTOR_P(argv[0])) {
     TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, x);
     y = gsl_vector_alloc(x->size);
-    ary = Data_Wrap_Struct(VECTOR_ROW_COL(CLASS_OF(x)), 0, gsl_vector_free, y);
+    ary = TypedData_Wrap_Struct(VECTOR_ROW_COL(CLASS_OF(x)), &gsl_vector_data_type, y);
     switch (argc) {
     case 4:
       ws = gsl_vector_alloc(2*x->size);
@@ -389,7 +389,7 @@ static VALUE rb_jac_interpolate(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[0]);
     TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, f);
     fout = gsl_vector_alloc(f->size);
-    vfout = Data_Wrap_Struct(VECTOR_ROW_COL(CLASS_OF(argv[0])), 0, gsl_vector_free, fout);
+    vfout = TypedData_Wrap_Struct(VECTOR_ROW_COL(CLASS_OF(argv[0])), &gsl_vector_data_type, fout);
     break;
   case 2:
     CHECK_VECTOR(argv[0]);
@@ -416,7 +416,7 @@ static VALUE rb_jac_differentiate(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[0]);
     TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, f);
     fout = gsl_vector_alloc(f->size);
-    vfout = Data_Wrap_Struct(VECTOR_ROW_COL(CLASS_OF(argv[0])), 0, gsl_vector_free, fout);
+    vfout = TypedData_Wrap_Struct(VECTOR_ROW_COL(CLASS_OF(argv[0])), &gsl_vector_data_type, fout);
     break;
   case 2:
     CHECK_VECTOR(argv[0]);

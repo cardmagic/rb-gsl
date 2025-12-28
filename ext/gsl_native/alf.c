@@ -4,20 +4,21 @@
  */
 #ifdef HAVE_ALF_ALF_H
 #include "include/rb_gsl.h"
+#include "include/rb_gsl_types.h"
 
 static VALUE cWspace;
 static VALUE rb_alf_alloc(VALUE klass, VALUE lmax)
 {
   alf_workspace *w = NULL;
   w = alf_alloc(FIX2INT(lmax));
-  return TypedData_Wrap_Struct(cWspace, &Wspace_data_type, w);
+  return TypedData_Wrap_Struct(cWspace, &alf_workspace_data_type, w);
 }
 
 static VALUE rb_alf_params(VALUE obj, VALUE csphase, VALUE cnorm, VALUE norm)
 {
   alf_workspace *w;
   int ret;
-  Data_Get_Struct(obj, alf_workspace, w);
+  TypedData_Get_Struct(obj, alf_workspace, &alf_workspace_data_type, w);
   ret = alf_params(FIX2INT(csphase), FIX2INT(cnorm), (alf_norm_t) FIX2INT(norm), w);
   return INT2FIX(ret);
 }
@@ -46,7 +47,7 @@ static VALUE rb_alf_Plm_array(int argc, VALUE *argv, VALUE obj)
   int lmax;
   double x;
   VALUE ret;
-  Data_Get_Struct(obj, alf_workspace, w);
+  TypedData_Get_Struct(obj, alf_workspace, &alf_workspace_data_type, w);
   switch (argc) {
   case 1:
     x = NUM2DBL(argv[0]);
@@ -120,7 +121,7 @@ static VALUE rb_alf_Plm_deriv_array(int argc, VALUE *argv, VALUE obj)
   int lmax;
   double x;
   VALUE ret1, ret2, ary;
-  Data_Get_Struct(obj, alf_workspace, w);
+  TypedData_Get_Struct(obj, alf_workspace, &alf_workspace_data_type, w);
   switch (argc) {
   case 1:
     x = NUM2DBL(argv[0]);

@@ -11,7 +11,7 @@ VALUE rb_tamu_anova_alloc(int argc, VALUE *argv, VALUE klass)
   case 3:
   case 4:
     TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, data);
-    Data_Get_Struct(argv[1], gsl_vector_long, factor);
+    TypedData_Get_Struct(argv[1], gsl_vector_long, &gsl_vector_long_data_type, factor);
     if (argc == 3) {
       I = data->size;
       J = NUM2INT(argv[2]);
@@ -32,7 +32,7 @@ VALUE rb_tamu_anova_alloc(int argc, VALUE *argv, VALUE klass)
 VALUE rb_tamu_anova_printtable(VALUE *vTable)
 {
   struct tamu_anova_table *table;
-  Data_Get_Struct(*vTable, struct tamu_anova_table, table);
+  TypedData_Get_Struct(*vTable, struct tamu_anova_table, &tamu_anova_table_data_type, table);
   tamu_anova_printtable(*table);
   return Qtrue;
 }

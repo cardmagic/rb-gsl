@@ -79,7 +79,7 @@ static VALUE rb_gsl_function_alloc(int argc, VALUE *argv, VALUE klass)
   /*  (VALUE) f->params = rb_ary_new2(2);*/
   f->params = (void *) rb_ary_new2(2);
   rb_ary_store((VALUE) f->params, 1, Qnil);
-  obj = Data_Wrap_Struct(klass, gsl_function_mark, gsl_function_free, f);
+  obj = TypedData_Wrap_Struct(klass, &gsl_function_data_type, f);
   rb_gsl_function_set_f(argc, argv, obj);
   return obj;
 }
@@ -350,7 +350,7 @@ static VALUE rb_gsl_function_fdf_new(int argc, VALUE *argv, VALUE klass)
   rb_ary_store(ary, 2, Qnil);
   rb_ary_store(ary, 3, Qnil);
   for (i = 0; (int) i < argc; i++) setfunc(i, argv, F);
-  return Data_Wrap_Struct(klass, gsl_function_fdf_mark, gsl_function_fdf_free, F);
+  return TypedData_Wrap_Struct(klass, &gsl_function_fdf_data_type, F);
 }
 
 void gsl_function_fdf_free(gsl_function_fdf *f)

@@ -1236,3 +1236,81 @@ const rb_data_type_t gsl_multifit_ndlinear_workspace_data_type = {
     .flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
 #endif /* HAVE_NDLINEAR_GSL_MULTIFIT_NDLINEAR_H */
+
+/* ============================================================
+ * Special Function - Mathieu Workspace
+ * ============================================================ */
+#include <gsl/gsl_sf_mathieu.h>
+
+const rb_data_type_t gsl_sf_mathieu_workspace_data_type = {
+    .wrap_struct_name = "GSL::Sf::Mathieu::Workspace",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))gsl_sf_mathieu_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+/* ============================================================
+ * ALF (Associated Legendre Functions) Types
+ * ============================================================ */
+#ifdef HAVE_ALF_ALF_H
+#include <alf/alf.h>
+
+const rb_data_type_t alf_workspace_data_type = {
+    .wrap_struct_name = "GSL::ALF::Workspace",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))alf_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+#endif /* HAVE_ALF_ALF_H */
+
+/* ============================================================
+ * TAMU ANOVA Types
+ * ============================================================ */
+#ifdef HAVE_TAMU_ANOVA_TAMU_ANOVA_H
+#include <tamu_anova/tamu_anova.h>
+
+const rb_data_type_t tamu_anova_table_data_type = {
+    .wrap_struct_name = "GSL::TAMU_ANOVA::Table",
+    .function = {
+        .dmark = NULL,
+        .dfree = free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+const rb_data_type_t gsl_vector_long_data_type = {
+    .wrap_struct_name = "GSL::Vector::Long",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))gsl_vector_long_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+#endif /* HAVE_TAMU_ANOVA_TAMU_ANOVA_H */
+
+/* ============================================================
+ * NArray Support Types
+ * ============================================================ */
+#ifdef HAVE_NARRAY_H
+/* Forward declaration for na_view free function */
+struct NARRAY;
+extern void rb_gsl_na_view_free(struct NARRAY *na);
+
+const rb_data_type_t rb_gsl_na_view_data_type = {
+    .wrap_struct_name = "NArray::View",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))rb_gsl_na_view_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+#endif /* HAVE_NARRAY_H */

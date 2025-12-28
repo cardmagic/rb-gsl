@@ -1,4 +1,5 @@
 #include "include/rb_gsl.h"
+#include "include/rb_gsl_types.h"
 
 static VALUE cWorkspace;
 
@@ -6,7 +7,7 @@ static VALUE rb_gsl_sf_mathieu_alloc(VALUE klass, VALUE n, VALUE q)
 {
   gsl_sf_mathieu_workspace *w;
   w = gsl_sf_mathieu_alloc((size_t) FIX2INT(n), NUM2DBL(q));
-  return Data_Wrap_Struct(klass, 0, gsl_sf_mathieu_free, w);
+  return TypedData_Wrap_Struct(klass, &gsl_sf_mathieu_workspace_data_type, w);
 }
 
 static VALUE sf_mathieu_eval(VALUE order, VALUE qq,
@@ -41,7 +42,7 @@ static VALUE sf_mathieu_array_eval(int argc, VALUE *argv,
     n1 = FIX2INT(argv[0]);
     n2 = FIX2INT(argv[1]);
     q = NUM2DBL(argv[2]);
-    Data_Get_Struct(argv[3], gsl_sf_mathieu_workspace, w);
+    TypedData_Get_Struct(argv[3], gsl_sf_mathieu_workspace, &gsl_sf_mathieu_workspace_data_type, w);
     break;
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments. (%d for 4)", argc);
@@ -68,7 +69,7 @@ static VALUE sf_mathieu_array_eval2(int argc, VALUE *argv,
     n2 = FIX2INT(argv[1]);
     q = NUM2DBL(argv[2]);
     x = NUM2DBL(argv[3]);
-    Data_Get_Struct(argv[4], gsl_sf_mathieu_workspace, w);
+    TypedData_Get_Struct(argv[4], gsl_sf_mathieu_workspace, &gsl_sf_mathieu_workspace_data_type, w);
     break;
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments. (%d for 5)", argc);
@@ -95,7 +96,7 @@ static VALUE sf_mathieu_array_eval3(int argc, VALUE *argv,
     n3 = FIX2INT(argv[2]);
     q = NUM2DBL(argv[3]);
     x = NUM2DBL(argv[4]);
-    Data_Get_Struct(argv[5], gsl_sf_mathieu_workspace, w);
+    TypedData_Get_Struct(argv[5], gsl_sf_mathieu_workspace, &gsl_sf_mathieu_workspace_data_type, w);
     break;
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments. (%d for 6)", argc);

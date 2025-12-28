@@ -141,7 +141,7 @@ static VALUE rb_gsl_vector_to_narray_ref(VALUE obj, VALUE klass)
     rb_raise(rb_eRuntimeError, "cannot convert %s to NArray reference object",
              rb_obj_classname(obj));
   }
-  nary = Data_Wrap_Struct(klass, 0, rb_gsl_na_view_free, na);
+  nary = TypedData_Wrap_Struct(klass, &rb_gsl_na_view_data_type, na);
   return nary;
 }
 
@@ -395,7 +395,7 @@ static VALUE rb_gsl_matrix_to_narray_ref(VALUE obj, VALUE klass)
   na->shape[0] = m->size2;
   na->shape[1] = m->size1;
   na->ptr = (char *) m->data;
-  nary = Data_Wrap_Struct(klass, 0, rb_gsl_na_view_free, na);
+  nary = TypedData_Wrap_Struct(klass, &rb_gsl_na_view_data_type, na);
   return nary;
 }
 
@@ -422,7 +422,7 @@ static VALUE rb_gsl_matrix_int_to_narray_ref(VALUE obj, VALUE klass)
   na->shape[0] = m->size2;
   na->shape[1] = m->size1;
   na->ptr = (char *) m->data;
-  nary = Data_Wrap_Struct(klass, 0, rb_gsl_na_view_free, na);
+  nary = TypedData_Wrap_Struct(klass, &rb_gsl_na_view_data_type, na);
   return nary;
 }
 

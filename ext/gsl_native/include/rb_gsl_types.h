@@ -189,4 +189,23 @@ extern const rb_data_type_t gsl_sf_result_e10_data_type;
 /* N-Tuple Types */
 extern const rb_data_type_t gsl_ntuple_data_type;
 
+/* Special Function - Mathieu */
+extern const rb_data_type_t gsl_sf_mathieu_workspace_data_type;
+
+/* Third-party Library Types - ALF */
+#ifdef HAVE_ALF_ALF_H
+extern const rb_data_type_t alf_workspace_data_type;
+#endif
+
+/* Third-party Library Types - TAMU ANOVA */
+#ifdef HAVE_TAMU_ANOVA_TAMU_ANOVA_H
+extern const rb_data_type_t tamu_anova_table_data_type;
+extern const rb_data_type_t gsl_vector_long_data_type;
+#endif
+
+/* NArray support */
+#ifdef HAVE_NARRAY_H
+extern const rb_data_type_t rb_gsl_na_view_data_type;
+#endif
+
 #endif /* RB_GSL_TYPES_H */

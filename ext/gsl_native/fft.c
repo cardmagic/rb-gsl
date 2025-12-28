@@ -31,15 +31,15 @@ static VALUE rb_gsl_fft_complex_wavetable_new(VALUE klass, VALUE n)
 static VALUE rb_gsl_fft_real_wavetable_new(VALUE klass, VALUE n)
 {
   CHECK_FIXNUM(n);
-  return Data_Wrap_Struct(klass, 0, gsl_fft_real_wavetable_free,
-                          gsl_fft_real_wavetable_alloc(FIX2INT(n)));
+  return TypedData_Wrap_Struct(klass, &gsl_fft_real_wavetable_data_type,
+                               gsl_fft_real_wavetable_alloc(FIX2INT(n)));
 }
 
 static VALUE rb_gsl_fft_halfcomplex_wavetable_new(VALUE klass, VALUE n)
 {
   CHECK_FIXNUM(n);
-  return Data_Wrap_Struct(klass, 0, gsl_fft_halfcomplex_wavetable_free,
-                          gsl_fft_halfcomplex_wavetable_alloc(FIX2INT(n)));
+  return TypedData_Wrap_Struct(klass, &gsl_fft_halfcomplex_wavetable_data_type,
+                               gsl_fft_halfcomplex_wavetable_alloc(FIX2INT(n)));
 
 }
 
@@ -61,15 +61,15 @@ static const rb_data_type_t GSL_FFT_Wavetable_data_type = {
 static VALUE rb_gsl_fft_complex_workspace_new(VALUE klass, VALUE n)
 {
   CHECK_FIXNUM(n);
-  return Data_Wrap_Struct(klass, 0, gsl_fft_complex_workspace_free,
-                          gsl_fft_complex_workspace_alloc(FIX2INT(n)));
+  return TypedData_Wrap_Struct(klass, &gsl_fft_complex_workspace_data_type,
+                               gsl_fft_complex_workspace_alloc(FIX2INT(n)));
 }
 
 static VALUE rb_gsl_fft_real_workspace_new(VALUE klass, VALUE n)
 {
   CHECK_FIXNUM(n);
-  return Data_Wrap_Struct(klass, 0, gsl_fft_real_workspace_free,
-                          gsl_fft_real_workspace_alloc(FIX2INT(n)));
+  return TypedData_Wrap_Struct(klass, &gsl_fft_real_workspace_data_type,
+                               gsl_fft_real_workspace_alloc(FIX2INT(n)));
 }
 
 static void GSL_FFT_Workspace_free(GSL_FFT_Workspace *space)

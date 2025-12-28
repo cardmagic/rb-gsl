@@ -289,6 +289,15 @@ class TypedDataMigrator
     'gsl_multimin_function_fsdf' => 'gsl_multimin_function_fsdf_data_type',
     # Third-party: NDLinear
     'gsl_multifit_ndlinear_workspace' => 'gsl_multifit_ndlinear_workspace_data_type',
+    # Mathieu
+    'gsl_sf_mathieu_workspace' => 'gsl_sf_mathieu_workspace_data_type',
+    # ALF
+    'alf_workspace' => 'alf_workspace_data_type',
+    # TAMU ANOVA
+    'struct tamu_anova_table' => 'tamu_anova_table_data_type',
+    'gsl_vector_long' => 'gsl_vector_long_data_type',
+    # gsl_index is typedef'd to gsl_permutation
+    'gsl_index' => 'gsl_permutation_data_type',
   }.freeze
 
   # Patterns that need manual handling - completely skip these
@@ -404,7 +413,14 @@ class TypedDataMigrator
     'jac_quadrature_free' => 'jac_quadrature_data_type',
     # Third-party: FSDF
     'gsl_multimin_fsdfminimizer_free' => 'gsl_multimin_fsdfminimizer_data_type',
-    # Note: siman, mathieu, alf don't have types defined yet
+    # Mathieu
+    'gsl_sf_mathieu_free' => 'gsl_sf_mathieu_workspace_data_type',
+    # ALF
+    'alf_free' => 'alf_workspace_data_type',
+    # NArray view
+    'rb_gsl_na_view_free' => 'rb_gsl_na_view_data_type',
+    # Eigen
+    'gsl_eigen_francis_free' => 'gsl_eigen_francis_workspace_data_type',
   }.freeze
 
   # Runtime class patterns

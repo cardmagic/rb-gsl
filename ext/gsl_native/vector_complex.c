@@ -183,7 +183,7 @@ static VALUE rb_gsl_vector_complex_get(int argc, VALUE *argv, VALUE obj)
       break;
     default:
       if (PERMUTATION_P(argv[0])) {
-        Data_Get_Struct(argv[0], gsl_index, p);
+        TypedData_Get_Struct(argv[0], gsl_index, &gsl_permutation_data_type, p);
         vnew = gsl_vector_complex_alloc(p->size);
         for (j = 0; j < p->size; j++) {
           k = p->data[j];
