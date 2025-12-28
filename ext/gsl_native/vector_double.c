@@ -218,7 +218,7 @@ static VALUE rb_gsl_vector_arithmetics(int flag, VALUE obj, VALUE bb)
         break;
       }
       if (VECTOR_COL_P(obj))
-        return TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_col_data_type, cvnew);
+        return TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_data_type, cvnew);
       else
         return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, cvnew);
     } else if (COMPLEX_P(bb)) {
@@ -239,7 +239,7 @@ static VALUE rb_gsl_vector_arithmetics(int flag, VALUE obj, VALUE bb)
         break;
       }
       if (VECTOR_COL_P(obj))
-        return TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_col_data_type, cvnew);
+        return TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_data_type, cvnew);
       else
         return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, cvnew);
     } else {
@@ -360,7 +360,7 @@ static VALUE rb_gsl_vector_to_complex(VALUE obj)
     gsl_vector_complex_set(cv, i, z);
   }
   if (VECTOR_COL_P(obj))
-    return TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_col_data_type, cv);
+    return TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_data_type, cv);
   else
     return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, cv);
 }
@@ -383,7 +383,7 @@ static VALUE rb_gsl_vector_to_complex2(VALUE obj)
     gsl_vector_complex_set(cv, i/2, z);
   }
   if (VECTOR_COL_P(obj))
-    return TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_col_data_type, cv);
+    return TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_data_type, cv);
   else
     return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, cv);
 }
@@ -413,14 +413,14 @@ static VALUE rb_gsl_vector_coerce(VALUE obj, VALUE other)
       if (VECTOR_ROW_P(obj))
         vv = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, cv);
       else
-        vv = TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_col_data_type, cv);
+        vv = TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_data_type, cv);
       return rb_ary_new3(2, vv, obj);
     } else if (VECTOR_COMPLEX_P(other)) {
       cv = vector_to_complex(v);
       if (VECTOR_ROW_P(obj))
         vv = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, cv);
       else
-        vv = TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_col_data_type, cv);
+        vv = TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_data_type, cv);
       return rb_ary_new3(2, other, vv);
     } else {
       rb_raise(rb_eTypeError, "cannot coerced");
@@ -490,7 +490,7 @@ VALUE rb_gsl_vector_to_i(VALUE obj)
     gsl_vector_int_set(vi, i, val);
   }
   if (VECTOR_COL_P(obj))
-    return TypedData_Wrap_Struct(cgsl_vector_int_col, &gsl_vector_int_col_data_type, vi);
+    return TypedData_Wrap_Struct(cgsl_vector_int_col, &gsl_vector_int_data_type, vi);
   else
     return TypedData_Wrap_Struct(cgsl_vector_int, &gsl_vector_int_data_type, vi);
 }

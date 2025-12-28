@@ -202,7 +202,7 @@ static VALUE rb_gsl_na_to_gsl_vector_complex(VALUE obj, VALUE na)
 
 static VALUE rb_gsl_na_to_gsl_vector_complex_view(VALUE obj, VALUE na)
 {
-  return TypedData_Wrap_Struct(cgsl_vector_complex_view, &gsl_vector_complex_view_data_type, na_to_gv_complex_view(na));
+  return TypedData_Wrap_Struct(cgsl_vector_complex_view, &gsl_vector_complex_data_type, na_to_gv_complex_view(na));
 }
 
 static VALUE rb_gsl_na_to_gsl_vector_int(VALUE obj, VALUE na)
@@ -231,7 +231,7 @@ VALUE rb_gsl_na_to_gsl_vector_view_method(VALUE na)
   VALUE v;
 
   if(NA_TYPE(na) == NA_SCOMPLEX || NA_TYPE(na) == NA_DCOMPLEX)
-    v = TypedData_Wrap_Struct(cgsl_vector_complex_view, &gsl_vector_complex_view_data_type, na_to_gv_complex_view(na));
+    v = TypedData_Wrap_Struct(cgsl_vector_complex_view, &gsl_vector_complex_data_type, na_to_gv_complex_view(na));
   else
     v = TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, na_to_gv_view(na));
   return v;
@@ -462,7 +462,7 @@ VALUE rb_gsl_na_to_gsl_matrix_int_view(VALUE obj, VALUE nna)
 {
   gsl_matrix_int_view *m = NULL;
   m = na_to_gm_int_view(nna);
-  return TypedData_Wrap_Struct(cgsl_matrix_int_view, &gsl_matrix_int_view_data_type, m);
+  return TypedData_Wrap_Struct(cgsl_matrix_int_view, &gsl_matrix_int_data_type, m);
 }
 
 static VALUE rb_gsl_na_to_gsl_matrix_method(VALUE nna)
@@ -490,7 +490,7 @@ static VALUE rb_gsl_na_to_gsl_matrix_int_view_method(VALUE nna)
 {
   gsl_matrix_int_view *m = NULL;
   m = na_to_gm_int_view(nna);
-  return TypedData_Wrap_Struct(cgsl_matrix_int_view, &gsl_matrix_int_view_data_type, m);
+  return TypedData_Wrap_Struct(cgsl_matrix_int_view, &gsl_matrix_int_data_type, m);
 }
 
 gsl_matrix* na_to_gm(VALUE nna)

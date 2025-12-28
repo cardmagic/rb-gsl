@@ -138,7 +138,7 @@ static VALUE rb_gsl_matrix_arithmetics(int flag, VALUE obj, VALUE bb)
         vnew = gsl_vector_alloc(m->size1);
         if (vnew == NULL) rb_raise(rb_eNoMemError, "gsl_vector_alloc failed");
         gsl_matrix_mul_vector(vnew, m, v);
-        return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_col_data_type, vnew);
+        return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, vnew);
         break;
       case GSL_MATRIX_DIV:
         return rb_gsl_linalg_LU_solve(1, &bb, obj);

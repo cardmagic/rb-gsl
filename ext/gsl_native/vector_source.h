@@ -224,7 +224,7 @@ VALUE FUNCTION(rb_gsl_vector,new)(int argc, VALUE *argv, VALUE klass)
       ary2 = na_change_type(argv[0], NA_LINT);
 #endif
       memcpy(v->data, NA_PTR_TYPE(ary2,BASE*), n*sizeof(BASE));
-      return Data_Wrap_Struct(klass, 0, FUNCTION(gsl_vector,free), v);
+      return TypedData_Wrap_Struct(klass, &VECTOR_DATA_TYPE, v);
     }
 #endif
     switch (TYPE(argv[0])) {
@@ -259,14 +259,14 @@ VALUE FUNCTION(rb_gsl_vector,new)(int argc, VALUE *argv, VALUE klass)
         FUNCTION(get_range,beg_en_n)(argv[0], &beg, &en, &n, &step);
         v = FUNCTION(gsl_vector,alloc)(n);
         FUNCTION(set_ptr_data,by_range)(v->data, v->size, argv[0]);
-        return Data_Wrap_Struct(klass, 0, FUNCTION(gsl_vector,free), v);
+        return TypedData_Wrap_Struct(klass, &VECTOR_DATA_TYPE, v);
       } else if (VEC_P(argv[0])) {
         /*! Create a new vector with the same elements of the vector given */
-        Data_Get_Struct(argv[0], GSL_TYPE(gsl_vector), vtmp);
+        TypedData_Get_Struct(argv[0], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, vtmp);
         v = FUNCTION(gsl_vector,alloc)(vtmp->size);
         for (i = 0; i < vtmp->size; i++)
           FUNCTION(gsl_vector,set)(v, i, FUNCTION(gsl_vector,get)(vtmp, i));
-        return Data_Wrap_Struct(VEC_ROW_COL(argv[0]), 0, FUNCTION(gsl_vector,free), v);
+        return TypedData_Wrap_Struct(VEC_ROW_COL(argv[0]), &VECTOR_DATA_TYPE, v);
       } else {
         rb_raise(rb_eTypeError,
                  "wrong argument type %s", rb_class2name(CLASS_OF(argv[0])));
@@ -289,7 +289,7 @@ VALUE FUNCTION(rb_gsl_vector,new)(int argc, VALUE *argv, VALUE klass)
     }
     break;
   }
-  return Data_Wrap_Struct(klass, 0, FUNCTION(gsl_vector,free), v);
+  return TypedData_Wrap_Struct(klass, &VECTOR_DATA_TYPE, v);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,calloc)(VALUE klass, VALUE nn)
@@ -298,7 +298,7 @@ static VALUE FUNCTION(rb_gsl_vector,calloc)(VALUE klass, VALUE nn)
   CHECK_FIXNUM(nn);
   v = FUNCTION(gsl_vector,calloc)(FIX2INT(nn));
   if (v == NULL) rb_raise(rb_eNoMemError, "gsl_vector_calloc failed");
-  return Data_Wrap_Struct(klass, 0, FUNCTION(gsl_vector,free), v);
+  return TypedData_Wrap_Struct(klass, &VECTOR_DATA_TYPE, v);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,subvector)(int argc, VALUE *argv, VALUE obj);
@@ -315,7 +315,7 @@ static VALUE FUNCTION(rb_gsl_vector,get)(int argc, VALUE *argv, VALUE obj)
     // Treat as call to subvector
     retval = FUNCTION(rb_gsl_vector,subvector)(argc, argv, obj);
   } else {
-    Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+    TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
 
     switch (TYPE(argv[0])) {
     case T_FIXNUM:
@@ -334,18 +334,18 @@ static VALUE FUNCTION(rb_gsl_vector,get)(int argc, VALUE *argv, VALUE obj)
         else k = i;
         FUNCTION(gsl_vector,set)(vnew, j, FUNCTION(gsl_vector,get)(v, k));
       }
-      retval = Data_Wrap_Struct(GSL_TYPE(cgsl_vector), 0, FUNCTION(gsl_vector,free), vnew);
+      retval = TypedData_Wrap_Struct(GSL_TYPE(cgsl_vector), &VECTOR_DATA_TYPE, vnew);
       break;
     default:
       if (PERMUTATION_P(argv[0])) {
-        Data_Get_Struct(argv[0], gsl_index, p);
+        TypedData_Get_Struct(argv[0], gsl_index, &gsl_permutation_data_type, p);
         vnew = FUNCTION(gsl_vector,alloc)(p->size);
         for (j = 0; j < p->size; j++) {
           k = p->data[j];
           //if (k < 0) k = p->size + j;
           FUNCTION(gsl_vector,set)(vnew, j, FUNCTION(gsl_vector,get)(v, k));
         }
-        retval = Data_Wrap_Struct(GSL_TYPE(cgsl_vector), 0, FUNCTION(gsl_vector,free), vnew);
+        retval = TypedData_Wrap_Struct(GSL_TYPE(cgsl_vector), &VECTOR_DATA_TYPE, vnew);
       } else {
         // TODO Support Vector::Int (and even Vector?)
         rb_raise(rb_eTypeError, "wrong argument type %s (Array, Range, GSL::Permutation, or Fixnum expected)", rb_class2name(CLASS_OF(argv[0])));
@@ -359,21 +359,21 @@ static VALUE FUNCTION(rb_gsl_vector,get)(int argc, VALUE *argv, VALUE obj)
 static VALUE FUNCTION(rb_gsl_vector,size)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   return INT2FIX(v->size);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,stride)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   return INT2FIX(v->stride);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,set_stride)(VALUE obj, VALUE ss)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   v->stride = (size_t) FIX2INT(ss);
   return obj;
 }
@@ -381,7 +381,7 @@ static VALUE FUNCTION(rb_gsl_vector,set_stride)(VALUE obj, VALUE ss)
 static VALUE FUNCTION(rb_gsl_vector,owner)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   return INT2FIX(v->owner);
 }
 
@@ -397,7 +397,7 @@ void FUNCTION(rb_gsl_vector,set_subvector)(int argc, VALUE *argv, GSL_TYPE(gsl_v
   parse_subvector_args(argc, argv, v->size, &offset, &stride, &n);
   vv = FUNCTION(gsl_vector,subvector_with_stride)(v, offset, stride, n);
   if(rb_obj_is_kind_of(other, GSL_TYPE(cgsl_vector))) {
-    Data_Get_Struct(other, GSL_TYPE(gsl_vector), vother);
+    TypedData_Get_Struct(other, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, vother);
     if(n != vother->size) {
       rb_raise(rb_eRangeError, "lengths do not match (%d != %d)",(int) n, (int) vother->size);
     }
@@ -435,7 +435,7 @@ static VALUE FUNCTION(rb_gsl_vector,set)(int argc, VALUE *argv, VALUE obj)
   if(argc < 1 || argc > 4) {
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1-4)", argc);
   }
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   other = argv[argc-1];
 
   if(argc == 1) {
@@ -462,7 +462,7 @@ static VALUE FUNCTION(rb_gsl_vector,set_all)(VALUE obj, VALUE xx)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
   BASE xnative = NUMCONV2(xx);
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   FUNCTION(gsl_vector,set_all)(v, xnative);
   return obj;
 }
@@ -470,7 +470,7 @@ static VALUE FUNCTION(rb_gsl_vector,set_all)(VALUE obj, VALUE xx)
 VALUE FUNCTION(rb_gsl_vector,do_something)(VALUE obj, void (*func)(GSL_TYPE (gsl_vector)*))
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   (*func)(v);
   return obj;
 }
@@ -484,7 +484,7 @@ static VALUE FUNCTION(rb_gsl_vector,set_basis)(VALUE obj, VALUE ii)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
   CHECK_FIXNUM(ii);
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   FUNCTION(gsl_vector,set_basis)(v, (size_t) FIX2INT(ii));
   return obj;
 }
@@ -493,7 +493,7 @@ static VALUE FUNCTION(rb_gsl_vector,each)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   for (i = 0; i < v->size; i++) rb_yield(C_TO_VALUE2(FUNCTION(gsl_vector,get)(v, i)));
   return Qnil;
 }
@@ -502,7 +502,7 @@ static VALUE FUNCTION(rb_gsl_vector,reverse_each)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   for (i = v->size-1;; i--) {
     rb_yield(C_TO_VALUE2(FUNCTION(gsl_vector,get)(v, i)));
     if (i == 0) break;
@@ -514,7 +514,7 @@ static VALUE FUNCTION(rb_gsl_vector,each_index)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   for (i = 0; i < v->size; i++) rb_yield(INT2FIX(i));
   return Qnil;
 }
@@ -523,7 +523,7 @@ static VALUE FUNCTION(rb_gsl_vector,reverse_each_index)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   for (i = v->size-1;; i--) {
     rb_yield(INT2FIX(i));
     if (i == 0) break;
@@ -536,7 +536,7 @@ static VALUE FUNCTION(rb_gsl_vector,to_a)(VALUE obj)
   GSL_TYPE(gsl_vector) *v = NULL;
   size_t i;
   VALUE ary;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   ary = rb_ary_new2(v->size);
   for (i = 0; i < v->size; i++)
     rb_ary_store(ary, i, C_TO_VALUE2(FUNCTION(gsl_vector,get)(v, i)));
@@ -546,7 +546,7 @@ static VALUE FUNCTION(rb_gsl_vector,to_a)(VALUE obj)
 static VALUE FUNCTION(rb_gsl_vector,reverse_bang)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   FUNCTION(gsl_vector,reverse)(v);
   return obj;
 }
@@ -554,25 +554,25 @@ static VALUE FUNCTION(rb_gsl_vector,reverse_bang)(VALUE obj)
 static VALUE FUNCTION(rb_gsl_vector,reverse)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL, *vnew = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vnew = FUNCTION(gsl_vector,alloc)(v->size);
   if (vnew == NULL) rb_raise(rb_eNoMemError, "gsl_vector_int_alloc failed");
   FUNCTION(gsl_vector,memcpy)(vnew, v);
   FUNCTION(gsl_vector,reverse)(vnew);
-  return Data_Wrap_Struct(GSL_TYPE(cgsl_vector), 0, FUNCTION(gsl_vector,free), vnew);
+  return TypedData_Wrap_Struct(GSL_TYPE(cgsl_vector), &VECTOR_DATA_TYPE, vnew);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,max)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   return C_TO_VALUE2(FUNCTION(gsl_vector,max)(v));
 }
 
 static VALUE FUNCTION(rb_gsl_vector,min)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   return C_TO_VALUE2(FUNCTION(gsl_vector,min)(v));
 }
 
@@ -580,7 +580,7 @@ static VALUE FUNCTION(rb_gsl_vector,minmax)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
   BASE min, max;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   FUNCTION(gsl_vector,minmax)(v, &min, &max);
   return rb_ary_new3(2, C_TO_VALUE2(min), C_TO_VALUE2(max));
 }
@@ -589,7 +589,7 @@ static VALUE FUNCTION(rb_gsl_vector,maxmin)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
   BASE min, max;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   FUNCTION(gsl_vector,minmax)(v, &min, &max);
   return rb_ary_new3(2, C_TO_VALUE2(max), C_TO_VALUE2(min));
 }
@@ -597,14 +597,14 @@ static VALUE FUNCTION(rb_gsl_vector,maxmin)(VALUE obj)
 static VALUE FUNCTION(rb_gsl_vector,max_index)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   return INT2FIX(FUNCTION(gsl_vector,max_index)(v));
 }
 
 static VALUE FUNCTION(rb_gsl_vector,min_index)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   return INT2FIX(FUNCTION(gsl_vector,min_index)(v));
 }
 
@@ -612,7 +612,7 @@ static VALUE FUNCTION(rb_gsl_vector,minmax_index)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
   size_t imin, imax;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   FUNCTION(gsl_vector,minmax_index)(v, &imin, &imax);
   return rb_ary_new3(2, INT2FIX(imin), INT2FIX(imax));
 }
@@ -621,7 +621,7 @@ static VALUE FUNCTION(rb_gsl_vector,maxmin_index)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
   size_t imin, imax;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   FUNCTION(gsl_vector,minmax_index)(v, &imin, &imax);
   return rb_ary_new3(2, INT2FIX(imax), INT2FIX(imin));
 }
@@ -629,14 +629,14 @@ static VALUE FUNCTION(rb_gsl_vector,maxmin_index)(VALUE obj)
 static VALUE FUNCTION(rb_gsl_vector,isnull)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   return INT2FIX(FUNCTION(gsl_vector,isnull)(v));
 }
 
 static VALUE FUNCTION(rb_gsl_vector,isnull2)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   if (FUNCTION(gsl_vector,isnull)(v)) return Qtrue;
   else return Qfalse;
 }
@@ -644,17 +644,17 @@ static VALUE FUNCTION(rb_gsl_vector,isnull2)(VALUE obj)
 static VALUE FUNCTION(rb_gsl_vector,trans)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL, *vnew = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vnew = FUNCTION(make_vector,clone)(v);
 #ifdef BASE_DOUBLE
   if (VECTOR_COL_P(obj))
-    return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
-  else return Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
+  else return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, vnew);
 #elif defined(BASE_INT)
   if (VECTOR_INT_ROW_P(obj))
-    return Data_Wrap_Struct(cgsl_vector_int_col, 0, gsl_vector_int_free, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector_int_col, &gsl_vector_int_data_type, vnew);
   else if (VECTOR_INT_COL_P(obj))
-    return Data_Wrap_Struct(cgsl_vector_int, 0, gsl_vector_int_free, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector_int, &gsl_vector_int_data_type, vnew);
   else rb_raise(rb_eTypeError,
                 "wrong type %s (Vector::Int or Vector::Int::Col expected)",
                 rb_class2name(CLASS_OF(obj)));
@@ -693,15 +693,15 @@ VALUE FUNCTION(rb_gsl_vector,uminus)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL, *vnew = NULL;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vnew = FUNCTION(gsl_vector,alloc)(v->size);
   for (i = 0; i < v->size; i++) {
     FUNCTION(gsl_vector,set)(vnew, i, -FUNCTION(gsl_vector,get)(v, i));
   }
   if (CLASS_OF(obj) == GSL_TYPE(cgsl_poly))
-    return Data_Wrap_Struct(GSL_TYPE(cgsl_poly), 0, FUNCTION(gsl_vector,free), vnew);
+    return TypedData_Wrap_Struct(GSL_TYPE(cgsl_poly), &VECTOR_DATA_TYPE, vnew);
   else
-    return Data_Wrap_Struct(VEC_ROW_COL(obj), 0, FUNCTION(gsl_vector,free), vnew);
+    return TypedData_Wrap_Struct(VEC_ROW_COL(obj), &VECTOR_DATA_TYPE, vnew);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,sum)(VALUE obj)
@@ -709,7 +709,7 @@ static VALUE FUNCTION(rb_gsl_vector,sum)(VALUE obj)
   GSL_TYPE(gsl_vector) *v = NULL;
   BASE sum = 0;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   for (i = 0; i < v->size; i++) sum += FUNCTION(gsl_vector,get)(v, i);
   return C_TO_VALUE2(sum);
 }
@@ -721,7 +721,7 @@ static VALUE FUNCTION(rb_gsl_vector,sumsq)(VALUE obj)
   GSL_TYPE(gsl_vector) *v = NULL;
   BASE sum = 0, x;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   for (i = 0; i < v->size; i++) {
     x = FUNCTION(gsl_vector,get)(v, i);
     sum += x*x;
@@ -735,7 +735,7 @@ static VALUE FUNCTION(rb_gsl_vector,prod)(VALUE obj)
   GSL_TYPE(gsl_vector) *v = NULL;
   BASE x = 1;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   for (i = 0; i < v->size; i++) x *= FUNCTION(gsl_vector,get)(v, i);
   return C_TO_VALUE(x);
 }
@@ -746,27 +746,27 @@ static VALUE FUNCTION(rb_gsl_vector,connect)(int argc, VALUE *argv, VALUE obj)
   BASE *ptr = NULL;
   size_t i, total = 0;
   if (VEC_P(obj)) {
-    Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+    TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
     total += v->size;
   }
   for (i = 0; (int) i < argc; i++) {
     CHECK_VEC(argv[i]);
-    Data_Get_Struct(argv[i], GSL_TYPE(gsl_vector), v);
+    TypedData_Get_Struct(argv[i], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
     total += v->size;
   }
   vnew = FUNCTION(gsl_vector,alloc)(total);
   ptr = vnew->data;
   if (VEC_P(obj)) {
-    Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+    TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
     memcpy(ptr, v->data, sizeof(BASE)*v->size);
     ptr += v->size;
   }
   for (i = 0; (int) i < argc; i++) {
-    Data_Get_Struct(argv[i], GSL_TYPE(gsl_vector), v);
+    TypedData_Get_Struct(argv[i], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
     memcpy(ptr, v->data, sizeof(BASE)*v->size);
     ptr += v->size;
   }
-  return Data_Wrap_Struct(GSL_TYPE(cgsl_vector), 0, FUNCTION(gsl_vector,free), vnew);
+  return TypedData_Wrap_Struct(GSL_TYPE(cgsl_vector), &VECTOR_DATA_TYPE, vnew);
 }
 
 GSL_TYPE(gsl_vector)* FUNCTION(mygsl_vector,up)(GSL_TYPE(gsl_vector) *p)
@@ -800,56 +800,56 @@ static VALUE FUNCTION(rb_gsl_vector,sgn)(VALUE obj)
   GSL_TYPE(gsl_vector) *v = NULL, *vnew = NULL;
   BASE x;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vnew = FUNCTION(gsl_vector,alloc)(v->size);
   for (i = 0; i < v->size; i++) {
     x = FUNCTION(gsl_vector,get)(v, i);
     FUNCTION(gsl_vector,set)(vnew, i, (BASE)(x>0 ? 1 : (x<0 ? -1 : 0)));
   }
-  return Data_Wrap_Struct(VEC_ROW_COL(obj), 0, FUNCTION(gsl_vector,free), vnew);
+  return TypedData_Wrap_Struct(VEC_ROW_COL(obj), &VECTOR_DATA_TYPE, vnew);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,abs)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL, *vnew = NULL;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vnew = FUNCTION(gsl_vector,alloc)(v->size);
   for (i = 0; i < v->size; i++) {
     FUNCTION(gsl_vector,set)(vnew, i, (BASE) fabs(FUNCTION(gsl_vector,get)(v, i)));
   }
-  return Data_Wrap_Struct(VEC_ROW_COL(obj), 0, FUNCTION(gsl_vector,free), vnew);
+  return TypedData_Wrap_Struct(VEC_ROW_COL(obj), &VECTOR_DATA_TYPE, vnew);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,square)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL, *vnew = NULL;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vnew = FUNCTION(gsl_vector,alloc)(v->size);
   for (i = 0; i < v->size; i++) {
     FUNCTION(gsl_vector,set)(vnew, i, gsl_pow_2(FUNCTION(gsl_vector,get)(v, i)));
   }
-  return Data_Wrap_Struct(VEC_ROW_COL(obj), 0, FUNCTION(gsl_vector,free), vnew);
+  return TypedData_Wrap_Struct(VEC_ROW_COL(obj), &VECTOR_DATA_TYPE, vnew);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,sqrt)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL, *vnew = NULL;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vnew = FUNCTION(gsl_vector,alloc)(v->size);
   for (i = 0; i < v->size; i++) {
     FUNCTION(gsl_vector,set)(vnew, i, sqrt(FUNCTION(gsl_vector,get)(v, i)));
   }
-  return Data_Wrap_Struct(VEC_ROW_COL(obj), 0, FUNCTION(gsl_vector,free), vnew);
+  return TypedData_Wrap_Struct(VEC_ROW_COL(obj), &VECTOR_DATA_TYPE, vnew);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,memcpy)(VALUE obj, VALUE dest, VALUE src)
 {
   GSL_TYPE(gsl_vector) *vdest = NULL, *vsrc = NULL;
-  Data_Get_Struct(dest, GSL_TYPE(gsl_vector), vdest);
-  Data_Get_Struct(src, GSL_TYPE(gsl_vector), vsrc);
+  TypedData_Get_Struct(dest, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, vdest);
+  TypedData_Get_Struct(src, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, vsrc);
   FUNCTION(gsl_vector,memcpy)(vdest, vsrc);
   return dest;
 }
@@ -857,22 +857,22 @@ static VALUE FUNCTION(rb_gsl_vector,memcpy)(VALUE obj, VALUE dest, VALUE src)
 static VALUE FUNCTION(rb_gsl_vector,clone)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL, *vnew = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vnew = FUNCTION(gsl_vector,alloc)(v->size);
   if (vnew == NULL) rb_raise(rb_eNoMemError, "gsl_vector_alloc failed");
   FUNCTION(gsl_vector,memcpy)(vnew, v);
   if (!VEC_VIEW_P(obj))
-    return Data_Wrap_Struct(CLASS_OF(obj), 0, FUNCTION(gsl_vector,free), vnew);
+    return TypedData_Wrap_Struct(CLASS_OF(obj), &VECTOR_DATA_TYPE, vnew);
   else
-    return Data_Wrap_Struct(VEC_ROW_COL(obj), 0, FUNCTION(gsl_vector,free), vnew);
+    return TypedData_Wrap_Struct(VEC_ROW_COL(obj), &VECTOR_DATA_TYPE, vnew);
 }
 
 /* singleton */
 static VALUE FUNCTION(rb_gsl_vector,swap)(VALUE obj, VALUE vv, VALUE ww)
 {
   GSL_TYPE(gsl_vector) *v = NULL, *w = NULL;
-  Data_Get_Struct(vv, GSL_TYPE(gsl_vector), v);
-  Data_Get_Struct(ww, GSL_TYPE(gsl_vector), w);
+  TypedData_Get_Struct(vv, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+  TypedData_Get_Struct(ww, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, w);
   FUNCTION(gsl_vector,swap)(v, w);
   return obj;
 }
@@ -881,7 +881,7 @@ static VALUE FUNCTION(rb_gsl_vector,swap_elements)(VALUE obj, VALUE i, VALUE j)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
   CHECK_FIXNUM(i);  CHECK_FIXNUM(j);
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   FUNCTION(gsl_vector,swap_elements)(v, FIX2INT(i), FIX2INT(j));
   return obj;
 }
@@ -891,7 +891,7 @@ static VALUE FUNCTION(rb_gsl_vector,fwrite)(VALUE obj, VALUE io)
   GSL_TYPE(gsl_vector) *h = NULL;
   FILE *f = NULL;
   int status, flag = 0;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), h);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, h);
   f = rb_gsl_open_writefile(io, &flag);
   status = FUNCTION(gsl_vector,fwrite)(f, h);
   if (flag == 1) fclose(f);
@@ -903,7 +903,7 @@ static VALUE FUNCTION(rb_gsl_vector,fread)(VALUE obj, VALUE io)
   GSL_TYPE(gsl_vector) *h = NULL;
   FILE *f = NULL;
   int status, flag = 0;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), h);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, h);
   f = rb_gsl_open_readfile(io, &flag);
   status = FUNCTION(gsl_vector,fread)(f, h);
   if (flag == 1) fclose(f);
@@ -917,7 +917,7 @@ static VALUE FUNCTION(rb_gsl_vector,fprintf)(int argc, VALUE *argv, VALUE obj)
   int status, flag = 0;
   if (argc != 1 && argc != 2)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 2)", argc);
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), h);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, h);
   fp = rb_gsl_open_writefile(argv[0], &flag);
   if (argc == 2) {
     if (TYPE(argv[1]) == T_STRING)
@@ -935,7 +935,7 @@ static VALUE FUNCTION(rb_gsl_vector,printf)(int argc, VALUE *argv, VALUE obj)
 {
   GSL_TYPE(gsl_vector) *h = NULL;
   int status;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), h);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, h);
   if (argc == 1) {
     if (TYPE(argv[0]) != T_STRING)
       rb_raise(rb_eTypeError, "String expected");
@@ -952,7 +952,7 @@ static VALUE FUNCTION(rb_gsl_vector,fscanf)(VALUE obj, VALUE io)
   GSL_TYPE(gsl_vector) *h = NULL;
   FILE *fp = NULL;
   int status, flag = 0;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), h);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, h);
   fp = rb_gsl_open_readfile(io, &flag);
   status = FUNCTION(gsl_vector,fscanf)(fp, h);
   if (flag == 1) fclose(fp);
@@ -973,15 +973,15 @@ VALUE FUNCTION(rb_gsl_vector,inner_product)(int argc, VALUE *argv, VALUE obj)
                             argc);
     CHECK_VEC(argv[0]);
     CHECK_VEC(argv[1]);
-    Data_Get_Struct(argv[0], GSL_TYPE(gsl_vector), v);
-    Data_Get_Struct(argv[1], GSL_TYPE(gsl_vector), v2);
+    TypedData_Get_Struct(argv[0], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+    TypedData_Get_Struct(argv[1], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v2);
     break;
   default:
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)",
                             argc);
     CHECK_VEC(argv[0]);
-    Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
-    Data_Get_Struct(argv[0], GSL_TYPE(gsl_vector), v2);
+    TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+    TypedData_Get_Struct(argv[0], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v2);
     break;
   }
   if (v->size != v2->size) rb_raise(rb_eRangeError, "vector lengths are different.");
@@ -1047,15 +1047,15 @@ static VALUE FUNCTION(rb_gsl_vector,equal)(int argc, VALUE *argv, VALUE obj)
   case T_FIXNUM:
   case T_FLOAT:
     x = NUM2DBL(other);
-    Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v1);
+    TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v1);
     for (i = 0; i < v1->size; i++)
       if (fabs(x-FUNCTION(gsl_vector,get)(v1, i)) > eps) return Qfalse;
     return Qtrue;
     break;
   default:
     CHECK_VEC(other);
-    Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v1);
-    Data_Get_Struct(other, GSL_TYPE(gsl_vector), v2);
+    TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v1);
+    TypedData_Get_Struct(other, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v2);
     if (FUNCTION(rbgsl_vector,equal)(v1, v2, eps)) return Qtrue;
     else return Qfalse;
     break;
@@ -1074,9 +1074,9 @@ static VALUE FUNCTION(rb_gsl_vector,to_poly)(VALUE obj)
   GSL_TYPE(gsl_vector) *v = NULL;
   GSL_TYPE(gsl_poly) *p = NULL;
   if (CLASS_OF(obj) == GSL_TYPE(cgsl_poly)) return obj;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   p = FUNCTION(make_vector,clone)(v);
-  return Data_Wrap_Struct(GSL_TYPE(cgsl_poly), 0, FUNCTION(gsl_vector,free), p);
+  return TypedData_Wrap_Struct(GSL_TYPE(cgsl_poly), &VECTOR_DATA_TYPE, p);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,graph)(int argc, VALUE *argv, VALUE obj)
@@ -1086,7 +1086,7 @@ static VALUE FUNCTION(rb_gsl_vector,graph)(int argc, VALUE *argv, VALUE obj)
   FILE *fp = NULL;
   size_t i;
   char command[1024];
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), y);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, y);
   switch (argc) {
   case 0:
     strcpy(command, "graph -T X -g 3");
@@ -1096,7 +1096,7 @@ static VALUE FUNCTION(rb_gsl_vector,graph)(int argc, VALUE *argv, VALUE obj)
       make_graphcommand(command, argv[0]);
     } else if (VEC_P(argv[0])) {
       strcpy(command, "graph -T X -g 3");
-      Data_Get_Struct(argv[0], GSL_TYPE(gsl_vector), x);
+      TypedData_Get_Struct(argv[0], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, x);
     } else {
     }
     break;
@@ -1104,7 +1104,7 @@ static VALUE FUNCTION(rb_gsl_vector,graph)(int argc, VALUE *argv, VALUE obj)
     if (TYPE(argv[1]) == T_STRING) {
       make_graphcommand(command, argv[1]);
       if (VEC_P(argv[0])) {
-        Data_Get_Struct(argv[0], GSL_TYPE(gsl_vector), x);
+        TypedData_Get_Struct(argv[0], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, x);
       } else {
         rb_raise(rb_eTypeError, "argv[0] wrong type %s (String or Vector expected)",
                  rb_class2name(CLASS_OF(argv[0])));
@@ -1143,7 +1143,7 @@ static VALUE FUNCTION(rb_gsl_vector,graph_step)(int argc, VALUE *argv, VALUE obj
   FILE *fp = NULL;
   size_t i;
   char command[1024];
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), y);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, y);
   switch (argc) {
   case 0:
     strcpy(command, "graph -T X -g 3");
@@ -1153,7 +1153,7 @@ static VALUE FUNCTION(rb_gsl_vector,graph_step)(int argc, VALUE *argv, VALUE obj
       make_graphcommand(command, argv[0]);
     } else if (VECTOR_P(argv[0])) {
       strcpy(command, "graph -T X -g 3");
-      Data_Get_Struct(argv[0], GSL_TYPE(gsl_vector), x);
+      TypedData_Get_Struct(argv[0], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, x);
     } else {
     }
     break;
@@ -1161,7 +1161,7 @@ static VALUE FUNCTION(rb_gsl_vector,graph_step)(int argc, VALUE *argv, VALUE obj
     if (TYPE(argv[1]) == T_STRING) {
       make_graphcommand(command, argv[1]);
       if (VEC_P(argv[0])) {
-        Data_Get_Struct(argv[0], GSL_TYPE(gsl_vector), x);
+        TypedData_Get_Struct(argv[0], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, x);
       } else {
         rb_raise(rb_eTypeError, "argv[0] wrong type %s (String or Vector expected)",
                  rb_class2name(CLASS_OF(argv[0])));
@@ -1210,7 +1210,7 @@ static VALUE FUNCTION(rb_gsl_vector,plot)(int argc, VALUE *argv, VALUE obj)
   GSL_TYPE(gsl_vector) *x = NULL, *y = NULL;
   FILE *fp = NULL;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), y);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, y);
   fp = popen("gnuplot -persist", "w");
   switch (argc) {
   case 0:
@@ -1221,7 +1221,7 @@ static VALUE FUNCTION(rb_gsl_vector,plot)(int argc, VALUE *argv, VALUE obj)
       fprintf(fp, "plot '-' %s\n", STR2CSTR(argv[0]));
     } else if (VEC_P(argv[0])) {
       fprintf(fp, "plot '-'\n");
-      Data_Get_Struct(argv[0], GSL_TYPE(gsl_vector), x);
+      TypedData_Get_Struct(argv[0], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, x);
     } else {
       rb_raise(rb_eTypeError, "wrong argument type %s (String or Vector expected)",
                rb_class2name(CLASS_OF(argv[0])));
@@ -1231,7 +1231,7 @@ static VALUE FUNCTION(rb_gsl_vector,plot)(int argc, VALUE *argv, VALUE obj)
     if (TYPE(argv[1]) == T_STRING)
       fprintf(fp, "plot '-' %s\n", STR2CSTR(argv[1]));
     if (VEC_P(argv[0]))
-      Data_Get_Struct(argv[0], GSL_TYPE(gsl_vector), x);
+      TypedData_Get_Struct(argv[0], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, x);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 0 or 1)", argc);
@@ -1274,7 +1274,7 @@ void FUNCTION(gsl_vector,print)(const GSL_TYPE(gsl_vector) *v, VALUE klass)
 VALUE FUNCTION(rb_gsl_vector,print)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   FUNCTION(gsl_vector,print)(v, CLASS_OF(obj));
   return Qnil;
 }
@@ -1298,7 +1298,7 @@ VALUE FUNCTION(rb_gsl_vector,to_s)(VALUE obj)
   BASE max;
   dig = 1;
 #endif
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   if (v->size == 0) return rb_str_new2("[ ]");
   str = rb_str_new2("[ ");
   if (VEC_COL_P(obj)) {
@@ -1364,7 +1364,7 @@ static VALUE FUNCTION(rb_gsl_vector,subvector)(int argc, VALUE *argv, VALUE obj)
   GSL_TYPE(gsl_vector) *v = NULL;
   QUALIFIED_VIEW(gsl_vector,view) *vv = NULL;
   size_t offset, stride, n;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   parse_subvector_args(argc, argv, v->size, &offset, &stride, &n);
   vv = ALLOC(QUALIFIED_VIEW(gsl_vector,view));
   *vv = FUNCTION(gsl_vector,subvector_with_stride)(v, offset, stride, n);
@@ -1380,7 +1380,7 @@ static VALUE FUNCTION(rb_gsl_vector,subvector_with_stride)(int argc, VALUE *argv
   QUALIFIED_VIEW(gsl_vector,view) *vv = NULL;
   int offset = 0, step, length;
   size_t stride = 1, n;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   switch (argc) {
   case 1:
     CHECK_FIXNUM(argv[0]);
@@ -1447,7 +1447,7 @@ static VALUE FUNCTION(rb_gsl_vector,matrix_view)(int argc, VALUE *argv, VALUE ob
 {
   GSL_TYPE(gsl_vector) *v = NULL;
   QUALIFIED_VIEW(gsl_matrix,view) *mv = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   switch (argc) {
   case 2:
     mv = ALLOC(QUALIFIED_VIEW(gsl_matrix,view));
@@ -1470,7 +1470,7 @@ static VALUE FUNCTION(rb_gsl_vector,matrix_view_with_tda)(VALUE obj, VALUE nn1, 
 {
   GSL_TYPE(gsl_vector) *v = NULL;
   QUALIFIED_VIEW(gsl_matrix,view) *mv = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   mv = ALLOC(QUALIFIED_VIEW(gsl_matrix,view));
   *mv = FUNCTION(gsl_matrix,view_vector_with_tda)(v, FIX2INT(nn1), FIX2INT(nn2), FIX2INT(tda));
   return Data_Wrap_Struct(QUALIFIED_VIEW(cgsl_matrix,view), 0, free, mv);
@@ -1508,17 +1508,17 @@ GSL_TYPE(gsl_vector)* FUNCTION(make_vector,clone)(const GSL_TYPE(gsl_vector) *v)
 VALUE FUNCTION(rb_gsl_vector,scale)(VALUE obj, VALUE x)
 {
   GSL_TYPE(gsl_vector) *v, *vnew;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vnew = FUNCTION(make_vector,clone)(v);
   FUNCTION(gsl_vector,scale)(vnew, NUMCONV2(x));
-  //  return Data_Wrap_Struct(GSL_TYPE(cgsl_vector), 0, FUNCTION(gsl_vector,free), vnew);
-  return Data_Wrap_Struct(VEC_ROW_COL(obj), 0, FUNCTION(gsl_vector,free), vnew);
+  //  return TypedData_Wrap_Struct(GSL_TYPE(cgsl_vector), &VECTOR_DATA_TYPE, vnew);
+  return TypedData_Wrap_Struct(VEC_ROW_COL(obj), &VECTOR_DATA_TYPE, vnew);
 }
 
 VALUE FUNCTION(rb_gsl_vector,scale_bang)(VALUE obj, VALUE x)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   FUNCTION(gsl_vector,scale)(v, NUMCONV2(x));
   return obj;
 }
@@ -1526,17 +1526,17 @@ VALUE FUNCTION(rb_gsl_vector,scale_bang)(VALUE obj, VALUE x)
 VALUE FUNCTION(rb_gsl_vector,add_constant)(VALUE obj, VALUE x)
 {
   GSL_TYPE(gsl_vector) *v, *vnew;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vnew = FUNCTION(make_vector,clone)(v);
   FUNCTION(gsl_vector,add_constant)(vnew, NUMCONV2(x));
-  //  return Data_Wrap_Struct(GSL_TYPE(cgsl_vector), 0, FUNCTION(gsl_vector,free), vnew);
-  return Data_Wrap_Struct(VEC_ROW_COL(obj), 0, FUNCTION(gsl_vector,free), vnew);
+  //  return TypedData_Wrap_Struct(GSL_TYPE(cgsl_vector), &VECTOR_DATA_TYPE, vnew);
+  return TypedData_Wrap_Struct(VEC_ROW_COL(obj), &VECTOR_DATA_TYPE, vnew);
 }
 
 VALUE FUNCTION(rb_gsl_vector,add_constant_bang)(VALUE obj, VALUE x)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   FUNCTION(gsl_vector,add_constant)(v, NUMCONV2(x));
   return obj;
 }
@@ -1560,7 +1560,7 @@ static VALUE FUNCTION(rb_gsl_vector,to_tensor)(int argc, VALUE *argv, VALUE obj)
   GSL_TYPE(rbgsl_tensor) *t;
   unsigned int rank;
   size_t dim;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   switch (argc) {
   case 0:
     rank = 1;
@@ -1601,7 +1601,7 @@ static VALUE FUNCTION(rb_gsl_vector,to_gplot)(int argc, VALUE *argv, VALUE obj)
     break;
   default:
     CHECK_VEC(obj);
-    Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+    TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
     if (argc >= 1 && TYPE(argv[0]) == T_ARRAY) nv = 1 + RARRAY_LEN(argv[0]);
     else nv = argc + 1;
     vp = (GSL_TYPE(gsl_vector)**)ALLOC_N(GSL_TYPE(gsl_vector)*, nv);
@@ -1613,7 +1613,7 @@ static VALUE FUNCTION(rb_gsl_vector,to_gplot)(int argc, VALUE *argv, VALUE obj)
     if (TYPE(argv[0]) == T_ARRAY) tmp = rb_ary_entry(argv[0], i);
     else tmp = argv[i];
     CHECK_VEC(tmp);
-    Data_Get_Struct(tmp, GSL_TYPE(gsl_vector), v);
+    TypedData_Get_Struct(tmp, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
     if (len == 0) len = v->size;
     if (len != v->size)
       rb_raise(rb_eRuntimeError, "vectors must have equal lengths");
@@ -1638,7 +1638,7 @@ static VALUE FUNCTION(rb_gsl_vector,to_m_diagonal)(VALUE obj)
   GSL_TYPE(gsl_vector) *v = NULL;
   GSL_TYPE(gsl_matrix) *m = NULL;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   m = FUNCTION(gsl_matrix,calloc)(v->size, v->size);
   for (i = 0; i < v->size; i++)
     FUNCTION(gsl_matrix,set)(m, i, i, FUNCTION(gsl_vector,get)(v, i));
@@ -1649,12 +1649,12 @@ static VALUE FUNCTION(rb_gsl_vector,collect)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL, *vnew;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vnew = FUNCTION(gsl_vector,alloc)(v->size);
   for (i = 0; i < v->size; i++) {
     FUNCTION(gsl_vector,set)(vnew, i, NUMCONV(rb_yield(C_TO_VALUE(FUNCTION(gsl_vector,get)(v, i)))));
   }
-  return Data_Wrap_Struct(GSL_TYPE(cgsl_vector), 0, FUNCTION(gsl_vector,free), vnew);
+  return TypedData_Wrap_Struct(GSL_TYPE(cgsl_vector), &VECTOR_DATA_TYPE, vnew);
 }
 
 /* 2004/May/03 */
@@ -1662,7 +1662,7 @@ static VALUE FUNCTION(rb_gsl_vector,collect_bang)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   for (i = 0; i < v->size; i++) {
     FUNCTION(gsl_vector,set)(v, i, NUMCONV(rb_yield(C_TO_VALUE(FUNCTION(gsl_vector,get)(v, i)))));
   }
@@ -1704,7 +1704,7 @@ static VALUE FUNCTION(rb_gsl_vector,to_m_circulant)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m;
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   m = FUNCTION(gsl_matrix,alloc)(v->size, v->size);
   FUNCTION(mygsl_vector,to_m_circulant)(m, v);
   return Data_Wrap_Struct(GSL_TYPE(cgsl_matrix), 0, FUNCTION(gsl_matrix,free), m);
@@ -1743,7 +1743,7 @@ static VALUE FUNCTION(rb_gsl_vector,indgen_singleton)(int argc, VALUE *argv, VAL
   }
   v = FUNCTION(gsl_vector,alloc)(n);
   FUNCTION(mygsl_vector,indgen)(v, start, step);
-  return Data_Wrap_Struct(GSL_TYPE(cgsl_vector), 0, FUNCTION(gsl_vector,free), v);
+  return TypedData_Wrap_Struct(GSL_TYPE(cgsl_vector), &VECTOR_DATA_TYPE, v);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,indgen)(int argc, VALUE *argv, VALUE obj)
@@ -1763,10 +1763,10 @@ static VALUE FUNCTION(rb_gsl_vector,indgen)(int argc, VALUE *argv, VALUE obj)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 0-2)", argc);
     break;
   }
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vnew = FUNCTION(gsl_vector,alloc)(v->size);
   FUNCTION(mygsl_vector,indgen)(vnew, start, step);
-  return Data_Wrap_Struct(GSL_TYPE(cgsl_vector), 0, FUNCTION(gsl_vector,free), vnew);
+  return TypedData_Wrap_Struct(GSL_TYPE(cgsl_vector), &VECTOR_DATA_TYPE, vnew);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,indgen_bang)(int argc, VALUE *argv, VALUE obj)
@@ -1786,7 +1786,7 @@ static VALUE FUNCTION(rb_gsl_vector,indgen_bang)(int argc, VALUE *argv, VALUE ob
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 0-2)", argc);
     break;
   }
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   FUNCTION(mygsl_vector,indgen)(v, start, step);
   return obj;
 }
@@ -1797,7 +1797,7 @@ static VALUE FUNCTION(rb_gsl_vector,to_m)(VALUE obj, VALUE ii, VALUE jj)
   GSL_TYPE(gsl_vector) *v = NULL;
   size_t i, j, n;
   CHECK_FIXNUM(ii); CHECK_FIXNUM(jj);
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   i = (size_t) FIX2INT(ii); j = (size_t) FIX2INT(jj);
   n = i*j;
   m = FUNCTION(gsl_matrix,alloc)(i, j);
@@ -1809,7 +1809,7 @@ static VALUE FUNCTION(rb_gsl_vector,to_m)(VALUE obj, VALUE ii, VALUE jj)
 static VALUE FUNCTION(rb_gsl_vector,block)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   return Data_Wrap_Struct(GSL_TYPE(cgsl_block), 0, NULL, v->block);
 }
 
@@ -1817,7 +1817,7 @@ static VALUE FUNCTION(rb_gsl_vector,block)(VALUE obj)
 static VALUE GSL_TYPE(rb_gsl_sort_vector)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   GSL_TYPE(gsl_sort_vector)(v);
   return obj;
 }
@@ -1825,18 +1825,18 @@ static VALUE GSL_TYPE(rb_gsl_sort_vector)(VALUE obj)
 static VALUE GSL_TYPE(rb_gsl_sort_vector2)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL, *vnew = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vnew = FUNCTION(gsl_vector,alloc)(v->size);
   FUNCTION(gsl_vector,memcpy)(vnew, v);
   GSL_TYPE(gsl_sort_vector)(vnew);
-  return Data_Wrap_Struct(GSL_TYPE(cgsl_vector), 0, FUNCTION(gsl_vector,free), vnew);
+  return TypedData_Wrap_Struct(GSL_TYPE(cgsl_vector), &VECTOR_DATA_TYPE, vnew);
 }
 
 static VALUE FUNCTION(rb_gsl_sort_vector,index)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
   gsl_index *p = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   p = gsl_permutation_alloc(v->size);
   FUNCTION(gsl_sort_vector,index)(p, v);
   return Data_Wrap_Struct(cgsl_index, 0, gsl_permutation_free, p);
@@ -1848,10 +1848,10 @@ static VALUE FUNCTION(rb_gsl_sort_vector,smallest)(VALUE obj, VALUE kk)
   size_t k;
   CHECK_FIXNUM(kk);
   k = FIX2INT(kk);
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   v2 = FUNCTION(gsl_vector,alloc)(k);
   FUNCTION(gsl_sort_vector,smallest)(v2->data, k, v);
-  return Data_Wrap_Struct(GSL_TYPE(cgsl_vector), 0, FUNCTION(gsl_vector,free), v2);
+  return TypedData_Wrap_Struct(GSL_TYPE(cgsl_vector), &VECTOR_DATA_TYPE, v2);
 }
 
 static VALUE FUNCTION(rb_gsl_sort_vector,largest)(VALUE obj, VALUE kk)
@@ -1860,10 +1860,10 @@ static VALUE FUNCTION(rb_gsl_sort_vector,largest)(VALUE obj, VALUE kk)
   size_t k;
   CHECK_FIXNUM(kk);
   k = FIX2INT(kk);
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   v2 = FUNCTION(gsl_vector,alloc)(k);
   FUNCTION(gsl_sort_vector,largest)(v2->data, k, v);
-  return Data_Wrap_Struct(GSL_TYPE(cgsl_vector), 0, FUNCTION(gsl_vector,free), v2);
+  return TypedData_Wrap_Struct(GSL_TYPE(cgsl_vector), &VECTOR_DATA_TYPE, v2);
 }
 
 static VALUE FUNCTION(rb_gsl_sort_vector,smallest_index)(VALUE obj, VALUE kk)
@@ -1873,7 +1873,7 @@ static VALUE FUNCTION(rb_gsl_sort_vector,smallest_index)(VALUE obj, VALUE kk)
   size_t k;
   CHECK_FIXNUM(kk);
   k = FIX2INT(kk);
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   p = gsl_permutation_alloc(k);
   FUNCTION(gsl_sort_vector,smallest_index)(p->data, k, v);
   return Data_Wrap_Struct(cgsl_index, 0, gsl_permutation_free, p);
@@ -1886,7 +1886,7 @@ static VALUE FUNCTION(rb_gsl_sort_vector,largest_index)(VALUE obj, VALUE kk)
   size_t k;
   CHECK_FIXNUM(kk);
   k = FIX2INT(kk);
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   p = gsl_permutation_alloc(k);
   FUNCTION(gsl_sort_vector,largest_index)(p->data, k, v);
   return Data_Wrap_Struct(cgsl_index, 0, gsl_permutation_free, p);
@@ -1899,7 +1899,7 @@ static VALUE FUNCTION(rb_gsl_vector,histogram)(int argc, VALUE *argv, VALUE obj)
   gsl_vector *ranges;
   double min, max;
   size_t i, n;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   switch (argc) {
   case 1:
     if (rb_obj_is_kind_of(argv[0], rb_cRange))
@@ -1919,7 +1919,7 @@ static VALUE FUNCTION(rb_gsl_vector,histogram)(int argc, VALUE *argv, VALUE obj)
       break;
     default:
       CHECK_VECTOR(argv[0]);
-      Data_Get_Struct(argv[0], gsl_vector, ranges);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, ranges);
       n = ranges->size - 1;
       h = gsl_histogram_alloc(n);
       gsl_histogram_set_ranges(h, ranges->data, ranges->size);
@@ -1959,14 +1959,14 @@ static VALUE FUNCTION(rb_gsl_vector,histogram)(int argc, VALUE *argv, VALUE obj)
 static VALUE FUNCTION(rb_gsl_vector,last)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   return C_TO_VALUE(FUNCTION(gsl_vector,get)(v, v->size-1));
 }
 
 static VALUE FUNCTION(rb_gsl_vector,first)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   return C_TO_VALUE(FUNCTION(gsl_vector,get)(v, 0));
 }
 
@@ -1979,7 +1979,7 @@ static VALUE FUNCTION(rb_gsl_vector,concat)(VALUE obj, VALUE other)
   int step;
   size_t i, size2;
 
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
 
   switch(TYPE(other)) {
   case T_FIXNUM:
@@ -2013,7 +2013,7 @@ static VALUE FUNCTION(rb_gsl_vector,concat)(VALUE obj, VALUE other)
         beg += step;
       }
     } else if (rb_obj_is_kind_of(other, GSL_TYPE(cgsl_vector))) {
-      Data_Get_Struct(other, GSL_TYPE(gsl_vector), v2);
+      TypedData_Get_Struct(other, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v2);
       size2 = v2->size;
       vnew = FUNCTION(gsl_vector,alloc)(v->size + size2);
       vv = FUNCTION(gsl_vector,subvector)(vnew, 0, v->size);
@@ -2027,7 +2027,7 @@ static VALUE FUNCTION(rb_gsl_vector,concat)(VALUE obj, VALUE other)
     break;
   }
 
-  return Data_Wrap_Struct(VEC_ROW_COL(obj), 0, FUNCTION(gsl_vector,free), vnew);
+  return TypedData_Wrap_Struct(VEC_ROW_COL(obj), &VECTOR_DATA_TYPE, vnew);
 }
 
 void FUNCTION(mygsl_vector,diff)(GSL_TYPE(gsl_vector) *vdst,
@@ -2056,7 +2056,7 @@ static VALUE FUNCTION(rb_gsl_vector,diff)(int argc, VALUE *argv, VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL, *vnew = NULL;
   size_t n;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   switch (argc) {
   case 0:
     n = 1;
@@ -2072,7 +2072,7 @@ static VALUE FUNCTION(rb_gsl_vector,diff)(int argc, VALUE *argv, VALUE obj)
   if (v->size <= n) return obj;
   vnew = FUNCTION(gsl_vector,alloc)(v->size - n);
   FUNCTION(mygsl_vector,diff)(vnew, v, n);
-  return Data_Wrap_Struct(GSL_TYPE(cgsl_vector), 0, FUNCTION(gsl_vector,free), vnew);
+  return TypedData_Wrap_Struct(GSL_TYPE(cgsl_vector), &VECTOR_DATA_TYPE, vnew);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,test)(VALUE obj, int (*f)(const double))
@@ -2080,11 +2080,11 @@ static VALUE FUNCTION(rb_gsl_vector,test)(VALUE obj, int (*f)(const double))
   GSL_TYPE(gsl_vector) *v = NULL;
   gsl_vector_int *vi = NULL;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vi = gsl_vector_int_alloc(v->size);
   for (i = 0; i < v->size; i++)
     gsl_vector_int_set(vi, i, (*f)(FUNCTION(gsl_vector,get)(v, i)));
-  return Data_Wrap_Struct(cgsl_vector_int, 0, gsl_vector_int_free, vi);
+  return TypedData_Wrap_Struct(cgsl_vector_int, &gsl_vector_int_data_type, vi);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,test2)(VALUE obj, int (*f)(const double))
@@ -2092,7 +2092,7 @@ static VALUE FUNCTION(rb_gsl_vector,test2)(VALUE obj, int (*f)(const double))
   GSL_TYPE(gsl_vector) *v = NULL;
   VALUE ary;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   ary = rb_ary_new2(v->size);
   for (i = 0; i < v->size; i++) {
     if ((*f)(FUNCTION(gsl_vector,get)(v, i)))
@@ -2141,7 +2141,7 @@ static VALUE FUNCTION(rb_gsl_vector,delete_at)(VALUE obj, VALUE ii)
   BASE x;
   if (rb_obj_is_kind_of(obj,QUALIFIED_VIEW(cgsl_vector,view)))
     rb_raise(rb_eRuntimeError, "prohibited for %s", rb_class2name(CLASS_OF(obj)));
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   if (v->stride != 1) rb_raise(rb_eRuntimeError, "vector must have stride 1");
   if (v->size == 0) return Qnil;
   CHECK_FIXNUM(ii);
@@ -2166,7 +2166,7 @@ static VALUE FUNCTION(rb_gsl_vector,delete_if)(VALUE obj)
   if (!rb_block_given_p()) rb_raise(rb_eRuntimeError, "block is not given");
   if (rb_obj_is_kind_of(obj,QUALIFIED_VIEW(cgsl_vector,view)))
     rb_raise(rb_eRuntimeError, "prohibited for %s", rb_class2name(CLASS_OF(obj)));
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   if (v->stride != 1) rb_raise(rb_eRuntimeError, "vector must have stride 1");
   for (i = 0; i < v->size; i++) {
     x = FUNCTION(gsl_vector,get)(v, i);
@@ -2189,7 +2189,7 @@ static VALUE FUNCTION(rb_gsl_vector,delete)(VALUE obj, VALUE yy)
   y = NUMCONV(yy);
   if (rb_obj_is_kind_of(obj,QUALIFIED_VIEW(cgsl_vector,view)))
     rb_raise(rb_eRuntimeError, "prohibited for %s", rb_class2name(CLASS_OF(obj)));
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   if (v->stride != 1) rb_raise(rb_eRuntimeError, "vector must have stride 1");
   if (v->size == 0) return obj;
   for (i = 0; i < v->size; i++) {
@@ -2243,7 +2243,7 @@ static VALUE FUNCTION(rb_gsl_vector,filescan)(VALUE klass, VALUE file)
   ary = rb_ary_new2(n);
   for (j = 0; j < n; j++) {
     x[j] = FUNCTION(gsl_vector,alloc)(lines);
-    rb_ary_store(ary, j, Data_Wrap_Struct(GSL_TYPE(cgsl_vector), 0, FUNCTION(gsl_vector,free), x[j]));
+    rb_ary_store(ary, j, TypedData_Wrap_Struct(GSL_TYPE(cgsl_vector), &VECTOR_DATA_TYPE, x[j]));
   }
   rewind(fp);
   for (i = 0, ii = 0; ii < lines; i++) {
@@ -2556,10 +2556,10 @@ static VALUE FUNCTION(rb_gsl_vector,compare)(VALUE aa, VALUE bb,
   /*  gsl_vector_int *c;*/
   gsl_block_uchar *c;
   //int status;
-  Data_Get_Struct(aa, GSL_TYPE(gsl_vector), a);
+  TypedData_Get_Struct(aa, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, a);
   c = gsl_block_uchar_alloc(a->size);
   if (VEC_P(bb)) {
-    Data_Get_Struct(bb, GSL_TYPE(gsl_vector), b);
+    TypedData_Get_Struct(bb, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, b);
     if (a->size != b->size)
       rb_raise(rb_eRuntimeError, "Vector size mismatch, %d and %d", (int) a->size,
                (int) b->size);
@@ -2629,7 +2629,7 @@ static VALUE FUNCTION(rb_gsl_vector,not)(VALUE obj)
   GSL_TYPE(gsl_vector) *v;
   gsl_block_uchar *vv;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vv = gsl_block_uchar_alloc(v->size);
   for (i = 0; i < v->size; i++) vv->data[i] = (v->data[i*v->stride] != 0) ? 0 : 1;
   return Data_Wrap_Struct(cgsl_block_uchar, 0, gsl_block_uchar_free, vv);
@@ -2640,7 +2640,7 @@ static VALUE FUNCTION(rb_gsl_vector,any)(VALUE obj)
   GSL_TYPE(gsl_vector) *v = NULL;
   size_t i;
 
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   if (rb_block_given_p()) {
     for (i = 0; i < v->size; i++) {
       if (rb_yield(C_TO_VALUE(FUNCTION(gsl_vector,get)(v, i)))) return INT2FIX(1);
@@ -2657,7 +2657,7 @@ static VALUE FUNCTION(rb_gsl_vector,any2)(VALUE obj)
   GSL_TYPE(gsl_vector) *v = NULL;
   size_t i;
 
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   if (rb_block_given_p()) {
     for (i = 0; i < v->size; i++)
       if (rb_yield(C_TO_VALUE(FUNCTION(gsl_vector,get)(v, i)))) return Qtrue;
@@ -2674,7 +2674,7 @@ static VALUE FUNCTION(rb_gsl_vector,none)(VALUE obj)
   GSL_TYPE(gsl_vector) *v;
   size_t i;
 
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   if (rb_block_given_p()) {
     for (i = 0; i < v->size; i++)
       if (rb_yield(C_TO_VALUE(FUNCTION(gsl_vector,get)(v, i)))) return Qfalse;
@@ -2691,7 +2691,7 @@ static VALUE FUNCTION(rb_gsl_vector,all)(VALUE obj)
   GSL_TYPE(gsl_vector) *v;
   size_t i;
 
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   if (rb_block_given_p()) {
     for (i = 0; i < v->size; i++)
       if (!rb_yield(C_TO_VALUE(FUNCTION(gsl_vector,get)(v, i)))) return Qfalse;
@@ -2709,7 +2709,7 @@ static VALUE FUNCTION(rb_gsl_vector,where)(VALUE obj)
   gsl_index *vv;
   gsl_block_uchar *btmp = NULL;
   size_t i, j, n = 0;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   /* count true elements */
   if (rb_block_given_p()) {
     btmp = gsl_block_uchar_alloc(v->size);
@@ -2745,7 +2745,7 @@ static VALUE FUNCTION(rb_gsl_vector,where2)(VALUE obj)
   gsl_block_uchar *btmp = NULL;
   VALUE vv1, vv2;
   size_t i, j, k, n = 0;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   if (rb_block_given_p()) {
     btmp = gsl_block_uchar_alloc(v->size);
     for (i = 0; i < v->size; i++) {
@@ -2787,8 +2787,8 @@ static VALUE FUNCTION(rb_gsl_vector,op_inplace)(VALUE vv1, VALUE vv2,
                                                 int (*f)(GSL_TYPE (gsl_vector)*, const GSL_TYPE (gsl_vector)*))
 {
   GSL_TYPE(gsl_vector) *v1, *v2;
-  Data_Get_Struct(vv1, GSL_TYPE(gsl_vector), v1);
-  Data_Get_Struct(vv2, GSL_TYPE(gsl_vector), v2);
+  TypedData_Get_Struct(vv1, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v1);
+  TypedData_Get_Struct(vv2, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v2);
   (*f)(v1, v2);
   return vv1;
 }
@@ -2801,7 +2801,7 @@ static VALUE FUNCTION(rb_gsl_vector,add_inplace)(VALUE vv1, VALUE vv2)
     return FUNCTION(rb_gsl_vector,op_inplace)(vv1, vv2, FUNCTION(gsl_vector,add));
   } else {
     x = NUM2DBL(vv2);
-    Data_Get_Struct(vv1, GSL_TYPE(gsl_vector), v1);
+    TypedData_Get_Struct(vv1, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v1);
     FUNCTION(gsl_vector,add_constant)(v1, x);
     return vv1;
   }
@@ -2815,7 +2815,7 @@ static VALUE FUNCTION(rb_gsl_vector,sub_inplace)(VALUE vv1, VALUE vv2)
     return FUNCTION(rb_gsl_vector,op_inplace)(vv1, vv2, FUNCTION(gsl_vector,sub));
   } else {
     x = NUM2DBL(vv2);
-    Data_Get_Struct(vv1, GSL_TYPE(gsl_vector), v1);
+    TypedData_Get_Struct(vv1, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v1);
     FUNCTION(gsl_vector,add_constant)(v1, -x);
     return vv1;
   }
@@ -2829,7 +2829,7 @@ static VALUE FUNCTION(rb_gsl_vector,mul_inplace)(VALUE vv1, VALUE vv2)
     return FUNCTION(rb_gsl_vector,op_inplace)(vv1, vv2, FUNCTION(gsl_vector,mul));
   } else {
     x = NUM2DBL(vv2);
-    Data_Get_Struct(vv1, GSL_TYPE(gsl_vector), v1);
+    TypedData_Get_Struct(vv1, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v1);
     FUNCTION(gsl_vector,scale)(v1, x);
     return vv1;
   }
@@ -2843,7 +2843,7 @@ static VALUE FUNCTION(rb_gsl_vector,div_inplace)(VALUE vv1, VALUE vv2)
     return FUNCTION(rb_gsl_vector,op_inplace)(vv1, vv2, FUNCTION(gsl_vector,div));
   } else {
     x = NUM2DBL(vv2);
-    Data_Get_Struct(vv1, GSL_TYPE(gsl_vector), v1);
+    TypedData_Get_Struct(vv1, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v1);
     FUNCTION(gsl_vector,scale)(v1, 1.0/x);
     return vv1;
   }
@@ -2857,12 +2857,12 @@ static VALUE FUNCTION(rb_gsl_vector,zip)(int argc, VALUE *argv, VALUE obj)
   int argc2;
   VALUE *argv2;
   if (VEC_P(obj)) {
-    Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v0);
+    TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v0);
     argc2 = argc;
     argv2 = argv;
   } else {
     if (argc < 1) rb_raise(rb_eArgError, "Too few arguments.");
-    Data_Get_Struct(argv[0], GSL_TYPE(gsl_vector), v0);
+    TypedData_Get_Struct(argv[0], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v0);
     argc2 = argc - 1;
     argv2 = argv + 1;
   }
@@ -2871,7 +2871,7 @@ static VALUE FUNCTION(rb_gsl_vector,zip)(int argc, VALUE *argv, VALUE obj)
   }
   vp = (GSL_TYPE(gsl_vector)**)malloc(sizeof(GSL_TYPE(gsl_vector)**));
   for (i = 0; (int) i < argc2; i++) {
-    Data_Get_Struct(argv2[i], GSL_TYPE(gsl_vector), vp[i]);
+    TypedData_Get_Struct(argv2[i], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, vp[i]);
   }
   ary = rb_ary_new2(v0->size);
   for (i = 0; i < v0->size; i++) {
@@ -2884,7 +2884,7 @@ static VALUE FUNCTION(rb_gsl_vector,zip)(int argc, VALUE *argv, VALUE obj)
         FUNCTION(gsl_vector,set)(vnew, j+1, 0.0);
       }
     }
-    rb_ary_store(ary, i, Data_Wrap_Struct(GSL_TYPE(cgsl_vector), 0, FUNCTION(gsl_vector,free), vnew));
+    rb_ary_store(ary, i, TypedData_Wrap_Struct(GSL_TYPE(cgsl_vector), &VECTOR_DATA_TYPE, vnew));
   }
   free((GSL_TYPE(gsl_vector)**)vp);
   return ary;
@@ -2906,7 +2906,7 @@ static VALUE FUNCTION(rb_gsl_vector,join)(int argc, VALUE *argv, VALUE obj)
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments (%d for 0 or 1)", argc);
   }
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   //  p = (char *) malloc((10+RSTRING(sep))*v->size + 1);
   p = (char *) malloc((10+RSTRING_LEN(sep))*v->size + 1);
   str = rb_str_new2(p);
@@ -2927,13 +2927,13 @@ static VALUE FUNCTION(rb_gsl_vector,cumsum)(VALUE obj)
   GSL_TYPE(gsl_vector) *v, *vnew;
   BASE sum = 0;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vnew = FUNCTION(gsl_vector,alloc)(v->size);
   for (i = 0; i < v->size; i++) {
     sum += FUNCTION(gsl_vector,get)(v, i);
     FUNCTION(gsl_vector,set)(vnew, i, sum);
   }
-  return Data_Wrap_Struct(VEC_ROW_COL(obj), 0, FUNCTION(gsl_vector,free), vnew);
+  return TypedData_Wrap_Struct(VEC_ROW_COL(obj), &VECTOR_DATA_TYPE, vnew);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,cumprod)(VALUE obj)
@@ -2941,26 +2941,26 @@ static VALUE FUNCTION(rb_gsl_vector,cumprod)(VALUE obj)
   GSL_TYPE(gsl_vector) *v, *vnew;
   BASE prod = 1;
   size_t i;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   vnew = FUNCTION(gsl_vector,alloc)(v->size);
   for (i = 0; i < v->size; i++) {
     prod *= FUNCTION(gsl_vector,get)(v, i);
     FUNCTION(gsl_vector,set)(vnew, i, prod);
   }
-  return Data_Wrap_Struct(VEC_ROW_COL(obj), 0, FUNCTION(gsl_vector,free), vnew);
+  return TypedData_Wrap_Struct(VEC_ROW_COL(obj), &VECTOR_DATA_TYPE, vnew);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,property)(VALUE obj,
                                               int (*f)(const GSL_TYPE (gsl_vector) *)) {
   GSL_TYPE(gsl_vector) *v;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   return INT2FIX((*f)(v));
 }
 
 static VALUE FUNCTION(rb_gsl_vector,property2)(VALUE obj,
                                                int (*f)(const GSL_TYPE (gsl_vector) *)) {
   GSL_TYPE(gsl_vector) *v;
-  Data_Get_Struct(obj, GSL_TYPE(gsl_vector), v);
+  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
   if ((*f)(v)) return Qtrue;
   else return Qfalse;
 }

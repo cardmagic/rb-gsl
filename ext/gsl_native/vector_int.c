@@ -32,7 +32,7 @@ VALUE rb_gsl_vector_int_to_f(VALUE obj)
   for (i = 0; i < v->size; i++)
     gsl_vector_set(vnew, i, (double) gsl_vector_int_get(v, i));
   if (VECTOR_INT_COL_P(obj))
-    return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_col_data_type, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_data_type, vnew);
   else
     return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
 }
@@ -51,7 +51,7 @@ static VALUE rb_gsl_vector_int_to_complex(VALUE obj)
     gsl_vector_complex_set(vnew, i, z);
   }
   if (VECTOR_INT_COL_P(obj))
-    return TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_col_data_type, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_data_type, vnew);
   else
     return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vnew);
 }

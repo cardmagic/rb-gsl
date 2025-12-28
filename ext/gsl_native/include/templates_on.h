@@ -173,6 +173,19 @@
 #error unknown BASE_ directive in source.h
 #endif
 
+/* TypedData type macros for template-generated code */
+#if defined(BASE_DOUBLE)
+#define VECTOR_DATA_TYPE gsl_vector_data_type
+#define VECTOR_VIEW_DATA_TYPE gsl_vector_view_data_type
+#define MATRIX_DATA_TYPE gsl_matrix_data_type
+#define MATRIX_VIEW_DATA_TYPE gsl_matrix_view_data_type
+#elif defined(BASE_INT)
+#define VECTOR_DATA_TYPE gsl_vector_int_data_type
+#define VECTOR_VIEW_DATA_TYPE gsl_vector_int_data_type
+#define MATRIX_DATA_TYPE gsl_matrix_int_data_type
+#define MATRIX_VIEW_DATA_TYPE gsl_matrix_int_data_type
+#endif
+
 #define CONCAT2x(a,b) a ## _ ## b
 #define CONCAT2(a,b) CONCAT2x(a,b)
 #define CONCAT3x(a,b,c) a ## _ ## b ## _ ## c

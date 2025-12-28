@@ -86,6 +86,19 @@
 #undef STRING
 #undef EXPAND
 
+#ifdef VECTOR_DATA_TYPE
+#undef VECTOR_DATA_TYPE
+#endif
+#ifdef VECTOR_VIEW_DATA_TYPE
+#undef VECTOR_VIEW_DATA_TYPE
+#endif
+#ifdef MATRIX_DATA_TYPE
+#undef MATRIX_DATA_TYPE
+#endif
+#ifdef MATRIX_VIEW_DATA_TYPE
+#undef MATRIX_VIEW_DATA_TYPE
+#endif
+
 #ifdef RUBY_3
 #undef memcpy
 #define memcpy ruby_nonempty_memcpy
