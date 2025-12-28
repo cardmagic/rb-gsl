@@ -750,4 +750,306 @@ class MultifitTest < GSL::TestCase
     assert_rel chisq, expected_chisq, 1e-10, 'longley gsl_fit_wmultilinear chisq'
   end
 
+  def test_workspace_alloc
+    work = GSL::MultiFit::Workspace.alloc(10, 3)
+    assert_kind_of GSL::MultiFit::Workspace, work
+
+    work2 = GSL::MultiFit::Workspace.new(5, 2)
+    assert_kind_of GSL::MultiFit::Workspace, work2
+  end
+
+  def test_polyfit
+    x = GSL::Vector.alloc([0.0, 1.0, 2.0, 3.0, 4.0])
+    y = GSL::Vector.alloc([1.0, 2.9, 9.1, 27.0, 65.0])
+
+    c, err, chisq, status = GSL::MultiFit.polyfit(x, y, 3)
+    assert_kind_of GSL::Poly, c
+    assert_kind_of GSL::Poly, err
+    assert_kind_of Float, chisq
+    assert_equal GSL::SUCCESS, status
+    assert_equal 4, c.size
+  end
+
+  def test_polyfit_with_weights
+    x = GSL::Vector.alloc([0.0, 1.0, 2.0, 3.0, 4.0])
+    w = GSL::Vector.alloc([1.0, 1.0, 1.0, 1.0, 1.0])
+    y = GSL::Vector.alloc([1.0, 2.9, 9.1, 27.0, 65.0])
+
+    c, err, chisq, status = GSL::MultiFit.polyfit(x, w, y, 3)
+    assert_kind_of GSL::Poly, c
+    assert_equal 4, c.size
+  end
+
+  def test_legfit
+    x = GSL::Vector.alloc([-1.0, -0.5, 0.0, 0.5, 1.0])
+    y = GSL::Vector.alloc([1.0, 0.5, 0.0, 0.5, 1.0])
+
+    c, err, chisq, status = GSL::MultiFit.legfit(x, y, 2)
+    assert_kind_of GSL::Poly, c
+    assert_kind_of GSL::Poly, err
+    assert_kind_of Float, chisq
+    assert_equal 3, c.size
+  end
+
+  def test_fdfsolver_name
+    solver = GSL::MultiFit::FdfSolver.alloc('lmsder', 10, 3)
+    name = solver.name
+    assert_kind_of String, name
+    assert_equal 'lmsder', name
+  end
+
+  def test_fdfsolver_constants
+    assert_equal 0, GSL::MultiFit::FdfSolver::LMSDER
+    assert_equal 1, GSL::MultiFit::FdfSolver::LMDER
+    assert_equal 0, GSL::MultiFit::FdfSolver::Lmsder
+    assert_equal 1, GSL::MultiFit::FdfSolver::Lmder
+  end
+
+  def test_fdfsolver_with_fixnum_type
+    solver = GSL::MultiFit::FdfSolver.alloc(GSL::MultiFit::FdfSolver::LMSDER, 10, 3)
+    assert_kind_of GSL::MultiFit::FdfSolver, solver
+    assert_equal 'lmsder', solver.name
+
+    solver2 = GSL::MultiFit::FdfSolver.new(GSL::MultiFit::FdfSolver::LMDER, 10, 3)
+    assert_kind_of GSL::MultiFit::FdfSolver, solver2
+    assert_equal 'lmder', solver2.name
+  end
+
+  def test_fdfsolver_without_type
+    solver = GSL::MultiFit::FdfSolver.alloc(10, 3)
+    assert_kind_of GSL::MultiFit::FdfSolver, solver
+    assert_equal 'lmsder', solver.name
+  end
+
+  def test_function_fdf_new
+    fdf = GSL::MultiFit::Function_fdf.new
+    assert_kind_of GSL::MultiFit::Function_fdf, fdf
+  end
+
+  def test_function_fdf_alloc_with_procs
+    f_proc = lambda { |x, t, y, f| GSL::SUCCESS }
+    df_proc = lambda { |x, t, y, df| GSL::SUCCESS }
+
+    fdf = GSL::MultiFit::Function_fdf.alloc(f_proc, df_proc, 3)
+    assert_kind_of GSL::MultiFit::Function_fdf, fdf
+    assert_equal 3, fdf.p
+  end
+
+  def test_function_fdf_n_p_accessors
+    f_proc = lambda { |x, t, y, f| GSL::SUCCESS }
+    df_proc = lambda { |x, t, y, df| GSL::SUCCESS }
+
+    fdf = GSL::MultiFit::Function_fdf.alloc(f_proc, df_proc, 4)
+    assert_equal 4, fdf.p
+    assert_equal 4, fdf.np
+
+    fdf.set_n(10)
+    assert_equal 10, fdf.n
+    fdf.n = 20
+    assert_equal 20, fdf.n
+  end
+
+  def test_function_fdf_params
+    f_proc = lambda { |x, t, y, f| GSL::SUCCESS }
+    df_proc = lambda { |x, t, y, df| GSL::SUCCESS }
+
+    fdf = GSL::MultiFit::Function_fdf.alloc(f_proc, df_proc, 3)
+    params = fdf.params
+    assert_kind_of Array, params
+    assert_equal f_proc, params[0]
+    assert_equal df_proc, params[1]
+    assert_equal params, fdf.param
+  end
+
+  def test_fdfsolver_accessors
+    n = 10
+    p_param = 3
+
+    f_proc = lambda { |x, t, y, s, f|
+      n.times { |i| f[i] = 0.0 }
+      GSL::SUCCESS
+    }
+    df_proc = lambda { |x, t, y, s, df|
+      n.times { |i|
+        p_param.times { |j| df.set(i, j, 0.0) }
+      }
+      GSL::SUCCESS
+    }
+
+    fdf = GSL::MultiFit::Function_fdf.alloc(f_proc, df_proc, p_param)
+    t = GSL::Vector.alloc(n)
+    y = GSL::Vector.alloc(n)
+    s = GSL::Vector.alloc(n)
+    n.times { |i|
+      t[i] = i.to_f
+      y[i] = i.to_f * 2
+      s[i] = 1.0
+    }
+    fdf.set_data(t, y, s)
+
+    solver = GSL::MultiFit::FdfSolver.alloc('lmsder', n, p_param)
+    x0 = GSL::Vector.alloc([1.0, 1.0, 1.0])
+    solver.set(fdf, x0)
+
+    assert_kind_of GSL::Vector, solver.x
+    assert_equal p_param, solver.x.size
+
+    assert_kind_of GSL::Vector, solver.dx
+    assert_equal p_param, solver.dx.size
+
+    assert_kind_of GSL::Vector, solver.f
+    assert_equal n, solver.f.size
+
+    assert_kind_of GSL::Vector, solver.position
+    assert_equal p_param, solver.position.size
+
+    retrieved_fdf = solver.fdf
+    assert_kind_of GSL::MultiFit::Function_fdf, retrieved_fdf
+  end
+
+  def test_fdfsolver_gradient_method
+    n = 10
+    p_param = 3
+
+    f_proc = lambda { |x, t, y, s, f|
+      n.times { |i| f[i] = x[0] + x[1] * t[i] + x[2] * t[i] * t[i] - y[i] }
+      GSL::SUCCESS
+    }
+    df_proc = lambda { |x, t, y, s, df|
+      n.times { |i|
+        df.set(i, 0, 1.0)
+        df.set(i, 1, t[i])
+        df.set(i, 2, t[i] * t[i])
+      }
+      GSL::SUCCESS
+    }
+
+    fdf = GSL::MultiFit::Function_fdf.alloc(f_proc, df_proc, p_param)
+    t = GSL::Vector.alloc(n)
+    y = GSL::Vector.alloc(n)
+    s = GSL::Vector.alloc(n)
+    n.times { |i|
+      t[i] = i.to_f
+      y[i] = 1.0 + 2.0 * i + 3.0 * i * i
+      s[i] = 1.0
+    }
+    fdf.set_data(t, y, s)
+
+    solver = GSL::MultiFit::FdfSolver.alloc('lmsder', n, p_param)
+    x0 = GSL::Vector.alloc([0.5, 0.5, 0.5])
+    solver.set(fdf, x0)
+    solver.iterate
+
+    grad = solver.gradient
+    assert_kind_of GSL::Vector, grad
+    assert_equal p_param, grad.size
+
+    g2 = GSL::Vector.alloc(p_param)
+    status = solver.gradient(g2)
+    assert_equal GSL::SUCCESS, status
+  end
+
+  def test_fdfsolver_test_gradient_method
+    n = 10
+    p_param = 3
+
+    f_proc = lambda { |x, t, y, s, f|
+      n.times { |i| f[i] = x[0] + x[1] * t[i] + x[2] * t[i] * t[i] - y[i] }
+      GSL::SUCCESS
+    }
+    df_proc = lambda { |x, t, y, s, df|
+      n.times { |i|
+        df.set(i, 0, 1.0)
+        df.set(i, 1, t[i])
+        df.set(i, 2, t[i] * t[i])
+      }
+      GSL::SUCCESS
+    }
+
+    fdf = GSL::MultiFit::Function_fdf.alloc(f_proc, df_proc, p_param)
+    t = GSL::Vector.alloc(n)
+    y = GSL::Vector.alloc(n)
+    s = GSL::Vector.alloc(n)
+    n.times { |i|
+      t[i] = i.to_f
+      y[i] = 1.0 + 2.0 * i + 3.0 * i * i
+      s[i] = 1.0
+    }
+    fdf.set_data(t, y, s)
+
+    solver = GSL::MultiFit::FdfSolver.alloc('lmsder', n, p_param)
+    x0 = GSL::Vector.alloc([1.0, 2.0, 3.0])
+    solver.set(fdf, x0)
+
+    status = solver.test_gradient(1e-3)
+    assert [GSL::SUCCESS, GSL::CONTINUE].include?(status)
+  end
+
+  def test_module_test_delta
+    dx = GSL::Vector.alloc([0.001, 0.002, 0.003])
+    x = GSL::Vector.alloc([1.0, 2.0, 3.0])
+
+    status = GSL::MultiFit.test_delta(dx, x, 0.0, 1e-2)
+    assert [GSL::SUCCESS, GSL::CONTINUE].include?(status)
+  end
+
+  def test_module_test_gradient
+    g = GSL::Vector.alloc([0.001, 0.002, 0.003])
+
+    status = GSL::MultiFit.test_gradient(g, 0.1)
+    assert [GSL::SUCCESS, GSL::CONTINUE].include?(status)
+  end
+
+  def test_module_gradient
+    j = GSL::Matrix.alloc([1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0])
+    f = GSL::Vector.alloc([0.1, 0.2, 0.3])
+
+    g = GSL::MultiFit.gradient(j, f)
+    assert_kind_of GSL::Vector, g
+    assert_equal 3, g.size
+
+    g2 = GSL::Vector.alloc(3)
+    status = GSL::MultiFit.gradient(j, f, g2)
+    assert_equal GSL::SUCCESS, status
+  end
+
+  def test_module_covar
+    j = GSL::Matrix.alloc([1.0, 0.5], [0.5, 1.0], [1.0, 1.0])
+
+    covar = GSL::MultiFit.covar(j, 0.0)
+    assert_kind_of GSL::Matrix, covar
+    assert_equal 2, covar.size1
+    assert_equal 2, covar.size2
+
+    covar2 = GSL::Matrix.alloc(2, 2)
+    status = GSL::MultiFit.covar(j, 0.0, covar2)
+    assert_equal GSL::SUCCESS, status
+  end
+
+  def test_linear_est
+    x = GSL::Vector.alloc([1.0, 2.0, 3.0])
+    c = GSL::Vector.alloc([1.0, 2.0, 3.0])
+    cov = GSL::Matrix.alloc([1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0])
+
+    y, y_err = GSL::MultiFit.linear_est(x, c, cov)
+    assert_kind_of Float, y
+    assert_kind_of Float, y_err
+    assert_in_delta(14.0, y, 1e-10)
+  end
+
+  def test_linear_residuals
+    n = 5
+    p_param = 2
+
+    x_mat = GSL::Matrix.alloc([1.0, 0.0], [1.0, 1.0], [1.0, 2.0], [1.0, 3.0], [1.0, 4.0])
+    y = GSL::Vector.alloc([1.1, 2.9, 5.1, 6.9, 9.1])
+    work = GSL::MultiFit::Workspace.alloc(n, p_param)
+
+    c, cov, chisq, status = GSL::MultiFit.linear(x_mat, y, work)
+
+    residuals = GSL::MultiFit.linear_residuals(x_mat, y, c)
+    assert_kind_of GSL::Vector, residuals
+    assert_equal n, residuals.size
+  end
+
 end

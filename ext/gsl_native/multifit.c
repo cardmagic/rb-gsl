@@ -364,12 +364,11 @@ static VALUE rb_gsl_multifit_fdfsolver_gradient(int argc, VALUE *argv, VALUE obj
   gsl_multifit_fdfsolver *solver = NULL;
   gsl_vector *g = NULL;
 #ifndef HAVE_GSL_MULTIFIT_FDFSOLVER_J
-  gsl_matrix *J = gsl_matrix_alloc(solver->f->size, solver->x->size);
+  gsl_matrix *J = NULL;
 #endif
-  // local variable "status" declared and set, but never used
-  //int status;
   TypedData_Get_Struct(obj, gsl_multifit_fdfsolver, &gsl_multifit_fdfsolver_data_type, solver);
 #ifndef HAVE_GSL_MULTIFIT_FDFSOLVER_J
+  J = gsl_matrix_alloc(solver->f->size, solver->x->size);
   gsl_multifit_fdfsolver_jac(solver, J);
 #endif
   if (argc == 1) {
