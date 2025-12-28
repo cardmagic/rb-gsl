@@ -703,7 +703,7 @@ static VALUE rb_gsl_histogram3d_oper(VALUE obj, VALUE hh,
   TypedData_Get_Struct(hh, mygsl_histogram3d, &gsl_histogram3d_data_type, h2);
   hnew = mygsl_histogram3d_clone(h1);
   (*func)(hnew, h2);
-  return TypedData_Wrap_Struct(cgsl_histogram, &gsl_histogram_data_type, hnew);
+  return TypedData_Wrap_Struct(cgsl_histogram3d, &gsl_histogram3d_data_type, hnew);
 }
 
 static VALUE rb_gsl_histogram3d_add(VALUE obj, VALUE hh)
