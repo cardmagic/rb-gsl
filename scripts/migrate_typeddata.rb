@@ -165,6 +165,104 @@ class TypedDataMigrator
     'gsl_ntuple_select_fn' => 'cgsl_ntuple_select_fn',
   }.freeze
 
+  # Direct struct type to data type mapping for Data_Get_Struct
+  # This avoids relying on the dynamically built @class_to_type
+  STRUCT_TO_TYPE = {
+    # Core types
+    'gsl_vector' => 'gsl_vector_data_type',
+    'gsl_vector_view' => 'gsl_vector_view_data_type',
+    'gsl_vector_complex' => 'gsl_vector_complex_data_type',
+    'gsl_vector_int' => 'gsl_vector_int_data_type',
+    'gsl_matrix' => 'gsl_matrix_data_type',
+    'gsl_matrix_view' => 'gsl_matrix_view_data_type',
+    'gsl_matrix_complex' => 'gsl_matrix_complex_data_type',
+    'gsl_matrix_int' => 'gsl_matrix_int_data_type',
+    'gsl_permutation' => 'gsl_permutation_data_type',
+    'gsl_combination' => 'gsl_combination_data_type',
+    'gsl_multiset' => 'gsl_multiset_data_type',
+    'gsl_complex' => 'gsl_complex_data_type',
+    'gsl_block' => 'gsl_block_data_type',
+    'gsl_block_complex' => 'gsl_block_complex_data_type',
+    # Random
+    'gsl_rng' => 'gsl_rng_data_type',
+    'gsl_qrng' => 'gsl_qrng_data_type',
+    'gsl_ran_discrete_t' => 'gsl_ran_discrete_data_type',
+    # Histogram
+    'gsl_histogram' => 'gsl_histogram_data_type',
+    'gsl_histogram_pdf' => 'gsl_histogram_pdf_data_type',
+    'gsl_histogram2d' => 'gsl_histogram2d_data_type',
+    'gsl_histogram2d_pdf' => 'gsl_histogram2d_pdf_data_type',
+    # Interpolation
+    'gsl_interp' => 'gsl_interp_data_type',
+    'gsl_interp_accel' => 'gsl_interp_accel_data_type',
+    'gsl_spline' => 'gsl_spline_data_type',
+    'gsl_bspline_workspace' => 'gsl_bspline_workspace_data_type',
+    # FFT
+    'gsl_fft_complex_wavetable' => 'gsl_fft_complex_wavetable_data_type',
+    'gsl_fft_complex_workspace' => 'gsl_fft_complex_workspace_data_type',
+    'gsl_fft_real_wavetable' => 'gsl_fft_real_wavetable_data_type',
+    'gsl_fft_real_workspace' => 'gsl_fft_real_workspace_data_type',
+    'gsl_fft_halfcomplex_wavetable' => 'gsl_fft_halfcomplex_wavetable_data_type',
+    # Wavelet
+    'gsl_wavelet' => 'gsl_wavelet_data_type',
+    'gsl_wavelet_workspace' => 'gsl_wavelet_workspace_data_type',
+    # Chebyshev
+    'gsl_cheb_series' => 'gsl_cheb_series_data_type',
+    # Eigen
+    'gsl_eigen_symm_workspace' => 'gsl_eigen_symm_workspace_data_type',
+    'gsl_eigen_symmv_workspace' => 'gsl_eigen_symmv_workspace_data_type',
+    'gsl_eigen_herm_workspace' => 'gsl_eigen_herm_workspace_data_type',
+    'gsl_eigen_hermv_workspace' => 'gsl_eigen_hermv_workspace_data_type',
+    'gsl_eigen_nonsymm_workspace' => 'gsl_eigen_nonsymm_workspace_data_type',
+    'gsl_eigen_nonsymmv_workspace' => 'gsl_eigen_nonsymmv_workspace_data_type',
+    'gsl_eigen_gensymm_workspace' => 'gsl_eigen_gensymm_workspace_data_type',
+    'gsl_eigen_gensymmv_workspace' => 'gsl_eigen_gensymmv_workspace_data_type',
+    'gsl_eigen_genherm_workspace' => 'gsl_eigen_genherm_workspace_data_type',
+    'gsl_eigen_genhermv_workspace' => 'gsl_eigen_genhermv_workspace_data_type',
+    'gsl_eigen_gen_workspace' => 'gsl_eigen_gen_workspace_data_type',
+    'gsl_eigen_genv_workspace' => 'gsl_eigen_genv_workspace_data_type',
+    'gsl_eigen_francis_workspace' => 'gsl_eigen_francis_workspace_data_type',
+    # Integration
+    'gsl_integration_workspace' => 'gsl_integration_workspace_data_type',
+    'gsl_integration_qaws_table' => 'gsl_integration_qaws_table_data_type',
+    'gsl_integration_qawo_table' => 'gsl_integration_qawo_table_data_type',
+    'gsl_integration_glfixed_table' => 'gsl_integration_glfixed_table_data_type',
+    # Monte Carlo
+    'gsl_monte_plain_state' => 'gsl_monte_plain_state_data_type',
+    'gsl_monte_miser_state' => 'gsl_monte_miser_state_data_type',
+    'gsl_monte_vegas_state' => 'gsl_monte_vegas_state_data_type',
+    # Minimization
+    'gsl_min_fminimizer' => 'gsl_min_fminimizer_data_type',
+    'gsl_multimin_fminimizer' => 'gsl_multimin_fminimizer_data_type',
+    'gsl_multimin_fdfminimizer' => 'gsl_multimin_fdfminimizer_data_type',
+    # Root finding
+    'gsl_root_fsolver' => 'gsl_root_fsolver_data_type',
+    'gsl_root_fdfsolver' => 'gsl_root_fdfsolver_data_type',
+    'gsl_multiroot_fsolver' => 'gsl_multiroot_fsolver_data_type',
+    'gsl_multiroot_fdfsolver' => 'gsl_multiroot_fdfsolver_data_type',
+    # Fitting
+    'gsl_multifit_linear_workspace' => 'gsl_multifit_linear_workspace_data_type',
+    'gsl_multifit_fdfsolver' => 'gsl_multifit_fdfsolver_data_type',
+    'gsl_multifit_function_fdf' => 'gsl_multifit_function_fdf_data_type',
+    # ODE
+    'gsl_odeiv_step' => 'gsl_odeiv_step_data_type',
+    'gsl_odeiv_control' => 'gsl_odeiv_control_data_type',
+    'gsl_odeiv_evolve' => 'gsl_odeiv_evolve_data_type',
+    'gsl_odeiv_system' => 'gsl_odeiv_system_data_type',
+    # Summation
+    'gsl_sum_levin_u_workspace' => 'gsl_sum_levin_u_workspace_data_type',
+    'gsl_sum_levin_utrunc_workspace' => 'gsl_sum_levin_utrunc_workspace_data_type',
+    # DHT
+    'gsl_dht' => 'gsl_dht_data_type',
+    # GSL Function
+    'gsl_function' => 'gsl_function_data_type',
+    # Special Functions
+    'gsl_sf_result' => 'gsl_sf_result_data_type',
+    'gsl_sf_result_e10' => 'gsl_sf_result_e10_data_type',
+    # N-Tuple
+    'gsl_ntuple' => 'gsl_ntuple_data_type',
+  }.freeze
+
   # Patterns that need manual handling - completely skip these
   # Note: klass and CLASS_OF are now handled via FREE_FUNCTION_TO_TYPE
   SKIP_PATTERNS = /^(GSL_TYPE|QUALIFIED_VIEW|CONCAT|FUNCTION)\(/
@@ -537,6 +635,12 @@ class TypedDataMigrator
           # Skip if ptr already contains a type reference (already migrated)
           if ptr.include?('&') || ptr.include?('data_type')
             match
+          # Use direct STRUCT_TO_TYPE mapping first
+          elsif type = STRUCT_TO_TYPE[ctype]
+            new_code = "TypedData_Get_Struct(#{obj}, #{ctype}, &#{type}, #{ptr})"
+            changes << { type: :get, old: match.strip, new: new_code }
+            new_code
+          # Fall back to STRUCT_TO_CLASS -> @class_to_type
           elsif class_var = STRUCT_TO_CLASS[ctype]
             if type = @class_to_type[class_var]
               new_code = "TypedData_Get_Struct(#{obj}, #{ctype}, &#{type}, #{ptr})"

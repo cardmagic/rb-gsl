@@ -502,7 +502,7 @@ static VALUE rb_gsl_fdfminimizer_set(VALUE obj, VALUE ff, VALUE xx, VALUE ss,
   int status;
   CHECK_MULTIMIN_FUNCTION_FDF(ff);
   Need_Float(ss); Need_Float(tt);
-  Data_Get_Struct(obj, gsl_multimin_fdfminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fdfminimizer, &gsl_multimin_fdfminimizer_data_type, gmf);
   Data_Get_Struct(ff, gsl_multimin_function_fdf, F);
   Data_Get_Vector(xx, x);
   stepsize = NUM2DBL(ss);
@@ -514,14 +514,14 @@ static VALUE rb_gsl_fdfminimizer_set(VALUE obj, VALUE ff, VALUE xx, VALUE ss,
 static VALUE rb_gsl_fdfminimizer_name(VALUE obj)
 {
   gsl_multimin_fdfminimizer *gmf = NULL;
-  Data_Get_Struct(obj, gsl_multimin_fdfminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fdfminimizer, &gsl_multimin_fdfminimizer_data_type, gmf);
   return rb_str_new2(gsl_multimin_fdfminimizer_name(gmf));
 }
 
 static VALUE rb_gsl_fdfminimizer_iterate(VALUE obj)
 {
   gsl_multimin_fdfminimizer *gmf = NULL;
-  Data_Get_Struct(obj, gsl_multimin_fdfminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fdfminimizer, &gsl_multimin_fdfminimizer_data_type, gmf);
   return INT2FIX(gsl_multimin_fdfminimizer_iterate(gmf));
 }
 
@@ -529,7 +529,7 @@ static VALUE rb_gsl_fdfminimizer_x(VALUE obj)
 {
   gsl_multimin_fdfminimizer *gmf = NULL;
   gsl_vector *x = NULL;
-  Data_Get_Struct(obj, gsl_multimin_fdfminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fdfminimizer, &gsl_multimin_fdfminimizer_data_type, gmf);
   x = gsl_multimin_fdfminimizer_x(gmf);
   return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, x);
 }
@@ -538,7 +538,7 @@ static VALUE rb_gsl_fdfminimizer_gradient(VALUE obj)
 {
   gsl_multimin_fdfminimizer *gmf = NULL;
   gsl_vector *gradient = NULL;
-  Data_Get_Struct(obj, gsl_multimin_fdfminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fdfminimizer, &gsl_multimin_fdfminimizer_data_type, gmf);
   gradient = gsl_multimin_fdfminimizer_gradient(gmf);
   return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, gradient);
 }
@@ -547,7 +547,7 @@ static VALUE rb_gsl_fdfminimizer_minimum(VALUE obj)
 {
   gsl_multimin_fdfminimizer *gmf = NULL;
   double min;
-  Data_Get_Struct(obj, gsl_multimin_fdfminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fdfminimizer, &gsl_multimin_fdfminimizer_data_type, gmf);
   min = gsl_multimin_fdfminimizer_minimum(gmf);
   return rb_float_new(min);
 }
@@ -555,14 +555,14 @@ static VALUE rb_gsl_fdfminimizer_minimum(VALUE obj)
 static VALUE rb_gsl_fdfminimizer_f(VALUE obj)
 {
   gsl_multimin_fdfminimizer *gmf = NULL;
-  Data_Get_Struct(obj, gsl_multimin_fdfminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fdfminimizer, &gsl_multimin_fdfminimizer_data_type, gmf);
   return rb_float_new(gmf->f);
 }
 
 static VALUE rb_gsl_fdfminimizer_restart(VALUE obj)
 {
   gsl_multimin_fdfminimizer *gmf = NULL;
-  Data_Get_Struct(obj, gsl_multimin_fdfminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fdfminimizer, &gsl_multimin_fdfminimizer_data_type, gmf);
   return INT2FIX(gsl_multimin_fdfminimizer_restart(gmf));
 }
 
@@ -571,7 +571,7 @@ static VALUE rb_gsl_fdfminimizer_test_gradient(VALUE obj, VALUE ea)
   gsl_multimin_fdfminimizer *gmf = NULL;
   gsl_vector *g = NULL;
   Need_Float(ea);
-  Data_Get_Struct(obj, gsl_multimin_fdfminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fdfminimizer, &gsl_multimin_fdfminimizer_data_type, gmf);
   g = gsl_multimin_fdfminimizer_gradient(gmf);
   return INT2FIX(gsl_multimin_test_gradient(g, NUM2DBL(ea)));
 }
@@ -633,7 +633,7 @@ static VALUE rb_gsl_fminimizer_set(VALUE obj, VALUE ff, VALUE xx, VALUE ss)
   gsl_multimin_function *F = NULL;
   gsl_vector *x = NULL, *s = NULL;
   CHECK_MULTIMIN_FUNCTION(ff);
-  Data_Get_Struct(obj, gsl_multimin_fminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fminimizer, &gsl_multimin_fminimizer_data_type, gmf);
   Data_Get_Struct(ff, gsl_multimin_function, F);
   Data_Get_Vector(xx, x);
   Data_Get_Vector(ss, s);
@@ -643,14 +643,14 @@ static VALUE rb_gsl_fminimizer_set(VALUE obj, VALUE ff, VALUE xx, VALUE ss)
 static VALUE rb_gsl_fminimizer_name(VALUE obj)
 {
   gsl_multimin_fminimizer *gmf = NULL;
-  Data_Get_Struct(obj, gsl_multimin_fminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fminimizer, &gsl_multimin_fminimizer_data_type, gmf);
   return rb_str_new2(gsl_multimin_fminimizer_name(gmf));
 }
 
 static VALUE rb_gsl_fminimizer_iterate(VALUE obj)
 {
   gsl_multimin_fminimizer *gmf = NULL;
-  Data_Get_Struct(obj, gsl_multimin_fminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fminimizer, &gsl_multimin_fminimizer_data_type, gmf);
   return INT2FIX(gsl_multimin_fminimizer_iterate(gmf));
 }
 
@@ -658,7 +658,7 @@ static VALUE rb_gsl_fminimizer_x(VALUE obj)
 {
   gsl_multimin_fminimizer *gmf = NULL;
   gsl_vector *x = NULL;
-  Data_Get_Struct(obj, gsl_multimin_fminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fminimizer, &gsl_multimin_fminimizer_data_type, gmf);
   x = gsl_multimin_fminimizer_x(gmf);
   return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, x);
 }
@@ -667,7 +667,7 @@ static VALUE rb_gsl_fminimizer_minimum(VALUE obj)
 {
   gsl_multimin_fminimizer *gmf = NULL;
   double min;
-  Data_Get_Struct(obj, gsl_multimin_fminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fminimizer, &gsl_multimin_fminimizer_data_type, gmf);
   min = gsl_multimin_fminimizer_minimum(gmf);
   return rb_float_new(min);
 }
@@ -675,14 +675,14 @@ static VALUE rb_gsl_fminimizer_minimum(VALUE obj)
 static VALUE rb_gsl_fminimizer_size(VALUE obj)
 {
   gsl_multimin_fminimizer *gmf = NULL;
-  Data_Get_Struct(obj, gsl_multimin_fminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fminimizer, &gsl_multimin_fminimizer_data_type, gmf);
   return rb_float_new(gsl_multimin_fminimizer_size(gmf));
 }
 
 static VALUE rb_gsl_fminimizer_fval(VALUE obj)
 {
   gsl_multimin_fminimizer *gmf = NULL;
-  Data_Get_Struct(obj, gsl_multimin_fminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fminimizer, &gsl_multimin_fminimizer_data_type, gmf);
   return rb_float_new(gmf->fval);
 }
 
@@ -690,7 +690,7 @@ static VALUE rb_gsl_fminimizer_test_size(VALUE obj, VALUE ea)
 {
   gsl_multimin_fminimizer *gmf = NULL;
   Need_Float(ea);
-  Data_Get_Struct(obj, gsl_multimin_fminimizer, gmf);
+  TypedData_Get_Struct(obj, gsl_multimin_fminimizer, &gsl_multimin_fminimizer_data_type, gmf);
   return INT2FIX(gsl_multimin_test_size(gmf->size, NUM2DBL(ea)));
 }
 static VALUE rb_gsl_multimin_test_size(VALUE obj, VALUE ss, VALUE ea)

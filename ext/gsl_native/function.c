@@ -23,7 +23,7 @@ static VALUE rb_gsl_function_set_f(int argc, VALUE *argv, VALUE obj)
   gsl_function *F = NULL;
   VALUE ary, ary2;
   size_t i;
-  Data_Get_Struct(obj, gsl_function, F);
+  TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
   if (F->params == NULL) {
     ary = rb_ary_new2(2);
     /*    (VALUE) F->params = ary;*/
@@ -105,7 +105,7 @@ static VALUE rb_gsl_function_eval(VALUE obj, VALUE x)
   gsl_vector *v = NULL, *vnew = NULL;
   gsl_matrix *m = NULL, *mnew = NULL;
   size_t i, j, n;
-  Data_Get_Struct(obj, gsl_function, F);
+  TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
   ary = (VALUE) F->params;
   proc = rb_ary_entry(ary, 0);
   params = rb_ary_entry(ary, 1);
@@ -203,7 +203,7 @@ static VALUE rb_gsl_function_arity(VALUE obj)
 {
   gsl_function *F = NULL;
   VALUE proc;
-  Data_Get_Struct(obj, gsl_function, F);
+  TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
   proc = rb_ary_entry((VALUE) F->params, 0);
   return INT2FIX(rb_funcall(proc, RBGSL_ID_arity, 0));
 }
@@ -211,14 +211,14 @@ static VALUE rb_gsl_function_arity(VALUE obj)
 static VALUE rb_gsl_function_proc(VALUE obj)
 {
   gsl_function *F = NULL;
-  Data_Get_Struct(obj, gsl_function, F);
+  TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
   return rb_ary_entry((VALUE) F->params, 0);
 }
 
 static VALUE rb_gsl_function_params(VALUE obj)
 {
   gsl_function *F = NULL;
-  Data_Get_Struct(obj, gsl_function, F);
+  TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
   return rb_ary_entry((VALUE) F->params, 1);
 }
 
@@ -228,7 +228,7 @@ static VALUE rb_gsl_function_set_params(int argc, VALUE *argv, VALUE obj)
   VALUE ary, ary2;
   size_t i;
   if (argc == 0) return obj;
-  Data_Get_Struct(obj, gsl_function, F);
+  TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
   ary = (VALUE) F->params;
   if (argc == 1) {
     rb_ary_store(ary, 1, argv[0]);
@@ -279,7 +279,7 @@ static VALUE rb_gsl_function_graph(int argc, VALUE *argv, VALUE obj)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 2)", argc);
     break;
   }
-  Data_Get_Struct(obj, gsl_function, F);
+  TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
   ary = (VALUE) F->params;
   proc = rb_ary_entry(ary, 0);
   params = rb_ary_entry(ary, 1);

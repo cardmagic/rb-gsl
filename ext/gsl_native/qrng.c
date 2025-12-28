@@ -79,7 +79,7 @@ static VALUE rb_gsl_qrng_new(VALUE klass, VALUE t, VALUE dd)
 static VALUE rb_gsl_qrng_init(VALUE obj)
 {
   gsl_qrng *q = NULL;
-  Data_Get_Struct(obj, gsl_qrng, q);
+  TypedData_Get_Struct(obj, gsl_qrng, &gsl_qrng_data_type, q);
   gsl_qrng_init(q);
   return obj;
 }
@@ -87,21 +87,21 @@ static VALUE rb_gsl_qrng_init(VALUE obj)
 static VALUE rb_gsl_qrng_name(VALUE obj)
 {
   gsl_qrng *q = NULL;
-  Data_Get_Struct(obj, gsl_qrng, q);
+  TypedData_Get_Struct(obj, gsl_qrng, &gsl_qrng_data_type, q);
   return rb_str_new2(gsl_qrng_name(q));
 }
 
 static VALUE rb_gsl_qrng_size(VALUE obj)
 {
   gsl_qrng *q = NULL;
-  Data_Get_Struct(obj, gsl_qrng, q);
+  TypedData_Get_Struct(obj, gsl_qrng, &gsl_qrng_data_type, q);
   return INT2FIX(gsl_qrng_size(q));
 }
 
 static VALUE rb_gsl_qrng_clone(VALUE obj)
 {
   gsl_qrng *q = NULL, *q2 = NULL;
-  Data_Get_Struct(obj, gsl_qrng, q);
+  TypedData_Get_Struct(obj, gsl_qrng, &gsl_qrng_data_type, q);
   q2 = gsl_qrng_clone(q);
   return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_qrng_data_type, q2);
 }
@@ -110,8 +110,8 @@ static VALUE rb_gsl_qrng_clone(VALUE obj)
 static VALUE rb_gsl_qrng_memcpy(VALUE obj, VALUE dest, VALUE src)
 {
   gsl_qrng *q = NULL, *q2 = NULL;
-  Data_Get_Struct(dest, gsl_qrng, q);
-  Data_Get_Struct(src, gsl_qrng, q2);
+  TypedData_Get_Struct(dest, gsl_qrng, &gsl_qrng_data_type, q);
+  TypedData_Get_Struct(src, gsl_qrng, &gsl_qrng_data_type, q2);
   gsl_qrng_memcpy(q, q2);
   return dest;
 }
@@ -120,7 +120,7 @@ static VALUE rb_gsl_qrng_get(int argc, VALUE *argv, VALUE obj)
 {
   gsl_qrng *q = NULL;
   gsl_vector *v;
-  Data_Get_Struct(obj, gsl_qrng, q);
+  TypedData_Get_Struct(obj, gsl_qrng, &gsl_qrng_data_type, q);
   if (argc == 0) {
     v = gsl_vector_alloc(q->dimension);
     gsl_qrng_get(q, v->data);

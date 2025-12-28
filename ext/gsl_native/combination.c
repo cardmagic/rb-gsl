@@ -33,7 +33,7 @@ static VALUE rb_gsl_combination_calloc(VALUE klass, VALUE n, VALUE k)
 static VALUE rb_gsl_combination_init_first(VALUE obj)
 {
   gsl_combination *c = NULL;
-  Data_Get_Struct(obj, gsl_combination, c);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, c);
   gsl_combination_init_first(c);
   return obj;
 }
@@ -41,7 +41,7 @@ static VALUE rb_gsl_combination_init_first(VALUE obj)
 static VALUE rb_gsl_combination_init_last(VALUE obj)
 {
   gsl_combination *c = NULL;
-  Data_Get_Struct(obj, gsl_combination, c);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, c);
   gsl_combination_init_last(c);
   return obj;
 }
@@ -56,8 +56,8 @@ static VALUE rb_gsl_combination_memcpy(VALUE klass, VALUE dst, VALUE src)
   if (!rb_obj_is_kind_of(src, klass))
     rb_raise(rb_eTypeError, "wrong argument type %s (Combination expected)",
              rb_class2name(CLASS_OF(src)));
-  Data_Get_Struct(dst, gsl_combination, c2);
-  Data_Get_Struct(src, gsl_combination, c);
+  TypedData_Get_Struct(dst, gsl_combination, &gsl_combination_data_type, c2);
+  TypedData_Get_Struct(src, gsl_combination, &gsl_combination_data_type, c);
   gsl_combination_memcpy(c2, c);
   return dst;
 }
@@ -65,7 +65,7 @@ static VALUE rb_gsl_combination_memcpy(VALUE klass, VALUE dst, VALUE src)
 static VALUE rb_gsl_combination_clone(VALUE obj)
 {
   gsl_combination *c, *c2;
-  Data_Get_Struct(obj, gsl_combination, c);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, c);
   c2 = gsl_combination_alloc(c->n, c->k);
   gsl_combination_memcpy(c2, c);
   return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_combination_data_type, c2);
@@ -76,7 +76,7 @@ static VALUE rb_gsl_combination_get(VALUE obj, VALUE ii)
   gsl_combination *c = NULL;
   size_t i;
   CHECK_FIXNUM(ii);
-  Data_Get_Struct(obj, gsl_combination, c);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, c);
   i = FIX2INT(ii);
   if (i > c->n) rb_raise(rb_eIndexError, "index out of range");
   return INT2FIX(gsl_combination_get(c, i));
@@ -88,7 +88,7 @@ static VALUE rb_gsl_combination_set(VALUE obj, VALUE ii, VALUE val)
   size_t i;
   CHECK_FIXNUM(ii);
   CHECK_FIXNUM(val);
-  Data_Get_Struct(obj, gsl_combination, c);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, c);
   i = FIX2INT(ii);
   c->data[i] = FIX2INT(val);
   return obj;
@@ -97,14 +97,14 @@ static VALUE rb_gsl_combination_set(VALUE obj, VALUE ii, VALUE val)
 static VALUE rb_gsl_combination_n(VALUE obj)
 {
   gsl_combination *c = NULL;
-  Data_Get_Struct(obj, gsl_combination, c);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, c);
   return INT2FIX(gsl_combination_n(c));
 
 }
 static VALUE rb_gsl_combination_k(VALUE obj)
 {
   gsl_combination *c = NULL;
-  Data_Get_Struct(obj, gsl_combination, c);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, c);
   return INT2FIX(gsl_combination_k(c));
 }
 
@@ -112,7 +112,7 @@ static VALUE rb_gsl_combination_data(VALUE obj)
 {
   gsl_combination *c = NULL;
   gsl_permutation *p = NULL;
-  Data_Get_Struct(obj, gsl_combination, c);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, c);
   p = ALLOC(gsl_permutation);
   p->size = c->k;
   p->data = c->data;
@@ -122,14 +122,14 @@ static VALUE rb_gsl_combination_data(VALUE obj)
 static VALUE rb_gsl_combination_valid(VALUE obj)
 {
   gsl_combination *c = NULL;
-  Data_Get_Struct(obj, gsl_combination, c);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, c);
   return INT2FIX(gsl_combination_valid(c));
 }
 
 static VALUE rb_gsl_combination_valid2(VALUE obj)
 {
   gsl_combination *c = NULL;
-  Data_Get_Struct(obj, gsl_combination, c);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, c);
   if(gsl_combination_valid(c)) return Qtrue;
   else return Qfalse;
 }
@@ -137,13 +137,13 @@ static VALUE rb_gsl_combination_valid2(VALUE obj)
 static VALUE rb_gsl_combination_next(VALUE obj)
 {
   gsl_combination *c = NULL;
-  Data_Get_Struct(obj, gsl_combination, c);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, c);
   return INT2FIX(gsl_combination_next(c));
 }
 static VALUE rb_gsl_combination_prev(VALUE obj)
 {
   gsl_combination *c = NULL;
-  Data_Get_Struct(obj, gsl_combination, c);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, c);
   return INT2FIX(gsl_combination_prev(c));
 }
 
@@ -152,7 +152,7 @@ static VALUE rb_gsl_combination_fwrite(VALUE obj, VALUE io)
   gsl_combination *h = NULL;
   FILE *f = NULL;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_combination, h);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, h);
   f = rb_gsl_open_writefile(io, &flag);
   status = gsl_combination_fwrite(f, h);
   if (flag == 1) fclose(f);
@@ -165,7 +165,7 @@ static VALUE rb_gsl_combination_fread(VALUE obj, VALUE io)
   FILE *f = NULL;
   int status, flag = 0;
 
-  Data_Get_Struct(obj, gsl_combination, h);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, h);
   f = rb_gsl_open_readfile(io, &flag);
   status = gsl_combination_fread(f, h);
   if (flag == 1) fclose(f);
@@ -180,7 +180,7 @@ static VALUE rb_gsl_combination_fprintf(int argc, VALUE *argv, VALUE obj)
 
   if (argc != 1 && argc != 2) rb_raise(rb_eArgError,
                                        "wrong number of arguments (%d for 1 or 2)", argc);
-  Data_Get_Struct(obj, gsl_combination, h);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, h);
   fp = rb_gsl_open_writefile(argv[0], &flag);
   switch (argc) {
   case 1:
@@ -199,7 +199,7 @@ static VALUE rb_gsl_combination_printf(int argc, VALUE *argv, VALUE obj)
 {
   gsl_combination *h = NULL;
   int status;
-  Data_Get_Struct(obj, gsl_combination, h);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, h);
   switch (argc) {
   case 0:
     status = gsl_combination_fprintf(stdout, h, "%u\n");
@@ -218,7 +218,7 @@ static VALUE rb_gsl_combination_fscanf(VALUE obj, VALUE io)
   gsl_combination *h = NULL;
   FILE *f = NULL;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_combination, h);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, h);
   f = rb_gsl_open_readfile(io, &flag);
   status = gsl_combination_fscanf(f, h);
   if (flag == 1) fclose(f);
@@ -229,8 +229,8 @@ static VALUE rb_gsl_combination_equal(VALUE obj, VALUE other)
 {
   gsl_combination *p1 = NULL, *p2 = NULL;
   size_t i;
-  Data_Get_Struct(obj, gsl_combination, p1);
-  Data_Get_Struct(other, gsl_combination, p2);
+  TypedData_Get_Struct(obj, gsl_combination, &gsl_combination_data_type, p1);
+  TypedData_Get_Struct(other, gsl_combination, &gsl_combination_data_type, p2);
   if (p1->k != p2->k) return Qfalse;
   for (i = 0; i < p1->k; i++)
     if (p1->data[i] != p2->data[i]) return Qfalse;

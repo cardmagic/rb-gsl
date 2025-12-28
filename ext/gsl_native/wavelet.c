@@ -146,7 +146,7 @@ static void rb_gsl_wavelet_define_const(VALUE klass)
 static VALUE rb_gsl_wavelet_name(VALUE ww)
 {
   gsl_wavelet *w = NULL;
-  Data_Get_Struct(ww, gsl_wavelet, w);
+  TypedData_Get_Struct(ww, gsl_wavelet, &gsl_wavelet_data_type, w);
   return rb_str_new2(gsl_wavelet_name(w));
 }
 
@@ -201,7 +201,7 @@ static VALUE rb_gsl_wavelet_transform0(int argc, VALUE *argv, VALUE obj,
                               gsl_wavelet2d_transform_matrix, sss);
     }
     if (VECTOR_P(argv[1])) {
-      Data_Get_Struct(argv[0], gsl_wavelet, w);
+      TypedData_Get_Struct(argv[0], gsl_wavelet, &gsl_wavelet_data_type, w);
       TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, v);
       ret = argv[1];
       ptr1 = v->data;
@@ -229,7 +229,7 @@ static VALUE rb_gsl_wavelet_transform0(int argc, VALUE *argv, VALUE obj,
     }
     if (VECTOR_P(obj)) {
       CHECK_WAVELET(argv[0]);
-      Data_Get_Struct(argv[0], gsl_wavelet, w);
+      TypedData_Get_Struct(argv[0], gsl_wavelet, &gsl_wavelet_data_type, w);
       TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
       ret = obj;
       ptr1 = v->data;
@@ -238,7 +238,7 @@ static VALUE rb_gsl_wavelet_transform0(int argc, VALUE *argv, VALUE obj,
     } else if (VECTOR_P(argv[0])) {
 
       CHECK_WAVELET(obj);
-      Data_Get_Struct(obj, gsl_wavelet, w);
+      TypedData_Get_Struct(obj, gsl_wavelet, &gsl_wavelet_data_type, w);
       TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
       ret = argv[0];
       ptr1 = v->data;
@@ -247,7 +247,7 @@ static VALUE rb_gsl_wavelet_transform0(int argc, VALUE *argv, VALUE obj,
 #ifdef HAVE_NARRAY_H
     } else if (NA_IsNArray(obj)) {
       CHECK_WAVELET(argv[0]);
-      Data_Get_Struct(argv[0], gsl_wavelet, w);
+      TypedData_Get_Struct(argv[0], gsl_wavelet, &gsl_wavelet_data_type, w);
       GetNArray(obj, na1);
       ret = obj;
       ptr1 = (double*) na1->ptr;
@@ -256,7 +256,7 @@ static VALUE rb_gsl_wavelet_transform0(int argc, VALUE *argv, VALUE obj,
       stride = 1;
     } else if (NA_IsNArray(argv[0])) {
       CHECK_WAVELET(obj);
-      Data_Get_Struct(obj, gsl_wavelet, w);
+      TypedData_Get_Struct(obj, gsl_wavelet, &gsl_wavelet_data_type, w);
       GetNArray(argv[0], na1);
       ret = argv[0];
       ptr1 = (double*) na1->ptr;
@@ -275,7 +275,7 @@ static VALUE rb_gsl_wavelet_transform0(int argc, VALUE *argv, VALUE obj,
     CHECK_FIXNUM(argv[itmp]);
     CHECK_WORKSPACE(argv[itmp+1]);
     dir = FIX2INT(argv[itmp]);
-    Data_Get_Struct(argv[itmp+1], gsl_wavelet_workspace, work);
+    TypedData_Get_Struct(argv[itmp+1], gsl_wavelet_workspace, &gsl_wavelet_workspace_data_type, work);
     break;
   case 1:
     if (TYPE(argv[itmp]) == T_FIXNUM) {
@@ -283,7 +283,7 @@ static VALUE rb_gsl_wavelet_transform0(int argc, VALUE *argv, VALUE obj,
       work = gsl_wavelet_workspace_alloc(v->size);
       flag = 1;
     } else if (rb_obj_is_kind_of(argv[itmp], cgsl_wavelet_workspace)) {
-      Data_Get_Struct(argv[itmp], gsl_wavelet_workspace, work);
+      TypedData_Get_Struct(argv[itmp], gsl_wavelet_workspace, &gsl_wavelet_workspace_data_type, work);
     } else {
       rb_raise(rb_eTypeError, "wrong argument type");
     }
@@ -368,7 +368,7 @@ static VALUE rb_gsl_wavelet_trans(int argc, VALUE *argv, VALUE obj,
       }
     }
     if (VECTOR_P(argv[1])) {
-      Data_Get_Struct(argv[0], gsl_wavelet, w);
+      TypedData_Get_Struct(argv[0], gsl_wavelet, &gsl_wavelet_data_type, w);
       TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, v);
       ret = argv[1];
       ptr1 = v->data;
@@ -401,7 +401,7 @@ static VALUE rb_gsl_wavelet_trans(int argc, VALUE *argv, VALUE obj,
     }
     if (VECTOR_P(obj)) {
       CHECK_WAVELET(argv[0]);
-      Data_Get_Struct(argv[0], gsl_wavelet, w);
+      TypedData_Get_Struct(argv[0], gsl_wavelet, &gsl_wavelet_data_type, w);
       TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
       ret = obj;
       ptr1 = v->data;
@@ -409,7 +409,7 @@ static VALUE rb_gsl_wavelet_trans(int argc, VALUE *argv, VALUE obj,
       stride = v->stride;
     } else if (VECTOR_P(argv[0])) {
       CHECK_WAVELET(obj);
-      Data_Get_Struct(obj, gsl_wavelet, w);
+      TypedData_Get_Struct(obj, gsl_wavelet, &gsl_wavelet_data_type, w);
       TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
       ret = argv[0];
       ptr1 = v->data;
@@ -418,7 +418,7 @@ static VALUE rb_gsl_wavelet_trans(int argc, VALUE *argv, VALUE obj,
 #ifdef HAVE_NARRAY_H
     } else if (NA_IsNArray(obj)) {
       CHECK_WAVELET(argv[0]);
-      Data_Get_Struct(argv[0], gsl_wavelet, w);
+      TypedData_Get_Struct(argv[0], gsl_wavelet, &gsl_wavelet_data_type, w);
       GetNArray(obj, na);
       ret = obj;
       ptr1 = (double*) na->ptr;
@@ -427,7 +427,7 @@ static VALUE rb_gsl_wavelet_trans(int argc, VALUE *argv, VALUE obj,
       stride = 1;
     } else if (NA_IsNArray(argv[0])) {
       CHECK_WAVELET(obj);
-      Data_Get_Struct(obj, gsl_wavelet, w);
+      TypedData_Get_Struct(obj, gsl_wavelet, &gsl_wavelet_data_type, w);
       GetNArray(argv[0], na);
       ret = argv[0];
       ptr1 = (double*) na->ptr;
@@ -444,7 +444,7 @@ static VALUE rb_gsl_wavelet_trans(int argc, VALUE *argv, VALUE obj,
   switch (argc - itmp) {
   case 1:
     CHECK_WORKSPACE(argv[itmp]);
-    Data_Get_Struct(argv[itmp], gsl_wavelet_workspace, work);
+    TypedData_Get_Struct(argv[itmp], gsl_wavelet_workspace, &gsl_wavelet_workspace_data_type, work);
     break;
   case 0:
     work = gsl_wavelet_workspace_alloc(v->size);
@@ -528,7 +528,7 @@ static VALUE rb_gsl_wavelet2d(int argc, VALUE *argv, VALUE obj,
     CHECK_WAVELET(argv[0]);
     CHECK_MATRIX(argv[1]);
     ret = argv[1];
-    Data_Get_Struct(argv[0], gsl_wavelet, w);
+    TypedData_Get_Struct(argv[0], gsl_wavelet, &gsl_wavelet_data_type, w);
     TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, m);
     itmp = 2;
     break;
@@ -536,12 +536,12 @@ static VALUE rb_gsl_wavelet2d(int argc, VALUE *argv, VALUE obj,
     if (argc < 1) rb_raise(rb_eArgError, "too few arguments");
     if (MATRIX_P(obj)) {
       CHECK_WAVELET(argv[0]);
-      Data_Get_Struct(argv[0], gsl_wavelet, w);
+      TypedData_Get_Struct(argv[0], gsl_wavelet, &gsl_wavelet_data_type, w);
       TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
       ret = obj;
     } else {
       CHECK_MATRIX(argv[0]);
-      Data_Get_Struct(obj, gsl_wavelet, w);
+      TypedData_Get_Struct(obj, gsl_wavelet, &gsl_wavelet_data_type, w);
       TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, m);
       ret = argv[0];
     }
@@ -553,7 +553,7 @@ static VALUE rb_gsl_wavelet2d(int argc, VALUE *argv, VALUE obj,
     CHECK_FIXNUM(argv[itmp]);
     CHECK_WORKSPACE(argv[itmp+1]);
     dir = FIX2INT(argv[itmp]);
-    Data_Get_Struct(argv[itmp+1], gsl_wavelet_workspace, work);
+    TypedData_Get_Struct(argv[itmp+1], gsl_wavelet_workspace, &gsl_wavelet_workspace_data_type, work);
     break;
   case 1:
     if (TYPE(argv[itmp]) == T_FIXNUM) {
@@ -561,7 +561,7 @@ static VALUE rb_gsl_wavelet2d(int argc, VALUE *argv, VALUE obj,
       work = gsl_wavelet_workspace_alloc(m->size1);
       flag = 1;
     } else if (rb_obj_is_kind_of(argv[itmp], cgsl_wavelet_workspace)) {
-      Data_Get_Struct(argv[itmp], gsl_wavelet_workspace, work);
+      TypedData_Get_Struct(argv[itmp], gsl_wavelet_workspace, &gsl_wavelet_workspace_data_type, work);
     } else {
       rb_raise(rb_eTypeError, "wrong argument type");
     }
@@ -618,7 +618,7 @@ static VALUE rb_gsl_wavelet2d_trans(int argc, VALUE *argv, VALUE obj,
     if (argc < 2) rb_raise(rb_eArgError, "too few arguments");
     CHECK_WAVELET(argv[0]);
     CHECK_MATRIX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_wavelet, w);
+    TypedData_Get_Struct(argv[0], gsl_wavelet, &gsl_wavelet_data_type, w);
     TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, m);
     ret = argv[1];
     itmp = 2;
@@ -627,12 +627,12 @@ static VALUE rb_gsl_wavelet2d_trans(int argc, VALUE *argv, VALUE obj,
     if (argc < 1) rb_raise(rb_eArgError, "too few arguments");
     if (MATRIX_P(obj)) {
       CHECK_WAVELET(argv[0]);
-      Data_Get_Struct(argv[0], gsl_wavelet, w);
+      TypedData_Get_Struct(argv[0], gsl_wavelet, &gsl_wavelet_data_type, w);
       TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
       ret = obj;
     } else {
       CHECK_MATRIX(argv[0]);
-      Data_Get_Struct(obj, gsl_wavelet, w);
+      TypedData_Get_Struct(obj, gsl_wavelet, &gsl_wavelet_data_type, w);
       TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, m);
       ret = argv[0];
     }
@@ -642,7 +642,7 @@ static VALUE rb_gsl_wavelet2d_trans(int argc, VALUE *argv, VALUE obj,
   switch (argc - itmp) {
   case 1:
     CHECK_WORKSPACE(argv[itmp]);
-    Data_Get_Struct(argv[itmp], gsl_wavelet_workspace, work);
+    TypedData_Get_Struct(argv[itmp], gsl_wavelet_workspace, &gsl_wavelet_workspace_data_type, work);
     break;
   case 0:
     work = gsl_wavelet_workspace_alloc(m->size1);

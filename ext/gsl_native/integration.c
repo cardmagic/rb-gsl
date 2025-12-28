@@ -120,7 +120,7 @@ static int get_limit_key_workspace(int argc, VALUE *argv, int argstart,
     CHECK_WORKSPACE(argv[argstart+2]);
     *limit = FIX2INT(argv[argstart]);
     *key = FIX2INT(argv[argstart+1]);
-    Data_Get_Struct(argv[argstart+2], gsl_integration_workspace, *w);
+    TypedData_Get_Struct(argv[argstart+2], gsl_integration_workspace, &gsl_integration_workspace_data_type, *w);
     flag = 0;
     break;
   case 1:
@@ -141,7 +141,7 @@ static int get_limit_key_workspace(int argc, VALUE *argv, int argstart,
       CHECK_FIXNUM(argv[argc-2]);
       CHECK_WORKSPACE(argv[argc-1]);
       *key = FIX2INT(argv[argc-2]);
-      Data_Get_Struct(argv[argc-1], gsl_integration_workspace, *w);
+      TypedData_Get_Struct(argv[argc-1], gsl_integration_workspace, &gsl_integration_workspace_data_type, *w);
       *limit = (*w)->limit;
       flag = 0;
     }
@@ -171,7 +171,7 @@ static int get_limit_workspace(int argc, VALUE *argv, int argstart,
     CHECK_FIXNUM(argv[argstart]);
     *limit = FIX2INT(argv[argstart]);
     CHECK_WORKSPACE(argv[argstart+1]);
-    Data_Get_Struct(argv[argstart+1], gsl_integration_workspace, *w);
+    TypedData_Get_Struct(argv[argstart+1], gsl_integration_workspace, &gsl_integration_workspace_data_type, *w);
     flag = 0;
     break;
   case 0:
@@ -190,7 +190,7 @@ static int get_limit_workspace(int argc, VALUE *argv, int argstart,
       break;
     default:
       CHECK_WORKSPACE(argv[argc-1]);
-      Data_Get_Struct(argv[argc-1], gsl_integration_workspace, *w);
+      TypedData_Get_Struct(argv[argc-1], gsl_integration_workspace, &gsl_integration_workspace_data_type, *w);
       *limit = (*w)->limit;
       flag = 0;
       break;
@@ -272,12 +272,12 @@ static VALUE rb_gsl_integration_qng(int argc, VALUE *argv, VALUE obj)
   switch (TYPE(obj)) {
   case T_MODULE:  case T_CLASS:  case T_OBJECT:
     CHECK_FUNCTION(argv[0]);
-    Data_Get_Struct(argv[0], gsl_function, F);
+    TypedData_Get_Struct(argv[0], gsl_function, &gsl_function_data_type, F);
     /*itmp =*/ get_a_b_epsabs_epsrel(argc, argv, 1, &a, &b, &epsabs, &epsrel);
     break;
   default:
     /*itmp =*/ get_a_b_epsabs_epsrel(argc, argv, 0, &a, &b, &epsabs, &epsrel);
-    Data_Get_Struct(obj, gsl_function, F);
+    TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
     break;
   }
   status = gsl_integration_qng(F, a, b, epsabs, epsrel,
@@ -300,7 +300,7 @@ static VALUE rb_gsl_integration_qag(int argc, VALUE *argv, VALUE obj)
   switch (TYPE(obj)) {
   case T_MODULE:  case T_CLASS:  case T_OBJECT:
     CHECK_FUNCTION(argv[0]);
-    Data_Get_Struct(argv[0], gsl_function, F);
+    TypedData_Get_Struct(argv[0], gsl_function, &gsl_function_data_type, F);
     if (argc == 3) {
       CHECK_FIXNUM(argv[2]);
       get_a_b(argc, argv, 1, &a, &b);
@@ -325,7 +325,7 @@ static VALUE rb_gsl_integration_qag(int argc, VALUE *argv, VALUE obj)
         w = gsl_integration_workspace_alloc(limit);
         flag = 1;
       } else if (rb_obj_is_kind_of(argv[1], cgsl_integration_workspace)) {
-        Data_Get_Struct(argv[1], gsl_integration_workspace, w);
+        TypedData_Get_Struct(argv[1], gsl_integration_workspace, &gsl_integration_workspace_data_type, w);
         flag = 0;
       } else {
         rb_raise(rb_eTypeError, "Key or Workspace expected");
@@ -337,7 +337,7 @@ static VALUE rb_gsl_integration_qag(int argc, VALUE *argv, VALUE obj)
         w = gsl_integration_workspace_alloc(limit);
         flag = 1;
       } else if (rb_obj_is_kind_of(argv[2], cgsl_integration_workspace)) {
-        Data_Get_Struct(argv[2], gsl_integration_workspace, w);
+        TypedData_Get_Struct(argv[2], gsl_integration_workspace, &gsl_integration_workspace_data_type, w);
         flag = 0;
       } else {
         rb_raise(rb_eTypeError, "Key or Workspace expected");
@@ -347,7 +347,7 @@ static VALUE rb_gsl_integration_qag(int argc, VALUE *argv, VALUE obj)
       itmp = get_a_b_epsabs_epsrel(argc, argv, 0, &a, &b, &epsabs, &epsrel);
       flag = get_limit_key_workspace(argc, argv, itmp, &limit, &key, &w);
     }
-    Data_Get_Struct(obj, gsl_function, F);
+    TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
     break;
   }
   status = gsl_integration_qag(F, a, b, epsabs, epsrel, limit, key, w,
@@ -369,11 +369,11 @@ static VALUE rb_gsl_integration_qags(int argc, VALUE *argv, VALUE obj)
   switch (TYPE(obj)) {
   case T_MODULE:  case T_CLASS:  case T_OBJECT:
     CHECK_FUNCTION(argv[0]);
-    Data_Get_Struct(argv[0], gsl_function, F);
+    TypedData_Get_Struct(argv[0], gsl_function, &gsl_function_data_type, F);
     itmp = get_a_b(argc, argv, 1, &a, &b);
     break;
   default:
-    Data_Get_Struct(obj, gsl_function, F);
+    TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
     itmp = get_a_b(argc, argv, 0, &a, &b);
     break;
   }
@@ -400,11 +400,11 @@ static VALUE rb_gsl_integration_qagp(int argc, VALUE *argv, VALUE obj)
   switch (TYPE(obj)) {
   case T_MODULE:  case T_CLASS:  case T_OBJECT:
     CHECK_FUNCTION(argv[0]);
-    Data_Get_Struct(argv[0], gsl_function, F);
+    TypedData_Get_Struct(argv[0], gsl_function, &gsl_function_data_type, F);
     itmp = 1;
     break;
   default:
-    Data_Get_Struct(obj, gsl_function, F);
+    TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
     itmp = 0;
     break;
   }
@@ -440,11 +440,11 @@ static VALUE rb_gsl_integration_qagi(int argc, VALUE *argv, VALUE obj)
   switch (TYPE(obj)) {
   case T_MODULE:  case T_CLASS:  case T_OBJECT:
     CHECK_FUNCTION(argv[0]);
-    Data_Get_Struct(argv[0], gsl_function, F);
+    TypedData_Get_Struct(argv[0], gsl_function, &gsl_function_data_type, F);
     itmp = 1;
     break;
   default:
-    Data_Get_Struct(obj, gsl_function, F);
+    TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
     itmp = 0;
     break;
   }
@@ -470,11 +470,11 @@ static VALUE rb_gsl_integration_qagiu(int argc, VALUE *argv, VALUE obj)
   switch (TYPE(obj)) {
   case T_MODULE:  case T_CLASS:  case T_OBJECT:
     CHECK_FUNCTION(argv[0]);
-    Data_Get_Struct(argv[0], gsl_function, F);
+    TypedData_Get_Struct(argv[0], gsl_function, &gsl_function_data_type, F);
     itmp = 1;
     break;
   default:
-    Data_Get_Struct(obj, gsl_function, F);
+    TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
     itmp = 0;
     break;
   }
@@ -503,11 +503,11 @@ static VALUE rb_gsl_integration_qagil(int argc, VALUE *argv, VALUE obj)
   switch (TYPE(obj)) {
   case T_MODULE:  case T_CLASS:  case T_OBJECT:
     CHECK_FUNCTION(argv[0]);
-    Data_Get_Struct(argv[0], gsl_function, F);
+    TypedData_Get_Struct(argv[0], gsl_function, &gsl_function_data_type, F);
     itmp = 1;
     break;
   default:
-    Data_Get_Struct(obj, gsl_function, F);
+    TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
     itmp = 0;
     break;
   }
@@ -515,7 +515,7 @@ static VALUE rb_gsl_integration_qagil(int argc, VALUE *argv, VALUE obj)
   b = NUM2DBL(argv[itmp]);
   flag = get_epsabs_epsrel_limit_workspace(argc, argv, itmp+1, &epsabs, &epsrel,
                                            &limit, &w);
-  Data_Get_Struct(obj, gsl_function, F);
+  TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
 
   status = gsl_integration_qagil(F, b, epsabs, epsrel, limit, w,
                                  &result, &abserr);
@@ -536,11 +536,11 @@ static VALUE rb_gsl_integration_qawc(int argc, VALUE *argv, VALUE obj)
   switch (TYPE(obj)) {
   case T_MODULE:  case T_CLASS:  case T_OBJECT:
     CHECK_FUNCTION(argv[0]);
-    Data_Get_Struct(argv[0], gsl_function, F);
+    TypedData_Get_Struct(argv[0], gsl_function, &gsl_function_data_type, F);
     itmp = 1;
     break;
   default:
-    Data_Get_Struct(obj, gsl_function, F);
+    TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
     itmp = 0;
     break;
   }
@@ -652,12 +652,12 @@ static VALUE rb_gsl_integration_qaws(int argc, VALUE *argv, VALUE obj)
   case T_MODULE:  case T_CLASS:  case T_OBJECT:
     if (argc < 2) rb_raise(rb_eArgError, "too few arguments");
     CHECK_FUNCTION(argv[0]);
-    Data_Get_Struct(argv[0], gsl_function, F);
+    TypedData_Get_Struct(argv[0], gsl_function, &gsl_function_data_type, F);
     itmp = 1;
     break;
   default:
     if (argc < 1) rb_raise(rb_eArgError, "too few arguments");
-    Data_Get_Struct(obj, gsl_function, F);
+    TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
     itmp = 0;
     break;
   }
@@ -790,12 +790,12 @@ static VALUE rb_gsl_integration_qawo(int argc, VALUE *argv, VALUE obj)
   case T_MODULE:  case T_CLASS:  case T_OBJECT:
     if (argc < 2) rb_raise(rb_eArgError, "too few arguments");
     CHECK_FUNCTION(argv[0]);
-    Data_Get_Struct(argv[0], gsl_function, F);
+    TypedData_Get_Struct(argv[0], gsl_function, &gsl_function_data_type, F);
     itmp = 1;
     break;
   default:
     if (argc < 1) rb_raise(rb_eArgError, "too few arguments");
-    Data_Get_Struct(obj, gsl_function, F);
+    TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
     itmp = 0;
     break;
   }
@@ -843,12 +843,12 @@ static VALUE rb_gsl_integration_qawf(int argc, VALUE *argv, VALUE obj)
   case T_MODULE:  case T_CLASS:  case T_OBJECT:
     if (argc < 2) rb_raise(rb_eArgError, "too few arguments");
     CHECK_FUNCTION(argv[0]);
-    Data_Get_Struct(argv[0], gsl_function, F);
+    TypedData_Get_Struct(argv[0], gsl_function, &gsl_function_data_type, F);
     itmp = 1;
     break;
   default:
     if (argc < 1) rb_raise(rb_eArgError, "too few arguments");
-    Data_Get_Struct(obj, gsl_function, F);
+    TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
     itmp = 0;
     break;
   }
@@ -877,16 +877,16 @@ static VALUE rb_gsl_integration_qawf(int argc, VALUE *argv, VALUE obj)
     break;
   case 2:
     CHECK_WORKSPACE(vtmp[0]); CHECK_WORKSPACE(vtmp[1]);
-    Data_Get_Struct(vtmp[0], gsl_integration_workspace, w);
-    Data_Get_Struct(vtmp[1], gsl_integration_workspace, cw);
+    TypedData_Get_Struct(vtmp[0], gsl_integration_workspace, &gsl_integration_workspace_data_type, w);
+    TypedData_Get_Struct(vtmp[1], gsl_integration_workspace, &gsl_integration_workspace_data_type, cw);
     flag = 0;
     break;
   case 3:
     CHECK_FIXNUM(vtmp[0]);
     CHECK_WORKSPACE(vtmp[1]); CHECK_WORKSPACE(vtmp[2]);
     limit = FIX2INT(vtmp[0]);
-    Data_Get_Struct(vtmp[1], gsl_integration_workspace, w);
-    Data_Get_Struct(vtmp[2], gsl_integration_workspace, cw);
+    TypedData_Get_Struct(vtmp[1], gsl_integration_workspace, &gsl_integration_workspace_data_type, w);
+    TypedData_Get_Struct(vtmp[2], gsl_integration_workspace, &gsl_integration_workspace_data_type, cw);
     flag = 0;
     break;
   default:
@@ -932,42 +932,42 @@ static VALUE rb_gsl_integration_workspace_alloc(int argc, VALUE *argv,
 static VALUE rb_gsl_integration_workspace_limit(VALUE obj)
 {
   gsl_integration_workspace *w = NULL;
-  Data_Get_Struct(obj, gsl_integration_workspace, w);
+  TypedData_Get_Struct(obj, gsl_integration_workspace, &gsl_integration_workspace_data_type, w);
   return INT2FIX(w->limit);
 }
 
 static VALUE rb_gsl_integration_workspace_size(VALUE obj)
 {
   gsl_integration_workspace *w = NULL;
-  Data_Get_Struct(obj, gsl_integration_workspace, w);
+  TypedData_Get_Struct(obj, gsl_integration_workspace, &gsl_integration_workspace_data_type, w);
   return INT2FIX(w->size);
 }
 
 static VALUE rb_gsl_integration_workspace_nrmax(VALUE obj)
 {
   gsl_integration_workspace *w = NULL;
-  Data_Get_Struct(obj, gsl_integration_workspace, w);
+  TypedData_Get_Struct(obj, gsl_integration_workspace, &gsl_integration_workspace_data_type, w);
   return INT2FIX(w->nrmax);
 }
 
 static VALUE rb_gsl_integration_workspace_i(VALUE obj)
 {
   gsl_integration_workspace *w = NULL;
-  Data_Get_Struct(obj, gsl_integration_workspace, w);
+  TypedData_Get_Struct(obj, gsl_integration_workspace, &gsl_integration_workspace_data_type, w);
   return INT2FIX(w->i);
 }
 
 static VALUE rb_gsl_integration_workspace_maximum_level(VALUE obj)
 {
   gsl_integration_workspace *w = NULL;
-  Data_Get_Struct(obj, gsl_integration_workspace, w);
+  TypedData_Get_Struct(obj, gsl_integration_workspace, &gsl_integration_workspace_data_type, w);
   return INT2FIX(w->maximum_level);
 }
 
 static VALUE rb_gsl_integration_workspace_to_a(VALUE obj)
 {
   gsl_integration_workspace *w = NULL;
-  Data_Get_Struct(obj, gsl_integration_workspace, w);
+  TypedData_Get_Struct(obj, gsl_integration_workspace, &gsl_integration_workspace_data_type, w);
   return rb_ary_new3(5, INT2FIX(w->limit), INT2FIX(w->size), INT2FIX(w->nrmax),
                      INT2FIX(w->i), INT2FIX(w->maximum_level));
 }
@@ -976,7 +976,7 @@ static VALUE rb_gsl_integration_workspace_alist(VALUE obj)
 {
   gsl_integration_workspace *w = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_integration_workspace, w);
+  TypedData_Get_Struct(obj, gsl_integration_workspace, &gsl_integration_workspace_data_type, w);
   v = rb_gsl_make_vector_view(w->alist, w->limit, 1);
   return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, v);
 }
@@ -986,7 +986,7 @@ static VALUE rb_gsl_integration_workspace_blist(VALUE obj)
   gsl_integration_workspace *w = NULL;
   gsl_vector_view *v = NULL;
 
-  Data_Get_Struct(obj, gsl_integration_workspace, w);
+  TypedData_Get_Struct(obj, gsl_integration_workspace, &gsl_integration_workspace_data_type, w);
   v = rb_gsl_make_vector_view(w->blist, w->limit, 1);
   return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, v);
 }
@@ -995,7 +995,7 @@ static VALUE rb_gsl_integration_workspace_rlist(VALUE obj)
 {
   gsl_integration_workspace *w = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_integration_workspace, w);
+  TypedData_Get_Struct(obj, gsl_integration_workspace, &gsl_integration_workspace_data_type, w);
   v = rb_gsl_make_vector_view(w->rlist, w->limit, 1);
   return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, v);
 }
@@ -1004,7 +1004,7 @@ static VALUE rb_gsl_integration_workspace_elist(VALUE obj)
 {
   gsl_integration_workspace *w = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_integration_workspace, w);
+  TypedData_Get_Struct(obj, gsl_integration_workspace, &gsl_integration_workspace_data_type, w);
   v = rb_gsl_make_vector_view(w->elist, w->limit, 1);
   return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, v);
 }
@@ -1029,7 +1029,7 @@ static VALUE rb_gsl_integration_glfixed(VALUE obj, VALUE aa, VALUE bb, VALUE tt)
   TypedData_Get_Struct(tt, gsl_integration_glfixed_table, &gsl_integration_glfixed_table_data_type, t);
   a = NUM2DBL(aa);
   b = NUM2DBL(bb);
-  Data_Get_Struct(obj, gsl_function, f);
+  TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, f);
   res = gsl_integration_glfixed(f, a, b, t);
   return rb_float_new(res);
 }

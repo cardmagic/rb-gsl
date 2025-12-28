@@ -264,7 +264,7 @@ static VALUE rb_gsl_multifit_fdfsolver_set(VALUE obj, VALUE ff, VALUE xx)
   gsl_vector *x = NULL;
   int status;
   CHECK_MULTIFIT_FUNCTION_FDF(ff);
-  Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
+  TypedData_Get_Struct(obj, gsl_multifit_fdfsolver, &gsl_multifit_fdfsolver_data_type, solver);
   TypedData_Get_Struct(ff, gsl_multifit_function_fdf, &gsl_multifit_function_fdf_data_type, f);
   Data_Get_Vector(xx, x);
   status = gsl_multifit_fdfsolver_set(solver, f, x);
@@ -274,14 +274,14 @@ static VALUE rb_gsl_multifit_fdfsolver_set(VALUE obj, VALUE ff, VALUE xx)
 static VALUE rb_gsl_multifit_fdfsolver_name(VALUE obj)
 {
   gsl_multifit_fdfsolver *solver = NULL;
-  Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
+  TypedData_Get_Struct(obj, gsl_multifit_fdfsolver, &gsl_multifit_fdfsolver_data_type, solver);
   return rb_str_new2(gsl_multifit_fdfsolver_name(solver));
 }
 
 static VALUE rb_gsl_multifit_fdfsolver_iterate(VALUE obj)
 {
   gsl_multifit_fdfsolver *solver = NULL;
-  Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
+  TypedData_Get_Struct(obj, gsl_multifit_fdfsolver, &gsl_multifit_fdfsolver_data_type, solver);
   return INT2FIX(gsl_multifit_fdfsolver_iterate(solver));
 }
 
@@ -289,7 +289,7 @@ static VALUE rb_gsl_multifit_fdfsolver_position(VALUE obj)
 {
   gsl_multifit_fdfsolver *solver = NULL;
   gsl_vector *x = NULL;
-  Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
+  TypedData_Get_Struct(obj, gsl_multifit_fdfsolver, &gsl_multifit_fdfsolver_data_type, solver);
   x = gsl_multifit_fdfsolver_position(solver);
   return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, x);
 }
@@ -298,7 +298,7 @@ static VALUE rb_gsl_multifit_fdfsolver_print_state(VALUE obj, VALUE i)
 {
   gsl_multifit_fdfsolver *solver = NULL;
   CHECK_FIXNUM(i);
-  Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
+  TypedData_Get_Struct(obj, gsl_multifit_fdfsolver, &gsl_multifit_fdfsolver_data_type, solver);
   printf("iter: %d x = %15.8f %15.8f %15.8f |f(x)| = %g\n",
          (int) FIX2INT(i), gsl_vector_get(solver->x, 0), gsl_vector_get(solver->x, 1),
          gsl_vector_get(solver->x, 2), gsl_blas_dnrm2(solver->f));
@@ -308,7 +308,7 @@ static VALUE rb_gsl_multifit_fdfsolver_print_state(VALUE obj, VALUE i)
 static VALUE rb_gsl_multifit_fdfsolver_fdf(VALUE obj)
 {
   gsl_multifit_fdfsolver *solver = NULL;
-  Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
+  TypedData_Get_Struct(obj, gsl_multifit_fdfsolver, &gsl_multifit_fdfsolver_data_type, solver);
   return TypedData_Wrap_Struct(cgsl_multifit_function_fdf, &gsl_multifit_function_fdf_data_type, solver->fdf);
 }
 
@@ -316,7 +316,7 @@ static VALUE rb_gsl_multifit_fdfsolver_test_delta(VALUE obj, VALUE r, VALUE a)
 {
   gsl_multifit_fdfsolver *solver = NULL;
   Need_Float(r); Need_Float(a);
-  Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
+  TypedData_Get_Struct(obj, gsl_multifit_fdfsolver, &gsl_multifit_fdfsolver_data_type, solver);
   return INT2FIX(gsl_multifit_test_delta(solver->dx, solver->x, NUM2DBL(r), NUM2DBL(a)));
 }
 
@@ -329,7 +329,7 @@ static VALUE rb_gsl_multifit_fdfsolver_test_gradient(int argc, VALUE *argv, VALU
 #endif
   int status;
   double epsabs;
-  Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
+  TypedData_Get_Struct(obj, gsl_multifit_fdfsolver, &gsl_multifit_fdfsolver_data_type, solver);
   switch (argc) {
   case 1:
     Need_Float(argv[0]);
@@ -368,7 +368,7 @@ static VALUE rb_gsl_multifit_fdfsolver_gradient(int argc, VALUE *argv, VALUE obj
 #endif
   // local variable "status" declared and set, but never used
   //int status;
-  Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
+  TypedData_Get_Struct(obj, gsl_multifit_fdfsolver, &gsl_multifit_fdfsolver_data_type, solver);
 #ifndef HAVE_GSL_MULTIFIT_FDFSOLVER_J
   gsl_multifit_fdfsolver_jac(solver, J);
 #endif
@@ -405,7 +405,7 @@ static VALUE rb_gsl_multifit_fdfsolver_covar(int argc, VALUE *argv, VALUE obj)
   //int status;
   if (argc < 1) rb_raise(rb_eArgError, "too few arguments");
   Need_Float(argv[0]);
-  Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
+  TypedData_Get_Struct(obj, gsl_multifit_fdfsolver, &gsl_multifit_fdfsolver_data_type, solver);
   epsrel = NUM2DBL(argv[0]);
 #ifndef HAVE_GSL_MULTIFIT_FDFSOLVER_J
   gsl_matrix *J = gsl_matrix_alloc(solver->f->size, solver->x->size);
@@ -444,28 +444,28 @@ static VALUE rb_gsl_multifit_fdfsolver_covar(int argc, VALUE *argv, VALUE obj)
 static VALUE rb_gsl_multifit_fdfsolver_x(VALUE obj)
 {
   gsl_multifit_fdfsolver *solver = NULL;
-  Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
+  TypedData_Get_Struct(obj, gsl_multifit_fdfsolver, &gsl_multifit_fdfsolver_data_type, solver);
   return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, solver->x);
 }
 
 static VALUE rb_gsl_multifit_fdfsolver_dx(VALUE obj)
 {
   gsl_multifit_fdfsolver *solver = NULL;
-  Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
+  TypedData_Get_Struct(obj, gsl_multifit_fdfsolver, &gsl_multifit_fdfsolver_data_type, solver);
   return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, solver->dx);
 }
 
 static VALUE rb_gsl_multifit_fdfsolver_f(VALUE obj)
 {
   gsl_multifit_fdfsolver *solver = NULL;
-  Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
+  TypedData_Get_Struct(obj, gsl_multifit_fdfsolver, &gsl_multifit_fdfsolver_data_type, solver);
   return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, solver->f);
 }
 
 static VALUE rb_gsl_multifit_fdfsolver_J(VALUE obj)
 {
   gsl_multifit_fdfsolver *solver = NULL;
-  Data_Get_Struct(obj, gsl_multifit_fdfsolver, solver);
+  TypedData_Get_Struct(obj, gsl_multifit_fdfsolver, &gsl_multifit_fdfsolver_data_type, solver);
 #ifdef HAVE_GSL_MULTIFIT_FDFSOLVER_J
   return TypedData_Wrap_Struct(cgsl_matrix_view_ro, &gsl_matrix_view_data_type, solver->J);
 #else

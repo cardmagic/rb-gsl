@@ -48,7 +48,7 @@ static VALUE rb_gsl_diff_eval(VALUE obj, VALUE xx,
   gsl_matrix *m = NULL, *mnew = NULL, *merr = NULL;
   size_t n, i, j;
   int status;
-  Data_Get_Struct(obj, gsl_function, f);
+  TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, f);
   if (CLASS_OF(xx) == rb_cRange) xx = rb_gsl_range2ary(xx);
   switch (TYPE(xx)) {
   case T_FIXNUM:

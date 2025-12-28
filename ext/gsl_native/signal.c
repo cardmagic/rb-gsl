@@ -118,19 +118,19 @@ static VALUE rb_gsl_fft_conv_corr(int argc, VALUE *argv, VALUE obj,
     data1 = get_ptr_double3(obj, &size1, &stride1, &naflag1);
     data2 = get_ptr_double3(argv[0], &size2, &stride2, &naflag2);
     CHECK_WAVETABLE(argv[1]);
-    Data_Get_Struct(argv[1], gsl_fft_halfcomplex_wavetable, table);
+    TypedData_Get_Struct(argv[1], gsl_fft_halfcomplex_wavetable, &gsl_fft_halfcomplex_wavetable_data_type, table);
     CHECK_WORKSPACE(argv[2]);
-    Data_Get_Struct(argv[2], gsl_fft_real_workspace, space);
+    TypedData_Get_Struct(argv[2], gsl_fft_real_workspace, &gsl_fft_real_workspace_data_type, space);
     break;
   case 2:
     data1 = get_ptr_double3(obj, &size1, &stride1, &naflag1);
     data2 = get_ptr_double3(argv[0], &size2, &stride2, &naflag2);
     if (WAVETABLE_P(argv[1])) {
-      Data_Get_Struct(argv[1], gsl_fft_halfcomplex_wavetable, table);
+      TypedData_Get_Struct(argv[1], gsl_fft_halfcomplex_wavetable, &gsl_fft_halfcomplex_wavetable_data_type, table);
       space = gsl_fft_real_workspace_alloc(size1);
       flagw = 1;
     } else if (WORKSPACE_P(argv[1])) {
-      Data_Get_Struct(argv[1], gsl_fft_real_workspace, space);
+      TypedData_Get_Struct(argv[1], gsl_fft_real_workspace, &gsl_fft_real_workspace_data_type, space);
       table = gsl_fft_halfcomplex_wavetable_alloc(size1);
       flagt = 1;
     } else {

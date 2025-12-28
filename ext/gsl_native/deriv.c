@@ -71,7 +71,7 @@ static VALUE rb_gsl_deriv_eval(VALUE obj, VALUE xx, VALUE hh,
   size_t n, i, j;
   int status;
   Need_Float(hh);
-  Data_Get_Struct(obj, gsl_function, f);
+  TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, f);
   h = NUM2DBL(hh);
   if (CLASS_OF(xx) == rb_cRange) xx = rb_gsl_range2ary(xx);
   switch (TYPE(xx)) {

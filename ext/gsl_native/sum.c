@@ -94,28 +94,28 @@ static VALUE rb_gsl_sum_levin_utrunc_accel2(VALUE obj, VALUE vv)
 static VALUE rb_gsl_sum_levin_u_sum_plain(VALUE obj)
 {
   gsl_sum_levin_u_workspace *w = NULL;
-  Data_Get_Struct(obj, gsl_sum_levin_u_workspace, w);
+  TypedData_Get_Struct(obj, gsl_sum_levin_u_workspace, &gsl_sum_levin_u_workspace_data_type, w);
   return rb_float_new(w->sum_plain);
 }
 
 static VALUE rb_gsl_sum_levin_u_terms_used(VALUE obj)
 {
   gsl_sum_levin_u_workspace *w = NULL;
-  Data_Get_Struct(obj, gsl_sum_levin_u_workspace, w);
+  TypedData_Get_Struct(obj, gsl_sum_levin_u_workspace, &gsl_sum_levin_u_workspace_data_type, w);
   return INT2FIX(w->terms_used);
 }
 
 static VALUE rb_gsl_sum_levin_utrunc_sum_plain(VALUE obj)
 {
   gsl_sum_levin_utrunc_workspace *w = NULL;
-  Data_Get_Struct(obj, gsl_sum_levin_utrunc_workspace, w);
+  TypedData_Get_Struct(obj, gsl_sum_levin_utrunc_workspace, &gsl_sum_levin_utrunc_workspace_data_type, w);
   return rb_float_new(w->sum_plain);
 }
 
 static VALUE rb_gsl_sum_levin_utrunc_terms_used(VALUE obj)
 {
   gsl_sum_levin_utrunc_workspace *w = NULL;
-  Data_Get_Struct(obj, gsl_sum_levin_utrunc_workspace, w);
+  TypedData_Get_Struct(obj, gsl_sum_levin_utrunc_workspace, &gsl_sum_levin_utrunc_workspace_data_type, w);
   return INT2FIX(w->terms_used);
 }
 

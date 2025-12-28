@@ -38,7 +38,7 @@ static VALUE rb_gsl_dht_init(VALUE obj, VALUE nu, VALUE xmax)
 {
   gsl_dht *t = NULL;
   Need_Float(nu); Need_Float(xmax);
-  Data_Get_Struct(obj, gsl_dht, t);
+  TypedData_Get_Struct(obj, gsl_dht, &gsl_dht_data_type, t);
   gsl_dht_init(t, NUM2DBL(nu), NUM2DBL(xmax));
   return obj;
 }
@@ -52,13 +52,13 @@ static VALUE rb_gsl_dht_apply(int argc, VALUE *argv, VALUE obj)
   VALUE ary;
   switch (argc) {
   case 2:
-    Data_Get_Struct(obj, gsl_dht, t);
+    TypedData_Get_Struct(obj, gsl_dht, &gsl_dht_data_type, t);
     ptr1 = get_vector_ptr(argv[0], &stride, &size);
     ptr2 = get_vector_ptr(argv[1], &stride, &size);
     return INT2FIX(gsl_dht_apply(t, ptr1, ptr2));
     break;
   case 1:
-    Data_Get_Struct(obj, gsl_dht, t);
+    TypedData_Get_Struct(obj, gsl_dht, &gsl_dht_data_type, t);
     if (VECTOR_P(argv[0])) {
       TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, vin);
       ptr1 = vin->data;
@@ -106,7 +106,7 @@ static VALUE rb_gsl_dht_xk_sample(VALUE obj, VALUE n,
   int nn;
   VALUE ary;
   double val;
-  Data_Get_Struct(obj, gsl_dht, t);
+  TypedData_Get_Struct(obj, gsl_dht, &gsl_dht_data_type, t);
   if (CLASS_OF(n) == rb_cRange) n = rb_gsl_range2ary(n);
   switch (TYPE(n)) {
   case T_FIXNUM:
@@ -187,7 +187,7 @@ static VALUE rb_gsl_dht_j(VALUE obj)
 {
   gsl_dht *t = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_dht, t);
+  TypedData_Get_Struct(obj, gsl_dht, &gsl_dht_data_type, t);
   v = rb_gsl_make_vector_view(t->j, (t->size+2), 1);
   return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, v);
 }
@@ -196,7 +196,7 @@ static VALUE rb_gsl_dht_zero(VALUE obj)
 {
   gsl_dht *t = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_dht, t);
+  TypedData_Get_Struct(obj, gsl_dht, &gsl_dht_data_type, t);
   v = rb_gsl_make_vector_view(t->j+1, (t->size+1), 1);
   return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, v);
 }
@@ -205,7 +205,7 @@ static VALUE rb_gsl_dht_Jjj(VALUE obj)
 {
   gsl_dht *t = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_dht, t);
+  TypedData_Get_Struct(obj, gsl_dht, &gsl_dht_data_type, t);
   v = rb_gsl_make_vector_view(t->Jjj, t->size*(t->size+1)/2, 1);
   return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, v);
 }
@@ -216,7 +216,7 @@ static VALUE rb_gsl_dht_sample(int argc, VALUE *argv, VALUE obj)
   gsl_matrix *mm = NULL;
   size_t n, m;
   double val;
-  Data_Get_Struct(obj, gsl_dht, t);
+  TypedData_Get_Struct(obj, gsl_dht, &gsl_dht_data_type, t);
   switch (argc) {
   case 0:
     mm = gsl_matrix_alloc(t->size, t->size);
@@ -247,7 +247,7 @@ static VALUE rb_gsl_dht_num(int argc, VALUE *argv, VALUE obj)
   gsl_matrix *mm = NULL;
   size_t n, m;
   double val;
-  Data_Get_Struct(obj, gsl_dht, t);
+  TypedData_Get_Struct(obj, gsl_dht, &gsl_dht_data_type, t);
   switch (argc) {
   case 0:
     mm = gsl_matrix_alloc(t->size, t->size);
@@ -276,7 +276,7 @@ static VALUE rb_gsl_dht_J2(VALUE obj)
 {
   gsl_dht *t = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_dht, t);
+  TypedData_Get_Struct(obj, gsl_dht, &gsl_dht_data_type, t);
   v = rb_gsl_make_vector_view(t->J2, t->size+1, 1);
   return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, v);
 }
@@ -285,7 +285,7 @@ static VALUE rb_gsl_dht_den(VALUE obj)
 {
   gsl_dht *t = NULL;
   gsl_vector_view *v = NULL;
-  Data_Get_Struct(obj, gsl_dht, t);
+  TypedData_Get_Struct(obj, gsl_dht, &gsl_dht_data_type, t);
   v = rb_gsl_make_vector_view(t->J2+1, t->size, 1);
   return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, v);
 }
@@ -293,28 +293,28 @@ static VALUE rb_gsl_dht_den(VALUE obj)
 static VALUE rb_gsl_dht_size(VALUE obj)
 {
   gsl_dht *t = NULL;
-  Data_Get_Struct(obj, gsl_dht, t);
+  TypedData_Get_Struct(obj, gsl_dht, &gsl_dht_data_type, t);
   return INT2FIX(t->size);
 }
 
 static VALUE rb_gsl_dht_nu(VALUE obj)
 {
   gsl_dht *t = NULL;
-  Data_Get_Struct(obj, gsl_dht, t);
+  TypedData_Get_Struct(obj, gsl_dht, &gsl_dht_data_type, t);
   return rb_float_new(t->nu);
 }
 
 static VALUE rb_gsl_dht_xmax(VALUE obj)
 {
   gsl_dht *t = NULL;
-  Data_Get_Struct(obj, gsl_dht, t);
+  TypedData_Get_Struct(obj, gsl_dht, &gsl_dht_data_type, t);
   return rb_float_new(t->xmax);
 }
 
 static VALUE rb_gsl_dht_kmax(VALUE obj)
 {
   gsl_dht *t = NULL;
-  Data_Get_Struct(obj, gsl_dht, t);
+  TypedData_Get_Struct(obj, gsl_dht, &gsl_dht_data_type, t);
   return rb_float_new(t->kmax);
 }
 
@@ -324,7 +324,7 @@ static VALUE rb_gsl_dht_coef(int argc, VALUE *argv, VALUE obj)
   gsl_matrix *mm = NULL;
   size_t n, m;
   double val;
-  Data_Get_Struct(obj, gsl_dht, t);
+  TypedData_Get_Struct(obj, gsl_dht, &gsl_dht_data_type, t);
   switch (argc) {
   case 0:
     mm = gsl_matrix_alloc(t->size, t->size);

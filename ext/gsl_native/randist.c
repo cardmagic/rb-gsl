@@ -1265,14 +1265,14 @@ static VALUE rb_gsl_ran_discrete(VALUE obj, VALUE gg)
   gsl_rng *r = NULL;
   gsl_ran_discrete_t *g = NULL;
   TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
-  Data_Get_Struct(gg, gsl_ran_discrete_t, g);
+  TypedData_Get_Struct(gg, gsl_ran_discrete_t, &gsl_ran_discrete_data_type, g);
   return INT2FIX(gsl_ran_discrete(r, g));
 }
 
 static VALUE rb_gsl_ran_discrete_pdf(VALUE obj, VALUE k, VALUE gg)
 {
   gsl_ran_discrete_t *g = NULL;
-  Data_Get_Struct(gg, gsl_ran_discrete_t, g);
+  TypedData_Get_Struct(gg, gsl_ran_discrete_t, &gsl_ran_discrete_data_type, g);
   return rb_float_new(gsl_ran_discrete_pdf(FIX2INT(k), g));
 }
 

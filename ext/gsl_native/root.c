@@ -78,8 +78,8 @@ static VALUE rb_gsl_fsolver_set(VALUE obj, VALUE func, VALUE xl, VALUE xh)
   double xlow, xup;
   Need_Float(xl); Need_Float(xh);
   CHECK_FUNCTION(func);
-  Data_Get_Struct(obj, gsl_root_fsolver, s);
-  Data_Get_Struct(func, gsl_function, fff);
+  TypedData_Get_Struct(obj, gsl_root_fsolver, &gsl_root_fsolver_data_type, s);
+  TypedData_Get_Struct(func, gsl_function, &gsl_function_data_type, fff);
   xlow = NUM2DBL(xl);
   xup = NUM2DBL(xh);
   gsl_root_fsolver_set(s, fff, xlow, xup);
@@ -89,35 +89,35 @@ static VALUE rb_gsl_fsolver_set(VALUE obj, VALUE func, VALUE xl, VALUE xh)
 static VALUE rb_gsl_fsolver_iterate(VALUE obj)
 {
   gsl_root_fsolver *s = NULL;
-  Data_Get_Struct(obj, gsl_root_fsolver, s);
+  TypedData_Get_Struct(obj, gsl_root_fsolver, &gsl_root_fsolver_data_type, s);
   return INT2FIX(gsl_root_fsolver_iterate(s));
 }
 
 static VALUE rb_gsl_fsolver_root(VALUE obj)
 {
   gsl_root_fsolver *s = NULL;
-  Data_Get_Struct(obj, gsl_root_fsolver, s);
+  TypedData_Get_Struct(obj, gsl_root_fsolver, &gsl_root_fsolver_data_type, s);
   return rb_float_new(gsl_root_fsolver_root(s));
 }
 
 static VALUE rb_gsl_fsolver_x_lower(VALUE obj)
 {
   gsl_root_fsolver *s = NULL;
-  Data_Get_Struct(obj, gsl_root_fsolver, s);
+  TypedData_Get_Struct(obj, gsl_root_fsolver, &gsl_root_fsolver_data_type, s);
   return rb_float_new(gsl_root_fsolver_x_lower(s));
 }
 
 static VALUE rb_gsl_fsolver_x_upper(VALUE obj)
 {
   gsl_root_fsolver *s = NULL;
-  Data_Get_Struct(obj, gsl_root_fsolver, s);
+  TypedData_Get_Struct(obj, gsl_root_fsolver, &gsl_root_fsolver_data_type, s);
   return rb_float_new(gsl_root_fsolver_x_upper(s));
 }
 
 static VALUE rb_gsl_fsolver_name(VALUE obj)
 {
   gsl_root_fsolver *s = NULL;
-  Data_Get_Struct(obj, gsl_root_fsolver, s);
+  TypedData_Get_Struct(obj, gsl_root_fsolver, &gsl_root_fsolver_data_type, s);
   return rb_str_new2(gsl_root_fsolver_name(s));
 }
 
@@ -125,7 +125,7 @@ static VALUE rb_gsl_fsolver_test_interval(VALUE obj, VALUE eabs, VALUE erel)
 {
   gsl_root_fsolver *s = NULL;
   Need_Float(eabs); Need_Float(erel);
-  Data_Get_Struct(obj, gsl_root_fsolver, s);
+  TypedData_Get_Struct(obj, gsl_root_fsolver, &gsl_root_fsolver_data_type, s);
   return INT2FIX(gsl_root_test_interval(s->x_lower, s->x_upper,
                                         NUM2DBL(eabs), NUM2DBL(erel)));
 }
@@ -177,8 +177,8 @@ static VALUE rb_gsl_fsolver_solve(int argc, VALUE *argv, VALUE obj)
     break;
   }
   CHECK_FUNCTION(argv[0]);
-  Data_Get_Struct(argv[0], gsl_function, F);
-  Data_Get_Struct(obj, gsl_root_fsolver, s);
+  TypedData_Get_Struct(argv[0], gsl_function, &gsl_function_data_type, F);
+  TypedData_Get_Struct(obj, gsl_root_fsolver, &gsl_root_fsolver_data_type, s);
   gsl_root_fsolver_set(s, F, xl, xh);
   do {
     iter++;
@@ -241,7 +241,7 @@ static VALUE rb_gsl_fdfsolver_set(VALUE obj, VALUE func, VALUE r)
   gsl_function_fdf *fff = NULL;
   double root;
   CHECK_FUNCTION_FDF(func);
-  Data_Get_Struct(obj, gsl_root_fdfsolver, s);
+  TypedData_Get_Struct(obj, gsl_root_fdfsolver, &gsl_root_fdfsolver_data_type, s);
   Data_Get_Struct(func, gsl_function_fdf, fff);
   root = NUM2DBL(r);
   gsl_root_fdfsolver_set(s, fff, root);
@@ -251,21 +251,21 @@ static VALUE rb_gsl_fdfsolver_set(VALUE obj, VALUE func, VALUE r)
 static VALUE rb_gsl_fdfsolver_iterate(VALUE obj)
 {
   gsl_root_fdfsolver *s = NULL;
-  Data_Get_Struct(obj, gsl_root_fdfsolver, s);
+  TypedData_Get_Struct(obj, gsl_root_fdfsolver, &gsl_root_fdfsolver_data_type, s);
   return INT2FIX(gsl_root_fdfsolver_iterate(s));
 }
 
 static VALUE rb_gsl_fdfsolver_root(VALUE obj)
 {
   gsl_root_fdfsolver *s = NULL;
-  Data_Get_Struct(obj, gsl_root_fdfsolver, s);
+  TypedData_Get_Struct(obj, gsl_root_fdfsolver, &gsl_root_fdfsolver_data_type, s);
   return rb_float_new(gsl_root_fdfsolver_root(s));
 }
 
 static VALUE rb_gsl_fdfsolver_name(VALUE obj)
 {
   gsl_root_fdfsolver *s = NULL;
-  Data_Get_Struct(obj, gsl_root_fdfsolver, s);
+  TypedData_Get_Struct(obj, gsl_root_fdfsolver, &gsl_root_fdfsolver_data_type, s);
   return rb_str_new2(gsl_root_fdfsolver_name(s));
 }
 
@@ -291,7 +291,7 @@ static VALUE rb_gsl_fdfsolver_solve(int argc, VALUE *argv, VALUE obj)
   }
   CHECK_FUNCTION_FDF(argv[0]);
   Data_Get_Struct(argv[0], gsl_function_fdf, F);
-  Data_Get_Struct(obj, gsl_root_fdfsolver, s);
+  TypedData_Get_Struct(obj, gsl_root_fdfsolver, &gsl_root_fdfsolver_data_type, s);
   gsl_root_fdfsolver_set(s, F, x0);
   do {
     iter++;
@@ -311,7 +311,7 @@ static VALUE rb_gsl_function_rootfinder(int argc, VALUE *argv, VALUE obj)
   gsl_root_fsolver *s = NULL;
   gsl_function *F = NULL;
   double r, a, b, epsabs = 0.0, epsrel = 1e-6;
-  Data_Get_Struct(obj, gsl_function, F);
+  TypedData_Get_Struct(obj, gsl_function, &gsl_function_data_type, F);
   switch (argc) {
   case 2:
     a = NUM2DBL(argv[0]);

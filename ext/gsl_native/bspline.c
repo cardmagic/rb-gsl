@@ -13,31 +13,31 @@ static VALUE rb_gsl_bspline_alloc(VALUE klass, VALUE k, VALUE n)
 static VALUE rb_gsl_bspline_ncoeffs(VALUE obj)
 {
   gsl_bspline_workspace *w;
-  Data_Get_Struct(obj, gsl_bspline_workspace, w);
+  TypedData_Get_Struct(obj, gsl_bspline_workspace, &gsl_bspline_workspace_data_type, w);
   return INT2FIX((int)gsl_bspline_ncoeffs(w));
 }
 static VALUE rb_gsl_bspline_order(VALUE obj)
 {
   gsl_bspline_workspace *w;
-  Data_Get_Struct(obj, gsl_bspline_workspace, w);
+  TypedData_Get_Struct(obj, gsl_bspline_workspace, &gsl_bspline_workspace_data_type, w);
   return INT2FIX((int)gsl_bspline_order(w));
 }
 static VALUE rb_gsl_bspline_nbreak(VALUE obj)
 {
   gsl_bspline_workspace *w;
-  Data_Get_Struct(obj, gsl_bspline_workspace, w);
+  TypedData_Get_Struct(obj, gsl_bspline_workspace, &gsl_bspline_workspace_data_type, w);
   return INT2FIX((int)gsl_bspline_nbreak(w));
 }
 static VALUE rb_gsl_bspline_breakpoint(VALUE obj, VALUE i)
 {
   gsl_bspline_workspace *w;
-  Data_Get_Struct(obj, gsl_bspline_workspace, w);
+  TypedData_Get_Struct(obj, gsl_bspline_workspace, &gsl_bspline_workspace_data_type, w);
   return rb_float_new(gsl_bspline_breakpoint(FIX2INT(i), w));
 }
 static VALUE rb_gsl_bspline_knots(VALUE obj, VALUE b)
 {
   gsl_bspline_workspace *w;
-  Data_Get_Struct(obj, gsl_bspline_workspace, w);
+  TypedData_Get_Struct(obj, gsl_bspline_workspace, &gsl_bspline_workspace_data_type, w);
 
 #ifdef HAVE_NMATRIX_H
   if (NM_IsNMatrix(b)) {
@@ -69,11 +69,11 @@ static VALUE rb_gsl_bspline_knots_uniform(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eTypeError, "Wrong argument type %s (GSL::BSpline expected)",
                rb_class2name(CLASS_OF(argv[argc-1])));
     }
-    Data_Get_Struct(argv[argc-1], gsl_bspline_workspace, w);
+    TypedData_Get_Struct(argv[argc-1], gsl_bspline_workspace, &gsl_bspline_workspace_data_type, w);
     argc2 = argc-1;
     break;
   default:
-    Data_Get_Struct(obj, gsl_bspline_workspace, w);
+    TypedData_Get_Struct(obj, gsl_bspline_workspace, &gsl_bspline_workspace_data_type, w);
     argc2 = argc;
   }
   if (argc2 != 2) rb_raise(rb_eArgError, "Wrong number of arguments.");
@@ -87,7 +87,7 @@ static VALUE rb_gsl_bspline_eval(int argc, VALUE *argv, VALUE obj)
   gsl_vector *B;
   VALUE vB;
 
-  Data_Get_Struct(obj, gsl_bspline_workspace, w);
+  TypedData_Get_Struct(obj, gsl_bspline_workspace, &gsl_bspline_workspace_data_type, w);
 
   switch (argc) {
   case 2:
@@ -113,7 +113,7 @@ static VALUE rb_gsl_bspline_eval(int argc, VALUE *argv, VALUE obj)
 static VALUE rb_gsl_bspline_greville_abscissa(VALUE obj, VALUE i)
 {
   gsl_bspline_workspace *w;
-  Data_Get_Struct(obj, gsl_bspline_workspace, w);
+  TypedData_Get_Struct(obj, gsl_bspline_workspace, &gsl_bspline_workspace_data_type, w);
   return rb_float_new(gsl_bspline_greville_abscissa(i, w));
 }
 
