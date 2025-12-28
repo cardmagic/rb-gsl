@@ -6,7 +6,10 @@ tmp
 Makefile
 mkmf.log
 *.so
+*.bundle
+*.dSYM
 *.o
+.claude/
 extconf.h
 Gemfile.lock
 *~
