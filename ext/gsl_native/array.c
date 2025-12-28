@@ -44,19 +44,19 @@ double* get_vector_ptr(VALUE ary, size_t *stride, size_t *n)
 {
   gsl_vector *v = NULL;
   gsl_vector_complex *vc = NULL;
-  gsl_matrix *m;
+  gsl_matrix *m = NULL;
   if (VECTOR_P(ary)) {
-    TypedData_Get_Struct(ary, gsl_vector, &gsl_vector_data_type, v);
+    Data_Get_Vector(ary, v);
     *stride = v->stride;
     *n = v->size;
     return v->data;
   } else if (VECTOR_COMPLEX_P(ary)) {
-    TypedData_Get_Struct(ary, gsl_vector_complex, &gsl_vector_complex_data_type, vc);
+    Data_Get_Vector_Complex(ary, vc);
     *stride = vc->stride;
     *n = vc->size*2;
     return vc->data;
   } else if (MATRIX_P(ary)) {
-    TypedData_Get_Struct(ary, gsl_matrix, &gsl_matrix_data_type, m);
+    Data_Get_Matrix(ary, m);
     *stride = 1;
     *n = m->size1*m->size2;
     return m->data;

@@ -140,12 +140,22 @@ extern ID rb_gsl_id_beg, rb_gsl_id_end, rb_gsl_id_excl, rb_gsl_id_to_a;
       obj = rb_gsl_na_to_gsl_vector_view_method(obj); \
     } \
     CHECK_VECTOR(obj); \
-    sval = (gsl_vector*)RTYPEDDATA_DATA(obj); \
+    if (VECTOR_VIEW_P(obj)) { \
+      gsl_vector_view *_vv = (gsl_vector_view*)RTYPEDDATA_DATA(obj); \
+      sval = &_vv->vector; \
+    } else { \
+      sval = (gsl_vector*)RTYPEDDATA_DATA(obj); \
+    } \
 } while (0)
 #else
 #define Data_Get_Vector(obj,sval) do { \
     CHECK_VECTOR(obj); \
-    sval = (gsl_vector*)RTYPEDDATA_DATA(obj); \
+    if (VECTOR_VIEW_P(obj)) { \
+      gsl_vector_view *_vv = (gsl_vector_view*)RTYPEDDATA_DATA(obj); \
+      sval = &_vv->vector; \
+    } else { \
+      sval = (gsl_vector*)RTYPEDDATA_DATA(obj); \
+    } \
 } while (0)
 #endif
 
@@ -175,6 +185,10 @@ extern ID rb_gsl_id_beg, rb_gsl_id_end, rb_gsl_id_excl, rb_gsl_id_to_a;
     rb_raise(rb_eTypeError, "wrong argument type (GSL::Vector::Int expected)");
 #endif
 
+#ifndef VECTOR_INT_VIEW_P
+#define VECTOR_INT_VIEW_P(x) ((CLASS_OF(x)==cgsl_vector_int_view||CLASS_OF(x)==cgsl_vector_int_col_view||CLASS_OF(x)==cgsl_vector_int_view_ro||CLASS_OF(x)==cgsl_vector_int_col_view_ro))
+#endif
+
 /******/
 #ifndef VECTOR_COMPLEX_P
 #define VECTOR_COMPLEX_P(x) (rb_obj_is_kind_of(x,cgsl_vector_complex))
@@ -197,6 +211,20 @@ extern ID rb_gsl_id_beg, rb_gsl_id_end, rb_gsl_id_excl, rb_gsl_id_to_a;
     rb_raise(rb_eTypeError, "wrong argument type (GSL::Vector::Complex expected)");
 #endif
 
+#ifndef VECTOR_COMPLEX_VIEW_P
+#define VECTOR_COMPLEX_VIEW_P(x) ((CLASS_OF(x)==cgsl_vector_complex_view||CLASS_OF(x)==cgsl_vector_complex_col_view||CLASS_OF(x)==cgsl_vector_complex_view_ro))
+#endif
+
+#define Data_Get_Vector_Complex(obj,sval) do { \
+    CHECK_VECTOR_COMPLEX(obj); \
+    if (VECTOR_COMPLEX_VIEW_P(obj)) { \
+      gsl_vector_complex_view *_vv = (gsl_vector_complex_view*)RTYPEDDATA_DATA(obj); \
+      sval = &_vv->vector; \
+    } else { \
+      sval = (gsl_vector_complex*)RTYPEDDATA_DATA(obj); \
+    } \
+} while (0)
+
 #ifndef MATRIX_P
 #define MATRIX_P(x) (rb_obj_is_kind_of(x,cgsl_matrix))
 #endif
@@ -206,9 +234,18 @@ extern ID rb_gsl_id_beg, rb_gsl_id_end, rb_gsl_id_excl, rb_gsl_id_to_a;
     rb_raise(rb_eTypeError, "wrong argument type (GSL::Matrix expected)");
 #endif
 
+#ifndef MATRIX_VIEW_P
+#define MATRIX_VIEW_P(x) ((CLASS_OF(x)==cgsl_matrix_view||CLASS_OF(x)==cgsl_matrix_view_ro))
+#endif
+
 #define Data_Get_Matrix(obj,sval) do { \
     CHECK_MATRIX(obj); \
-    sval = (gsl_matrix*)RTYPEDDATA_DATA(obj); \
+    if (MATRIX_VIEW_P(obj)) { \
+      gsl_matrix_view *_mv = (gsl_matrix_view*)RTYPEDDATA_DATA(obj); \
+      sval = &_mv->matrix; \
+    } else { \
+      sval = (gsl_matrix*)RTYPEDDATA_DATA(obj); \
+    } \
 } while (0)
 
 
@@ -229,6 +266,20 @@ extern ID rb_gsl_id_beg, rb_gsl_id_end, rb_gsl_id_excl, rb_gsl_id_to_a;
 #define CHECK_MATRIX_COMPLEX(x) if(!rb_obj_is_kind_of(x,cgsl_matrix_complex)) \
     rb_raise(rb_eTypeError, "wrong argument type (GSL::Matrix::Complex expected)");
 #endif
+
+#ifndef MATRIX_COMPLEX_VIEW_P
+#define MATRIX_COMPLEX_VIEW_P(x) ((CLASS_OF(x)==cgsl_matrix_complex_view||CLASS_OF(x)==cgsl_matrix_complex_view_ro))
+#endif
+
+#define Data_Get_Matrix_Complex(obj,sval) do { \
+    CHECK_MATRIX_COMPLEX(obj); \
+    if (MATRIX_COMPLEX_VIEW_P(obj)) { \
+      gsl_matrix_complex_view *_mv = (gsl_matrix_complex_view*)RTYPEDDATA_DATA(obj); \
+      sval = &_mv->matrix; \
+    } else { \
+      sval = (gsl_matrix_complex*)RTYPEDDATA_DATA(obj); \
+    } \
+} while (0)
 
 #ifndef TENSOR_P
 #define TENSOR_P(x) ((CLASS_OF(x)==cgsl_tensor))

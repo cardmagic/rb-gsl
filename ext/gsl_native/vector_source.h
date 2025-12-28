@@ -315,7 +315,13 @@ static VALUE FUNCTION(rb_gsl_vector,get)(int argc, VALUE *argv, VALUE obj)
     // Treat as call to subvector
     retval = FUNCTION(rb_gsl_vector,subvector)(argc, argv, obj);
   } else {
-    TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+    // Handle views: views wrap gsl_vector_view* not gsl_vector*
+    if (VEC_VIEW_P(obj)) {
+      QUALIFIED_VIEW(gsl_vector,view) *vv = (QUALIFIED_VIEW(gsl_vector,view)*)RTYPEDDATA_DATA(obj);
+      v = &vv->vector;
+    } else {
+      v = (GSL_TYPE(gsl_vector)*)RTYPEDDATA_DATA(obj);
+    }
 
     switch (TYPE(argv[0])) {
     case T_FIXNUM:
@@ -359,21 +365,36 @@ static VALUE FUNCTION(rb_gsl_vector,get)(int argc, VALUE *argv, VALUE obj)
 static VALUE FUNCTION(rb_gsl_vector,size)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+  if (VEC_VIEW_P(obj)) {
+    QUALIFIED_VIEW(gsl_vector,view) *vv = (QUALIFIED_VIEW(gsl_vector,view)*)RTYPEDDATA_DATA(obj);
+    v = &vv->vector;
+  } else {
+    v = (GSL_TYPE(gsl_vector)*)RTYPEDDATA_DATA(obj);
+  }
   return INT2FIX(v->size);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,stride)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+  if (VEC_VIEW_P(obj)) {
+    QUALIFIED_VIEW(gsl_vector,view) *vv = (QUALIFIED_VIEW(gsl_vector,view)*)RTYPEDDATA_DATA(obj);
+    v = &vv->vector;
+  } else {
+    v = (GSL_TYPE(gsl_vector)*)RTYPEDDATA_DATA(obj);
+  }
   return INT2FIX(v->stride);
 }
 
 static VALUE FUNCTION(rb_gsl_vector,set_stride)(VALUE obj, VALUE ss)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+  if (VEC_VIEW_P(obj)) {
+    QUALIFIED_VIEW(gsl_vector,view) *vv = (QUALIFIED_VIEW(gsl_vector,view)*)RTYPEDDATA_DATA(obj);
+    v = &vv->vector;
+  } else {
+    v = (GSL_TYPE(gsl_vector)*)RTYPEDDATA_DATA(obj);
+  }
   v->stride = (size_t) FIX2INT(ss);
   return obj;
 }
@@ -1817,7 +1838,12 @@ static VALUE FUNCTION(rb_gsl_vector,block)(VALUE obj)
 static VALUE GSL_TYPE(rb_gsl_sort_vector)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+  if (VEC_VIEW_P(obj)) {
+    QUALIFIED_VIEW(gsl_vector,view) *vv = (QUALIFIED_VIEW(gsl_vector,view)*)RTYPEDDATA_DATA(obj);
+    v = &vv->vector;
+  } else {
+    v = (GSL_TYPE(gsl_vector)*)RTYPEDDATA_DATA(obj);
+  }
   GSL_TYPE(gsl_sort_vector)(v);
   return obj;
 }
@@ -1825,7 +1851,12 @@ static VALUE GSL_TYPE(rb_gsl_sort_vector)(VALUE obj)
 static VALUE GSL_TYPE(rb_gsl_sort_vector2)(VALUE obj)
 {
   GSL_TYPE(gsl_vector) *v = NULL, *vnew = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+  if (VEC_VIEW_P(obj)) {
+    QUALIFIED_VIEW(gsl_vector,view) *vv = (QUALIFIED_VIEW(gsl_vector,view)*)RTYPEDDATA_DATA(obj);
+    v = &vv->vector;
+  } else {
+    v = (GSL_TYPE(gsl_vector)*)RTYPEDDATA_DATA(obj);
+  }
   vnew = FUNCTION(gsl_vector,alloc)(v->size);
   FUNCTION(gsl_vector,memcpy)(vnew, v);
   GSL_TYPE(gsl_sort_vector)(vnew);
