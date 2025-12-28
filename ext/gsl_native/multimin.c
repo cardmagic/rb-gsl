@@ -116,7 +116,8 @@ static VALUE rb_gsl_multimin_function_n(VALUE obj)
 static double rb_gsl_multimin_function_f(const gsl_vector *x, void *p)
 {
   VALUE vx, vp, proc, result;
-  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
+  /* Use tmp type: x is owned by GSL and must not be freed by Ruby */
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_tmp_data_type, (gsl_vector *) x);
   proc = rb_ary_entry((VALUE) p, 0);
   vp = rb_ary_entry((VALUE) p, 1);
   if (NIL_P(vp)) result = rb_funcall(proc, RBGSL_ID_call, 1, vx);
@@ -369,7 +370,8 @@ static VALUE rb_gsl_multimin_function_fdf_set(int argc, VALUE *argv, VALUE obj)
 double rb_gsl_multimin_function_fdf_f(const gsl_vector *x, void *p)
 {
   VALUE vx, proc, vp, result, ary;
-  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
+  /* Use tmp type: x is owned by GSL and must not be freed by Ruby */
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_tmp_data_type, (gsl_vector *) x);
   ary = (VALUE) p;
   proc = rb_ary_entry(ary, 0);
   vp = rb_ary_entry(ary, RARRAY_LEN(ary)-1);
@@ -382,8 +384,9 @@ void rb_gsl_multimin_function_fdf_df(const gsl_vector *x, void *p,
                                      gsl_vector *g)
 {
   VALUE vx, vg, proc, vp, ary;
-  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
-  vg = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, g);
+  /* Use tmp type: x and g are owned by GSL and must not be freed by Ruby */
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_tmp_data_type, (gsl_vector *) x);
+  vg = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_tmp_data_type, g);
   ary = (VALUE) p;
   proc = rb_ary_entry(ary, 1);
   vp = rb_ary_entry(ary, RARRAY_LEN(ary)-1);
@@ -398,8 +401,9 @@ void rb_gsl_multimin_function_fdf_fdf(const gsl_vector *x, void *p,
                                       double *f, gsl_vector *g)
 {
   VALUE vx, vg, proc_f, proc_df, vp, ary, result;
-  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, (gsl_vector *) x);
-  vg = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, g);
+  /* Use tmp type: x and g are owned by GSL and must not be freed by Ruby */
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_tmp_data_type, (gsl_vector *) x);
+  vg = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_tmp_data_type, g);
   ary = (VALUE) p;
   proc_f = rb_ary_entry(ary, 0);
   proc_df = rb_ary_entry(ary, 1);
