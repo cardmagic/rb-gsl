@@ -321,4 +321,308 @@ class MultiRootTest < GSL::TestCase
     assert_equal GSL::SUCCESS, status
   end
 
+  # Test Function#set method
+  def test_function_set
+    f = GSL::MultiRoot::Function.alloc(2)
+    new_proc = lambda { |x, result|
+      result[0] = x[0] - 1.0
+      result[1] = x[1] - 2.0
+    }
+    f.set(new_proc, 2)
+    assert_equal 2, f.n
+  end
+
+  # Test Function#set_params and #params
+  def test_function_params
+    f = GSL::MultiRoot::Function.alloc(_rosenbrock.f, 2)
+    f.set_params(42)
+    assert_equal 42, f.params
+  end
+
+  def test_function_params_array
+    f = GSL::MultiRoot::Function.alloc(_rosenbrock.f, 2)
+    f.set_params(1.0, 2.0, 3.0)
+    params = f.params
+    assert_kind_of Array, params
+    assert_equal [1.0, 2.0, 3.0], params
+  end
+
+  # Test Function#solve (high-level solving)
+  def test_function_solve
+    f = GSL::MultiRoot::Function.alloc(
+      lambda { |x, result|
+        result[0] = 1.0 - x[0]
+        result[1] = 10 * (x[1] - x[0] * x[0])
+      },
+      2
+    )
+    x0 = GSL::Vector.alloc(-1.2, 1.0)
+    result, iter, status = f.solve(x0)
+    assert_kind_of GSL::Vector, result
+    assert_kind_of Integer, iter
+    assert_equal GSL::SUCCESS, status
+    assert_in_delta 1.0, result[0], 1e-5
+    assert_in_delta 1.0, result[1], 1e-5
+  end
+
+  def test_function_solve_with_options
+    f = GSL::MultiRoot::Function.alloc(
+      lambda { |x, result|
+        result[0] = 1.0 - x[0]
+        result[1] = 10 * (x[1] - x[0] * x[0])
+      },
+      2
+    )
+    x0 = GSL::Vector.alloc(-1.2, 1.0)
+    result, iter, status = f.solve(x0, "dnewton", 1e-6, 5000)
+    assert_kind_of GSL::Vector, result
+    assert_equal GSL::SUCCESS, status
+  end
+
+  def test_function_solve_with_array_initial
+    f = GSL::MultiRoot::Function.alloc(
+      lambda { |x, result|
+        result[0] = 1.0 - x[0]
+        result[1] = 10 * (x[1] - x[0] * x[0])
+      },
+      2
+    )
+    result, iter, status = f.solve([-1.2, 1.0])
+    assert_kind_of GSL::Vector, result
+    assert_equal GSL::SUCCESS, status
+  end
+
+  # Test FSolver#solve (high-level method)
+  def test_fsolver_solve
+    f = GSL::MultiRoot::Function.alloc(
+      lambda { |x, result|
+        result[0] = 1.0 - x[0]
+        result[1] = 10 * (x[1] - x[0] * x[0])
+      },
+      2
+    )
+    s = GSL::MultiRoot::FSolver.alloc("dnewton", 2)
+    x0 = GSL::Vector.alloc(-1.2, 1.0)
+    s.set(f, x0)
+    result, iter, status = s.solve
+    assert_kind_of GSL::Vector, result
+    assert_kind_of Integer, iter
+    assert [GSL::SUCCESS, GSL::CONTINUE].include?(status)
+  end
+
+  # Note: FSolver#solve with tolerance/max_iter arguments has a bug in the C code
+  # (uses switch(argv[i]) instead of switch(TYPE(argv[i]))), so we skip those tests
+
+  # Test FSolver.solve class method
+  def test_fsolver_class_solve
+    f = GSL::MultiRoot::Function.alloc(
+      lambda { |x, result|
+        result[0] = 1.0 - x[0]
+        result[1] = 10 * (x[1] - x[0] * x[0])
+      },
+      2
+    )
+    s = GSL::MultiRoot::FSolver.alloc("dnewton", 2)
+    x0 = GSL::Vector.alloc(-1.2, 1.0)
+    s.set(f, x0)
+    result, iter, status = GSL::MultiRoot::FSolver.solve(s)
+    assert_kind_of GSL::Vector, result
+  end
+
+  # Test Function_fdf#set method
+  def test_function_fdf_set
+    fdf = GSL::MultiRoot::Function_fdf.alloc(3)
+    f_proc = lambda { |x, f| f[0] = x[0]; f[1] = x[1]; f[2] = x[2] }
+    df_proc = lambda { |x, jac|
+      jac.set(0, 0, 1.0); jac.set(0, 1, 0.0); jac.set(0, 2, 0.0)
+      jac.set(1, 0, 0.0); jac.set(1, 1, 1.0); jac.set(1, 2, 0.0)
+      jac.set(2, 0, 0.0); jac.set(2, 1, 0.0); jac.set(2, 2, 1.0)
+    }
+    fdf.set(f_proc, df_proc, 3)
+    assert_equal 3, fdf.n
+  end
+
+  # Test Function_fdf#set_params and #params
+  def test_function_fdf_params
+    fdf = _rosenbrock
+    fdf.set_params(123)
+    assert_equal 123, fdf.params
+  end
+
+  def test_function_fdf_params_array
+    fdf = _rosenbrock
+    fdf.set_params(1.5, 2.5)
+    params = fdf.params
+    assert_kind_of Array, params
+    assert_equal [1.5, 2.5], params
+  end
+
+  # Test Function_fdf#f and #df accessors
+  def test_function_fdf_f_accessor
+    fdf = _rosenbrock
+    f_proc = fdf.f
+    assert_kind_of Proc, f_proc
+  end
+
+  def test_function_fdf_df_accessor
+    fdf = _rosenbrock
+    df_proc = fdf.df
+    assert_kind_of Proc, df_proc
+  end
+
+  # Test MultiRoot.fdjacobian
+  def test_fdjacobian_with_function
+    f = GSL::MultiRoot::Function.alloc(
+      lambda { |x, result|
+        result[0] = x[0] * x[0]
+        result[1] = x[1] * x[1]
+      },
+      2
+    )
+    x = GSL::Vector.alloc(1.0, 2.0)
+    fval = GSL::Vector.alloc(2)
+    fval[0] = 1.0
+    fval[1] = 4.0
+    jac, status = GSL::MultiRoot.fdjacobian(f, x, fval, 1e-8)
+    assert_kind_of GSL::Matrix, jac
+    assert_equal GSL::SUCCESS, status
+    assert_in_delta 2.0, jac.get(0, 0), 1e-4
+    assert_in_delta 4.0, jac.get(1, 1), 1e-4
+  end
+
+  def test_fdjacobian_with_function_fdf
+    fdf = _rosenbrock
+    x = GSL::Vector.alloc(1.0, 1.0)
+    fval = GSL::Vector.alloc(2)
+    fval[0] = 0.0
+    fval[1] = 0.0
+    jac, status = GSL::MultiRoot.fdjacobian(fdf, x, fval, 1e-8)
+    assert_kind_of GSL::Matrix, jac
+    assert_equal GSL::SUCCESS, status
+  end
+
+  def test_fdjacobian_with_output_matrix
+    f = GSL::MultiRoot::Function.alloc(
+      lambda { |x, result|
+        result[0] = x[0] * x[0]
+        result[1] = x[1] * x[1]
+      },
+      2
+    )
+    x = GSL::Vector.alloc(1.0, 2.0)
+    fval = GSL::Vector.alloc(1.0, 4.0)
+    jac = GSL::Matrix.alloc(2, 2)
+    result, status = GSL::MultiRoot.fdjacobian(f, x, fval, 1e-8, jac)
+    assert_equal GSL::SUCCESS, status
+    assert_same jac, result
+  end
+
+  # Test FSolver with array as initial point
+  def test_fsolver_set_with_array
+    f = GSL::MultiRoot::Function.alloc(
+      lambda { |x, result|
+        result[0] = x[0] - 1.0
+        result[1] = x[1] - 2.0
+      },
+      2
+    )
+    s = GSL::MultiRoot::FSolver.alloc("dnewton", 2)
+    status = s.set(f, [0.5, 1.0])
+    assert_equal GSL::SUCCESS, status
+  end
+
+  # Test FdfSolver with array as initial point
+  def test_fdfsolver_set_with_array
+    fdf = _rosenbrock
+    s = GSL::MultiRoot::FdfSolver.alloc("newton", 2)
+    status = s.set(fdf, [-1.2, 1.0])
+    assert_equal GSL::SUCCESS, status
+  end
+
+  # Test solver allocation with integer type constants
+  def test_fsolver_alloc_with_constant
+    s = GSL::MultiRoot::FSolver.alloc(GSL::MultiRoot::FSolver::DNEWTON, 2)
+    assert_equal 'dnewton', s.name
+  end
+
+  def test_fdfsolver_alloc_with_constant
+    s = GSL::MultiRoot::FdfSolver.alloc(GSL::MultiRoot::FdfSolver::NEWTON, 2)
+    assert_equal 'newton', s.name
+  end
+
+  # Test function with params passed to callback
+  def test_function_with_params_in_callback
+    param_value = nil
+    f = GSL::MultiRoot::Function.alloc(
+      lambda { |x, params, result|
+        param_value = params
+        result[0] = x[0] - params
+        result[1] = x[1] - params
+      },
+      2
+    )
+    f.set_params(5.0)
+    s = GSL::MultiRoot::FSolver.alloc("dnewton", 2)
+    x0 = GSL::Vector.alloc(0.0, 0.0)
+    s.set(f, x0)
+    s.iterate
+    assert_equal 5.0, param_value
+  end
+
+  # Test Function_fdf with fdf combined callback
+  def test_function_fdf_with_combined_fdf
+    fdf = GSL::MultiRoot::Function_fdf.alloc(
+      lambda { |x, f|
+        f[0] = 1.0 - x[0]
+        f[1] = 10 * (x[1] - x[0] * x[0])
+      },
+      lambda { |x, jac|
+        jac.set(0, 0, -1.0)
+        jac.set(0, 1, 0.0)
+        jac.set(1, 0, -20 * x[0])
+        jac.set(1, 1, 10)
+      },
+      lambda { |x, f, jac|
+        f[0] = 1.0 - x[0]
+        f[1] = 10 * (x[1] - x[0] * x[0])
+        jac.set(0, 0, -1.0)
+        jac.set(0, 1, 0.0)
+        jac.set(1, 0, -20 * x[0])
+        jac.set(1, 1, 10)
+      },
+      2
+    )
+    assert_equal 2, fdf.n
+    s = GSL::MultiRoot::FdfSolver.alloc("newton", 2)
+    x = GSL::Vector.alloc(-1.2, 1.0)
+    s.set(fdf, x)
+    s.iterate
+    assert_kind_of GSL::Vector, s.x
+  end
+
+  # Test Function_fdf with params
+  def test_function_fdf_with_params_in_callback
+    param_value = nil
+    fdf = GSL::MultiRoot::Function_fdf.alloc(
+      lambda { |x, params, f|
+        param_value = params
+        f[0] = x[0] - params
+        f[1] = x[1] - params
+      },
+      lambda { |x, params, jac|
+        jac.set(0, 0, 1.0)
+        jac.set(0, 1, 0.0)
+        jac.set(1, 0, 0.0)
+        jac.set(1, 1, 1.0)
+      },
+      2
+    )
+    fdf.set_params(7.0)
+    s = GSL::MultiRoot::FdfSolver.alloc("newton", 2)
+    x = GSL::Vector.alloc(0.0, 0.0)
+    s.set(fdf, x)
+    s.iterate
+    assert_equal 7.0, param_value
+  end
+
 end

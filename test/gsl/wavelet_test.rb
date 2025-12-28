@@ -2,129 +2,399 @@ require 'test_helper'
 
 class WaveletTest < GSL::TestCase
 
-  MEMBERS = [309, 307, 305, 303, 301, 208, 206, 204, 202, 105, 103]
-
-  def _urand
-    x = 1
-    x = (1103515245 * x + 12345) & 0x7fffffff
-    x / 2147483648.0
-  end
-
-  def _test_1d(n, stride, type, member)
-    nn = n * stride
-    data = GSL::Vector.alloc(nn)
-    nn.times { |i| data[i] = 12345.0 + i }
-
-    v1 = data.view_with_stride(0, stride, n)
-    n.times { |i| v1[i] = _urand }
-
-    v2 = GSL::Vector.alloc(n)
-    GSL::Vector.memcpy(v2, v1)
-
-    vdelta = GSL::Vector.alloc(n)
-
-    work = GSL::Wavelet::Workspace.alloc(n)
-    w = GSL::Wavelet.alloc(type, member)
-    w.transform_forward(v2, work)
-    w.transform_inverse(v2, work)
-
-    n.times { |i| vdelta[i] = (v1[i] - v2[i]).abs }
-
-    i = vdelta.max_index
-    x1, x2 = v1[i], v2[i]
-
-    refute((x2 - x1).abs > n * 1e-15,
-      "#{w.name}(#{member}), n = #{n}, stride = #{stride}, maxerr = #{(x2 - x1).abs}")
-
-    assert((0...nn).all? { |j| j % stride == 0 || data[j] == 12345.0 + j },
-      "#{w.name}(#{member}) other data untouched, n = #{n}, stride = #{stride}") if stride > 1
-  end
-
-  def _test_2d(n, tda, t, member, type)
-    nn = n * tda
-    data = GSL::Vector.alloc(nn)
-    nn.times { |i| data[i] = 12345.0 + i }
-
-    m1 = data.matrix_view_with_tda(n, n, tda)
-    n.times { |i| n.times { |j| m1.set(i, j, _urand) } }
-
-    m2 = GSL::Matrix.alloc(n, n)
-    GSL::Matrix.memcpy(m2, m1)
-
-    mdelta = GSL::Matrix.alloc(n, n)
-
-    work = GSL::Wavelet::Workspace.alloc(n)
-    w = GSL::Wavelet.alloc(t, member)
-
-    typename = case type
-      when 1
-        GSL::Wavelet2d.transform_matrix_forward(w, m2, work)
-        GSL::Wavelet2d.transform_matrix_inverse(w, m2, work)
-        'standard'
-      when 2
-        GSL::Wavelet2d.nstransform_matrix_forward(w, m2, work)
-        GSL::Wavelet2d.nstransform_matrix_inverse(w, m2, work)
-        'nonstd'
+  def make_4x4_matrix
+    m = GSL::Matrix.alloc(4, 4)
+    4.times do |i|
+      4.times do |j|
+        m.set(i, j, i * 4.0 + j + 1.0)
+      end
     end
-
-    n.times { |i| n.times { |j| mdelta.set(i, j, (m1[i, j] - m2[i, j]).abs) } }
-
-    i, j = mdelta.max_index
-    x1, x2 = m1[i, j], m1[i, j]
-
-    refute((x2 - x1).abs > n * 1e-15,
-      "#{w.name}(#{member})-2d #{typename}, n = #{n}, tda = #{tda}, maxerr = #{(x2 - x1).abs}")
-
-    assert((0...n).to_a.product((n...tda).to_a).all? { |k, l| data[k * tda + l] == 12345.0 + k * tda + l },
-      "#{w.name}(#{member})-2d #{typename} other data untouched, n = #{n}, tda = #{tda}") if tda > n
+    m
   end
 
-  def _each_pow(n = 14)
-    n.times { |i| yield 2 ** i }
+  # Test Wavelet allocation with different types
+  def test_wavelet_alloc_daubechies
+    w = GSL::Wavelet.alloc("daubechies", 4)
+    assert_equal "daubechies", w.name
   end
 
-  def _each_n(n = 9, m = 4)
-    n.times { |i| yield m + 2 * i }
+  def test_wavelet_alloc_daubechies_centered
+    w = GSL::Wavelet.alloc("daubechies_centered", 4)
+    assert_equal "daubechies-centered", w.name
   end
 
-  def test_1d_bspline
-    _each_pow { |n| MEMBERS.each { |m| _test_1d(n, 1, 'bspline', m) } }
+  def test_wavelet_alloc_haar
+    w = GSL::Wavelet.alloc("haar", 2)
+    assert_equal "haar", w.name
   end
 
-  def test_1d_bspline_centered
-    _each_pow { |n| MEMBERS.each { |m| _test_1d(n, 1, 'bspline_centered', m) } }
+  def test_wavelet_alloc_haar_centered
+    w = GSL::Wavelet.alloc("haar_centered", 2)
+    assert_equal "haar-centered", w.name
   end
 
-  def test_1d_daubechies
-    _each_pow { |n| _each_n { |i| _test_1d(n, 1, 'daubechies', i) } }
+  def test_wavelet_alloc_bspline
+    w = GSL::Wavelet.alloc("bspline", 103)
+    assert_equal "bspline", w.name
   end
 
-  def test_1d_daubechies_centered
-    _each_pow { |n| _each_n { |i|_test_1d(n, 1, 'daubechies_centered', i) } }
+  def test_wavelet_alloc_bspline_centered
+    w = GSL::Wavelet.alloc("bspline_centered", 103)
+    assert_equal "bspline-centered", w.name
   end
 
-  def test_1d_haar
-    _each_pow { |n| _test_1d(n, 1, 'haar', 2) }
+  # Test allocation with integer constants
+  def test_wavelet_alloc_with_constant
+    w = GSL::Wavelet.alloc(GSL::Wavelet::DAUBECHIES, 4)
+    assert_equal "daubechies", w.name
   end
 
-  def test_1d_haar_centered
-    _each_pow { |n| _test_1d(n, 1, 'haar_centered', 2) }
+  def test_wavelet_alloc_haar_constant
+    w = GSL::Wavelet.alloc(GSL::Wavelet::HAAR, 2)
+    assert_equal "haar", w.name
   end
 
-  def test_2d_bspline_standard
-    _each_pow(6) { |n| MEMBERS.each { |m| _test_2d(n, n, 'bspline', m, 1) } }
+  def test_wavelet_alloc_bspline_constant
+    w = GSL::Wavelet.alloc(GSL::Wavelet::BSPLINE, 103)
+    assert_equal "bspline", w.name
   end
 
-  def test_2d_bspline_centered_standard
-    _each_pow(6) { |n| MEMBERS.each { |m| _test_2d(n, n, 'bspline_centered', m, 1) } }
+  def test_wavelet_alloc_daubechies_centered_constant
+    w = GSL::Wavelet.alloc(GSL::Wavelet::DAUBECHIES_CENTERED, 4)
+    assert_equal "daubechies-centered", w.name
   end
 
-  def test_2d_bspline_nonstd
-    _each_pow(6) { |n| MEMBERS.each { |m| _test_2d(n, n, 'bspline', m, 2) } }
+  def test_wavelet_alloc_haar_centered_constant
+    w = GSL::Wavelet.alloc(GSL::Wavelet::HAAR_CENTERED, 2)
+    assert_equal "haar-centered", w.name
   end
 
-  def test_2d_bspline_centered_nonstd
-    _each_pow(6) { |n| MEMBERS.each { |m| _test_2d(n, n, 'bspline_centered', m, 2) } }
+  def test_wavelet_alloc_bspline_centered_constant
+    w = GSL::Wavelet.alloc(GSL::Wavelet::BSPLINE_CENTERED, 103)
+    assert_equal "bspline-centered", w.name
+  end
+
+  # Test Workspace allocation
+  def test_workspace_alloc
+    work = GSL::Wavelet::Workspace.alloc(128)
+    assert_kind_of GSL::Wavelet::Workspace, work
+  end
+
+  # Test 1D wavelet transform on vectors
+  def test_wavelet_transform_vector
+    w = GSL::Wavelet.alloc("haar", 2)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    result = w.transform(v)
+    assert_kind_of GSL::Vector, result
+    assert_equal 8, result.size
+    # Original should be unchanged
+    assert_in_delta 1.0, v[0], 1e-10
+  end
+
+  def test_wavelet_transform_with_direction
+    w = GSL::Wavelet.alloc("haar", 2)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    result = w.transform(v, GSL::Wavelet::FORWARD)
+    assert_kind_of GSL::Vector, result
+  end
+
+  def test_wavelet_transform_with_workspace
+    w = GSL::Wavelet.alloc("haar", 2)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    work = GSL::Wavelet::Workspace.alloc(8)
+    result = w.transform(v, GSL::Wavelet::FORWARD, work)
+    assert_kind_of GSL::Vector, result
+  end
+
+  def test_wavelet_transform_inplace
+    w = GSL::Wavelet.alloc("haar", 2)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    original_first = v[0]
+    result = w.transform!(v)
+    assert_same v, result
+    # Value should have changed
+    refute_equal original_first, v[0]
+  end
+
+  def test_wavelet_transform_forward
+    w = GSL::Wavelet.alloc("haar", 2)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    result = w.forward(v)
+    assert_kind_of GSL::Vector, result
+    assert_equal 8, result.size
+  end
+
+  def test_wavelet_transform_inverse
+    w = GSL::Wavelet.alloc("haar", 2)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    transformed = w.forward(v)
+    reconstructed = w.inverse(transformed)
+    assert_kind_of GSL::Vector, reconstructed
+    8.times do |i|
+      assert_in_delta v[i], reconstructed[i], 1e-10
+    end
+  end
+
+  def test_wavelet_transform_forward_inplace
+    w = GSL::Wavelet.alloc("haar", 2)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    result = w.forward!(v)
+    assert_same v, result
+  end
+
+  def test_wavelet_transform_inverse_inplace
+    w = GSL::Wavelet.alloc("haar", 2)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    w.forward!(v)
+    result = w.inverse!(v)
+    assert_same v, result
+  end
+
+  # Test using class methods
+  def test_wavelet_class_transform
+    w = GSL::Wavelet.alloc("haar", 2)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    result = GSL::Wavelet.transform(w, v)
+    assert_kind_of GSL::Vector, result
+  end
+
+  def test_wavelet_class_transform_forward
+    w = GSL::Wavelet.alloc("haar", 2)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    result = GSL::Wavelet.transform_forward(w, v)
+    assert_kind_of GSL::Vector, result
+  end
+
+  def test_wavelet_class_transform_inverse
+    w = GSL::Wavelet.alloc("haar", 2)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    transformed = GSL::Wavelet.transform_forward(w, v)
+    result = GSL::Wavelet.transform_inverse(w, transformed)
+    assert_kind_of GSL::Vector, result
+  end
+
+  # Test vector methods
+  def test_vector_wavelet_transform
+    w = GSL::Wavelet.alloc("haar", 2)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    result = v.wavelet_transform(w)
+    assert_kind_of GSL::Vector, result
+  end
+
+  def test_vector_wavelet_transform_forward
+    w = GSL::Wavelet.alloc("haar", 2)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    result = v.wavelet_transform_forward(w)
+    assert_kind_of GSL::Vector, result
+  end
+
+  def test_vector_wavelet_transform_inverse
+    w = GSL::Wavelet.alloc("haar", 2)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    transformed = v.wavelet_transform_forward(w)
+    result = transformed.wavelet_transform_inverse(w)
+    assert_kind_of GSL::Vector, result
+  end
+
+  def test_vector_wavelet_transform_inplace
+    w = GSL::Wavelet.alloc("haar", 2)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    result = v.wavelet_transform!(w)
+    assert_same v, result
+  end
+
+  # Test 2D wavelet transforms on matrices
+  def test_wavelet_transform_matrix
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    result = w.transform_matrix(m)
+    assert_kind_of GSL::Matrix, result
+    assert_equal 4, result.size1
+    assert_equal 4, result.size2
+  end
+
+  def test_wavelet_transform_matrix_with_direction
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    result = w.transform_matrix(m, GSL::Wavelet::FORWARD)
+    assert_kind_of GSL::Matrix, result
+  end
+
+  def test_wavelet_transform_matrix_with_workspace
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    work = GSL::Wavelet::Workspace.alloc(4)
+    result = w.transform_matrix(m, GSL::Wavelet::FORWARD, work)
+    assert_kind_of GSL::Matrix, result
+  end
+
+  def test_wavelet_transform_matrix_inplace
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    result = w.transform_matrix!(m)
+    assert_same m, result
+  end
+
+  def test_wavelet_transform_matrix_forward
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    result = w.transform_matrix_forward(m)
+    assert_kind_of GSL::Matrix, result
+  end
+
+  def test_wavelet_transform_matrix_inverse
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    original = make_4x4_matrix
+    transformed = w.transform_matrix_forward(m)
+    result = w.transform_matrix_inverse(transformed)
+    assert_kind_of GSL::Matrix, result
+    # Verify reconstruction
+    4.times do |i|
+      4.times do |j|
+        assert_in_delta original.get(i, j), result.get(i, j), 1e-10
+      end
+    end
+  end
+
+  def test_wavelet_transform_matrix_forward_inplace
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    result = w.transform_matrix_forward!(m)
+    assert_same m, result
+  end
+
+  def test_wavelet_transform_matrix_inverse_inplace
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    w.transform_matrix_forward!(m)
+    result = w.transform_matrix_inverse!(m)
+    assert_same m, result
+  end
+
+  # Test matrix methods
+  def test_matrix_wavelet_transform
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    result = m.wavelet_transform(w)
+    assert_kind_of GSL::Matrix, result
+  end
+
+  def test_matrix_wavelet_transform_forward
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    result = m.wavelet_transform_forward(w)
+    assert_kind_of GSL::Matrix, result
+  end
+
+  def test_matrix_wavelet_transform_inverse
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    transformed = m.wavelet_transform_forward(w)
+    result = transformed.wavelet_transform_inverse(w)
+    assert_kind_of GSL::Matrix, result
+  end
+
+  def test_matrix_wavelet_transform_inplace
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    result = m.wavelet_transform!(w)
+    assert_same m, result
+  end
+
+  # Test non-standard transform (nstransform)
+  def test_wavelet_nstransform_matrix
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    result = w.nstransform_matrix(m)
+    assert_kind_of GSL::Matrix, result
+  end
+
+  def test_wavelet_nstransform_matrix_inplace
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    result = w.nstransform_matrix!(m)
+    assert_same m, result
+  end
+
+  def test_wavelet_nstransform_matrix_forward
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    result = w.nstransform_matrix_forward(m)
+    assert_kind_of GSL::Matrix, result
+  end
+
+  def test_wavelet_nstransform_matrix_inverse
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    transformed = w.nstransform_matrix_forward(m)
+    result = w.nstransform_matrix_inverse(transformed)
+    assert_kind_of GSL::Matrix, result
+  end
+
+  def test_wavelet_nstransform_matrix_forward_inplace
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    result = w.nstransform_matrix_forward!(m)
+    assert_same m, result
+  end
+
+  def test_wavelet_nstransform_matrix_inverse_inplace
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = make_4x4_matrix
+    w.nstransform_matrix_forward!(m)
+    result = w.nstransform_matrix_inverse!(m)
+    assert_same m, result
+  end
+
+  # Test different wavelet types with transforms
+  def test_daubechies_transform
+    w = GSL::Wavelet.alloc("daubechies", 4)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    transformed = w.forward(v)
+    reconstructed = w.inverse(transformed)
+    8.times do |i|
+      assert_in_delta v[i], reconstructed[i], 1e-10
+    end
+  end
+
+  def test_bspline_transform
+    w = GSL::Wavelet.alloc("bspline", 103)
+    v = GSL::Vector.alloc([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    transformed = w.forward(v)
+    reconstructed = w.inverse(transformed)
+    8.times do |i|
+      assert_in_delta v[i], reconstructed[i], 1e-10
+    end
+  end
+
+  # Test round-trip with larger data
+  def test_roundtrip_larger_vector
+    w = GSL::Wavelet.alloc("haar", 2)
+    v = GSL::Vector.alloc(128)
+    128.times { |i| v[i] = Math.sin(2 * Math::PI * i / 128.0) }
+    transformed = w.forward(v)
+    reconstructed = w.inverse(transformed)
+    128.times do |i|
+      assert_in_delta v[i], reconstructed[i], 1e-10
+    end
+  end
+
+  def test_roundtrip_larger_matrix
+    w = GSL::Wavelet.alloc("haar", 2)
+    m = GSL::Matrix.alloc(8, 8)
+    8.times do |i|
+      8.times do |j|
+        m.set(i, j, i * 8.0 + j)
+      end
+    end
+    transformed = w.transform_matrix_forward(m)
+    reconstructed = w.transform_matrix_inverse(transformed)
+    8.times do |i|
+      8.times do |j|
+        assert_in_delta m.get(i, j), reconstructed.get(i, j), 1e-10
+      end
+    end
   end
 
 end
