@@ -86,7 +86,7 @@ static VALUE rb_gsl_multiroot_function_new(int argc, VALUE *argv, VALUE klass)
     rb_raise(rb_eArgError, "wrong number of arguments");
     break;
   }
-  return Data_Wrap_Struct(klass, gsl_multiroot_function_mark, gsl_multiroot_function_free, F);
+  return TypedData_Wrap_Struct(klass, &gsl_multiroot_function_data_type, F);
 }
 
 void gsl_multiroot_function_free(gsl_multiroot_function *f)
@@ -223,7 +223,7 @@ static VALUE rb_gsl_multiroot_function_fdf_new(int argc, VALUE *argv, VALUE klas
   rb_ary_store(ary, 2, Qnil);
   rb_ary_store(ary, 3, Qnil);
   set_function_fdf(argc, argv, F);
-  return Data_Wrap_Struct(klass, gsl_multiroot_function_fdf_mark, gsl_multiroot_function_fdf_free, F);
+  return TypedData_Wrap_Struct(klass, &gsl_multiroot_function_fdf_data_type, F);
 }
 
 void gsl_multiroot_function_fdf_free(gsl_multiroot_function_fdf *f)

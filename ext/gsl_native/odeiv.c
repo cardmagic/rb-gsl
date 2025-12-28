@@ -154,7 +154,7 @@ static VALUE rb_gsl_odeiv_system_new(int argc, VALUE *argv, VALUE klass)
   VALUE obj;
   gsl_odeiv_system *sys = NULL;
   sys = make_sys(argc, argv);
-  obj = Data_Wrap_Struct(klass, gsl_odeiv_system_mark, free, sys);
+  obj = TypedData_Wrap_Struct(klass, &gsl_odeiv_system_data_type, sys);
   return obj;
 }
 

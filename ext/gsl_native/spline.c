@@ -47,7 +47,7 @@ static VALUE rb_gsl_spline_new(int argc, VALUE *argv, VALUE klass)
   sp->s = gsl_spline_alloc(T, size);
   sp->a = gsl_interp_accel_alloc();
   if (ptrx && ptry) gsl_spline_init(sp->s, ptrx, ptry, size);
-  return Data_Wrap_Struct(klass, 0, rb_gsl_spline_free, sp);
+  return TypedData_Wrap_Struct(klass, &rb_gsl_spline_data_type, sp);
 }
 
 void rb_gsl_spline_free(rb_gsl_spline *sp)

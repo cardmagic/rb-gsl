@@ -48,7 +48,7 @@ static VALUE rb_gsl_interp_new(int argc, VALUE *argv, VALUE klass)
   sp->p = gsl_interp_alloc(T, size);
   sp->a = gsl_interp_accel_alloc();
   if (ptrx && ptry) gsl_interp_init(sp->p, ptrx, ptry, size);
-  return Data_Wrap_Struct(klass, 0, rb_gsl_interp_free, sp);
+  return TypedData_Wrap_Struct(klass, &rb_gsl_interp_data_type, sp);
 }
 
 void rb_gsl_interp_free(rb_gsl_interp *sp)

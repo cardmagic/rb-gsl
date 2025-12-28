@@ -26,7 +26,7 @@ VALUE rb_tamu_anova_alloc(int argc, VALUE *argv, VALUE klass)
     rb_raise(rb_eArgError, "Wrong number of arguments (%d for 3 or 4)", argc);
     break;
   }
-  return Data_Wrap_Struct(klass, 0, free, table);
+  return TypedData_Wrap_Struct(klass, &tamu_anova_table_data_type, table);
 }
 
 VALUE rb_tamu_anova_printtable(VALUE *vTable)

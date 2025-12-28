@@ -590,7 +590,7 @@ static VALUE rb_gsl_multifit_function_fdf_new(int argc, VALUE *argv, VALUE klass
   func->df = &gsl_multifit_function_fdf_df;
   func->fdf = &gsl_multifit_function_fdf_fdf;
   func->params = NULL;
-  obj = Data_Wrap_Struct(klass, gsl_multifit_function_fdf_mark, gsl_multifit_function_fdf_free, func);
+  obj = TypedData_Wrap_Struct(klass, &gsl_multifit_function_fdf_data_type, func);
   switch (argc) {
   case 0:
   case 1:

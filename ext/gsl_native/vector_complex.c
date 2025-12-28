@@ -145,7 +145,7 @@ static VALUE rb_gsl_vector_complex_ptr(VALUE obj, VALUE i)
   return TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, gsl_vector_complex_ptr(v, FIX2INT(i)));
 }
 
-// TODO return Data_Wrap_Struct(VECTOR_COMPLEX_ROW_COL(obj),..." where appropriate
+// Note: Uses TypedData_Wrap_Struct(VECTOR_COMPLEX_ROW_COL(obj), ...) where appropriate
 static VALUE rb_gsl_vector_complex_subvector(int argc, VALUE *argv, VALUE obj);
 static VALUE rb_gsl_vector_complex_get(int argc, VALUE *argv, VALUE obj)
 {

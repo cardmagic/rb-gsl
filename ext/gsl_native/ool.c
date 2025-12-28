@@ -447,7 +447,7 @@ static VALUE rb_ool_conmin_function_alloc(int argc, VALUE *argv, VALUE klass)
   rb_ary_store(ary, 3, Qnil);  /* proc Hv */
   rb_ary_store(ary, 4, Qnil);  /* params */
 //  set_functions(argc, argv, F);
-  obj = Data_Wrap_Struct(klass, rb_ool_conmin_function_mark, free, F);
+  obj = TypedData_Wrap_Struct(klass, &ool_conmin_function_data_type, F);
   rb_ool_conmin_function_set(argc, argv, obj);
   return obj;
 }
@@ -697,7 +697,7 @@ static VALUE rb_ool_conmin_constraint_alloc(int argc, VALUE *argv, VALUE klass)
   C->L = NULL;
   C->U = NULL;
 
-  obj = Data_Wrap_Struct(klass, 0, free, C);
+  obj = TypedData_Wrap_Struct(klass, &ool_conmin_constraint_data_type, C);
   rb_ool_conmin_constraint_set(argc, argv, obj);
   return obj;
 }

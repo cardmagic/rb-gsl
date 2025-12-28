@@ -193,7 +193,7 @@ static VALUE rb_gsl_rational_new(int argc, VALUE *argv, VALUE klass)
   }
   if (flag1 == 1) gsl_vector_free(den);
   if (flag2 == 1) gsl_vector_free(num);
-  return Data_Wrap_Struct(klass, gsl_rational_mark, gsl_rational_free, r);
+  return TypedData_Wrap_Struct(klass, &gsl_rational_data_type, r);
 }
 /* singleton */
 static VALUE rb_gsl_poly_make_rational(VALUE obj, VALUE other)

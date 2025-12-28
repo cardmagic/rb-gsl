@@ -632,7 +632,7 @@ static VALUE rb_gsl_siman_solver_solve(VALUE obj, VALUE rng,
   gsl_vector *vtmp = NULL;
   gsl_siman_params_t *params = NULL;
   int flag = 0;
-  /*  Data_Get_Struct(obj, siman_solver, ss);*/
+  /* TypedData_Get_Struct(obj, siman_solver, &siman_solver_data_type, ss); */
   CHECK_VECTOR(vx0p);
   TypedData_Get_Struct(vx0p, gsl_vector, &gsl_vector_data_type, vtmp);
 

@@ -210,7 +210,7 @@ static VALUE rb_gsl_matrix_mul(VALUE obj, VALUE bb)
     vnew = gsl_vector_alloc(m->size1);
     if (vnew == NULL) rb_raise(rb_eNoMemError, "gsl_vector_alloc failed");
     gsl_matrix_mul_vector(vnew, m, v);
-    return Data_Wrap_Struct(VECTOR_ROW_COL(bb), 0, gsl_vector_free, vnew);
+    return TypedData_Wrap_Struct(VECTOR_ROW_COL(bb), &gsl_vector_data_type, vnew);
   } else if (MATRIX_COMPLEX_P(bb)) {
     TypedData_Get_Struct(bb, gsl_matrix_complex, &gsl_matrix_complex_data_type, mcb);
     mc = matrix_to_complex(m);
@@ -258,7 +258,7 @@ static VALUE rb_gsl_matrix_mul_bang(VALUE obj, VALUE bb)
     vnew = gsl_vector_alloc(v->size);
     if (vnew == NULL) rb_raise(rb_eNoMemError, "gsl_vector_alloc failed");
     gsl_matrix_mul_vector(vnew, m, v);
-    return Data_Wrap_Struct(VECTOR_ROW_COL(bb), 0, gsl_vector_free, vnew);
+    return TypedData_Wrap_Struct(VECTOR_ROW_COL(bb), &gsl_vector_data_type, vnew);
   } else {
     switch (TYPE(bb)) {
     case T_FIXNUM:

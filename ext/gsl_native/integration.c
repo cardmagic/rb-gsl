@@ -924,9 +924,8 @@ static VALUE rb_gsl_integration_workspace_alloc(int argc, VALUE *argv,
   size_t limit;
   if (argc == 1) limit = FIX2INT(argv[0]);
   else limit = LIMIT_DEFAULT;
-  return Data_Wrap_Struct(klass, 0,
-                          gsl_integration_workspace_free,
-                          gsl_integration_workspace_alloc(limit));
+  return TypedData_Wrap_Struct(klass, &gsl_integration_workspace_data_type,
+                               gsl_integration_workspace_alloc(limit));
 }
 
 static VALUE rb_gsl_integration_workspace_limit(VALUE obj)

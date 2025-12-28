@@ -217,7 +217,7 @@ static VALUE rb_gsl_poly_define_poly(VALUE klass, VALUE order,
   n1 = FIX2INT(order);
   if (n1 < 0) rb_raise(rb_eArgError, "order must be >= 0");
   pnew = (*f)(n1);
-  return Data_Wrap_Struct(cgsl_poly_int, 0, gsl_vector_int_free, pnew);
+  return TypedData_Wrap_Struct(cgsl_poly_int, &gsl_vector_int_data_type, pnew);
 }
 
 static VALUE rb_gsl_poly_hermite(VALUE klass, VALUE order)
