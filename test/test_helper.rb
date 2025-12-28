@@ -1,3 +1,13 @@
+if ENV['COVERAGE']
+  require 'simplecov'
+  SimpleCov.start do
+    add_filter '/test/'
+    add_group 'Library', 'lib'
+    enable_coverage :branch
+    minimum_coverage line: 0, branch: 0  # Don't fail on low coverage initially
+  end
+end
+
 require 'test/unit'
 begin
   require 'narray'
