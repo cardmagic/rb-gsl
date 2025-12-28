@@ -527,4 +527,309 @@ class VectorTest < GSL::TestCase
     assert_equal [2.0, 3.0, 4.0], view.to_a
   end
 
+  # Test logspace
+  def test_logspace
+    v = GSL::Vector.logspace(0, 2, 3)
+    assert_equal 3, v.size
+    assert_in_delta 1.0, v[0], 1e-10
+    assert_in_delta 10.0, v[1], 1e-10
+    assert_in_delta 100.0, v[2], 1e-10
+  end
+
+  def test_logspace2
+    v = GSL::Vector.logspace2(1, 100, 3)
+    assert_equal 3, v.size
+    assert_in_delta 1.0, v[0], 1e-10
+    assert_in_delta 10.0, v[1], 1e-10
+    assert_in_delta 100.0, v[2], 1e-10
+  end
+
+  # Test arithmetic with scalars
+  def test_add_scalar
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    result = v + 5.0
+    assert_equal [6.0, 7.0, 8.0], result.to_a
+  end
+
+  def test_sub_scalar
+    v = GSL::Vector.alloc(10.0, 20.0, 30.0)
+    result = v - 5.0
+    assert_equal [5.0, 15.0, 25.0], result.to_a
+  end
+
+  def test_mul_scalar
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    result = v * 3.0
+    assert_equal [3.0, 6.0, 9.0], result.to_a
+  end
+
+  def test_div_scalar
+    v = GSL::Vector.alloc(10.0, 20.0, 30.0)
+    result = v / 2.0
+    assert_equal [5.0, 10.0, 15.0], result.to_a
+  end
+
+  # Test each iterators
+  def test_each
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    values = []
+    v.each { |x| values << x }
+    assert_equal [1.0, 2.0, 3.0], values
+  end
+
+  def test_reverse_each
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    values = []
+    v.reverse_each { |x| values << x }
+    assert_equal [3.0, 2.0, 1.0], values
+  end
+
+  def test_each_index
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    indices = []
+    v.each_index { |i| indices << i }
+    assert_equal [0, 1, 2], indices
+  end
+
+  def test_reverse_each_index
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    indices = []
+    v.reverse_each_index { |i| indices << i }
+    assert_equal [2, 1, 0], indices
+  end
+
+  # Test transpose
+  def test_transpose
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    vt = v.trans
+    assert_kind_of GSL::Vector, vt
+  end
+
+  # Test sumsq, prod
+  def test_sumsq
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    assert_in_delta 14.0, v.sumsq, 1e-10  # 1 + 4 + 9
+  end
+
+  def test_prod
+    v = GSL::Vector.alloc(2.0, 3.0, 4.0)
+    assert_in_delta 24.0, v.prod, 1e-10  # 2 * 3 * 4
+  end
+
+  # Test connect
+  def test_connect
+    v1 = GSL::Vector.alloc(1.0, 2.0)
+    v2 = GSL::Vector.alloc(3.0, 4.0)
+    result = v1.connect(v2)
+    assert_equal [1.0, 2.0, 3.0, 4.0], result.to_a
+  end
+
+  def test_connect_multiple
+    v1 = GSL::Vector.alloc(1.0)
+    v2 = GSL::Vector.alloc(2.0)
+    v3 = GSL::Vector.alloc(3.0)
+    result = v1.connect(v2, v3)
+    assert_equal [1.0, 2.0, 3.0], result.to_a
+  end
+
+  # Test sgn
+  def test_sgn
+    v = GSL::Vector.alloc(-2.0, 0.0, 3.0)
+    result = v.sgn
+    assert_equal [-1.0, 0.0, 1.0], result.to_a
+  end
+
+  # Test square, sqrt
+  def test_square
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    result = v.square
+    assert_equal [1.0, 4.0, 9.0], result.to_a
+  end
+
+  def test_sqrt
+    v = GSL::Vector.alloc(1.0, 4.0, 9.0)
+    result = v.sqrt
+    assert_equal [1.0, 2.0, 3.0], result.to_a
+  end
+
+  # Test memcpy
+  def test_memcpy
+    src = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    dest = GSL::Vector.alloc(3)
+    GSL::Vector.memcpy(dest, src)
+    assert_equal [1.0, 2.0, 3.0], dest.to_a
+  end
+
+  # Test swap
+  def test_swap
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    w = GSL::Vector.alloc(4.0, 5.0, 6.0)
+    GSL::Vector.swap(v, w)
+    assert_equal [4.0, 5.0, 6.0], v.to_a
+    assert_equal [1.0, 2.0, 3.0], w.to_a
+  end
+
+  # Test maxmin
+  def test_maxmin
+    v = GSL::Vector.alloc(3.0, 1.0, 4.0, 1.5, 2.0)
+    max, min = v.maxmin
+    assert_in_delta 4.0, max, 1e-10
+    assert_in_delta 1.0, min, 1e-10
+  end
+
+  def test_maxmin_index
+    v = GSL::Vector.alloc(3.0, 1.0, 4.0, 1.5, 2.0)
+    imax, imin = v.maxmin_index
+    assert_equal 2, imax
+    assert_equal 1, imin
+  end
+
+  # Test unary plus
+  def test_uplus
+    v = GSL::Vector.alloc(1.0, -2.0, 3.0)
+    result = +v
+    assert_equal [1.0, -2.0, 3.0], result.to_a
+    # Note: +v may return self in some implementations
+  end
+
+  # Test owner
+  def test_owner
+    v = GSL::Vector.alloc(5)
+    assert_equal 1, v.owner
+  end
+
+  # Test get with range
+  def test_get_with_range
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0, 5.0)
+    result = v[1..3]
+    assert_equal [2.0, 3.0, 4.0], result.to_a
+  end
+
+  # Test set with index and value
+  def test_set_index_value
+    v = GSL::Vector.alloc(5)
+    v.set(0, 1.0)
+    v.set(1, 2.0)
+    v.set(2, 3.0)
+    assert_in_delta 1.0, v[0], 1e-10
+    assert_in_delta 2.0, v[1], 1e-10
+    assert_in_delta 3.0, v[2], 1e-10
+  end
+
+  # Test file I/O
+  def test_fwrite_fread
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    filename = "/tmp/test_vector_#{$$}.bin"
+    begin
+      File.open(filename, 'wb') { |f| v.fwrite(f) }
+      v2 = GSL::Vector.alloc(3)
+      File.open(filename, 'rb') { |f| v2.fread(f) }
+      assert_equal v.to_a, v2.to_a
+    ensure
+      File.delete(filename) if File.exist?(filename)
+    end
+  end
+
+  # Test fprintf/fscanf
+  def test_fprintf_fscanf
+    v = GSL::Vector.alloc(1.5, 2.5, 3.5)
+    filename = "/tmp/test_vector_#{$$}.txt"
+    begin
+      File.open(filename, 'w') { |f| v.fprintf(f, "%.1f") }
+      v2 = GSL::Vector.alloc(3)
+      File.open(filename, 'r') { |f| v2.fscanf(f) }
+      3.times { |i| assert_in_delta v[i], v2[i], 0.1 }
+    ensure
+      File.delete(filename) if File.exist?(filename)
+    end
+  end
+
+  # Test negate
+  def test_negate
+    v = GSL::Vector.alloc(1.0, -2.0, 3.0)
+    result = -v
+    assert_equal [-1.0, 2.0, -3.0], result.to_a
+  end
+
+  # Test to_poly
+  def test_to_poly
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    p = v.to_poly
+    assert_kind_of GSL::Poly, p
+  end
+
+  # Test power
+  def test_power
+    v = GSL::Vector.alloc(2.0, 3.0, 4.0)
+    result = v ** 2
+    assert_equal [4.0, 9.0, 16.0], result.to_a
+  end
+
+  # Test Vector::Int additional methods
+  def test_int_sum
+    v = GSL::Vector::Int.alloc(1, 2, 3, 4, 5)
+    assert_equal 15, v.sum
+  end
+
+  def test_int_sumsq
+    v = GSL::Vector::Int.alloc(1, 2, 3)
+    assert_equal 14, v.sumsq  # 1 + 4 + 9
+  end
+
+  def test_int_prod
+    v = GSL::Vector::Int.alloc(2, 3, 4)
+    assert_equal 24, v.prod
+  end
+
+  def test_int_swap_elements
+    v = GSL::Vector::Int.alloc(1, 2, 3)
+    v.swap_elements(0, 2)
+    assert_equal [3, 2, 1], v.to_a
+  end
+
+  def test_int_reverse
+    v = GSL::Vector::Int.alloc(1, 2, 3, 4)
+    v.reverse!
+    assert_equal [4, 3, 2, 1], v.to_a
+  end
+
+  def test_int_connect
+    v1 = GSL::Vector::Int.alloc(1, 2)
+    v2 = GSL::Vector::Int.alloc(3, 4)
+    result = v1.connect(v2)
+    assert_equal [1, 2, 3, 4], result.to_a
+  end
+
+  def test_int_each
+    v = GSL::Vector::Int.alloc(1, 2, 3)
+    values = []
+    v.each { |x| values << x }
+    assert_equal [1, 2, 3], values
+  end
+
+  def test_int_set_all
+    v = GSL::Vector::Int.alloc(5)
+    v.set_all(7)
+    assert_equal [7, 7, 7, 7, 7], v.to_a
+  end
+
+  def test_int_set_zero
+    v = GSL::Vector::Int.alloc(1, 2, 3)
+    v.set_zero
+    assert_equal [0, 0, 0], v.to_a
+  end
+
+  def test_int_set_basis
+    v = GSL::Vector::Int.alloc(5)
+    v.set_basis(2)
+    assert_equal [0, 0, 1, 0, 0], v.to_a
+  end
+
+  def test_int_isnull
+    v = GSL::Vector::Int.alloc(0, 0, 0)
+    assert v.isnull?
+    v[0] = 1
+    refute v.isnull?
+  end
+
 end
