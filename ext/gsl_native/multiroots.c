@@ -536,28 +536,32 @@ static VALUE rb_gsl_multiroot_fsolver_root(VALUE obj)
 {
   gsl_multiroot_fsolver *s = NULL;
   TypedData_Get_Struct(obj, gsl_multiroot_fsolver, &gsl_multiroot_fsolver_data_type, s);
-  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, gsl_multiroot_fsolver_root(s));
+  /* Use tmp type: vector is owned by solver and must not be freed by Ruby */
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_tmp_data_type, gsl_multiroot_fsolver_root(s));
 }
 
 static VALUE rb_gsl_multiroot_fsolver_x(VALUE obj)
 {
   gsl_multiroot_fsolver *s = NULL;
   TypedData_Get_Struct(obj, gsl_multiroot_fsolver, &gsl_multiroot_fsolver_data_type, s);
-  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, s->x);
+  /* Use tmp type: vector is owned by solver and must not be freed by Ruby */
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_tmp_data_type, s->x);
 }
 
 static VALUE rb_gsl_multiroot_fsolver_dx(VALUE obj)
 {
   gsl_multiroot_fsolver *s = NULL;
   TypedData_Get_Struct(obj, gsl_multiroot_fsolver, &gsl_multiroot_fsolver_data_type, s);
-  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, s->dx);
+  /* Use tmp type: vector is owned by solver and must not be freed by Ruby */
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_tmp_data_type, s->dx);
 }
 
 static VALUE rb_gsl_multiroot_fsolver_f(VALUE obj)
 {
   gsl_multiroot_fsolver *s = NULL;
   TypedData_Get_Struct(obj, gsl_multiroot_fsolver, &gsl_multiroot_fsolver_data_type, s);
-  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, s->f);
+  /* Use tmp type: vector is owned by solver and must not be freed by Ruby */
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_tmp_data_type, s->f);
 }
 
 static VALUE rb_gsl_multiroot_fsolver_test_delta(VALUE obj, VALUE ea, VALUE er)
@@ -628,28 +632,32 @@ static VALUE rb_gsl_multiroot_fdfsolver_root(VALUE obj)
 {
   gsl_multiroot_fdfsolver *s = NULL;
   TypedData_Get_Struct(obj, gsl_multiroot_fdfsolver, &gsl_multiroot_fdfsolver_data_type, s);
-  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, gsl_multiroot_fdfsolver_root(s));
+  /* Use tmp type: vector is owned by solver and must not be freed by Ruby */
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_tmp_data_type, gsl_multiroot_fdfsolver_root(s));
 }
 
 static VALUE rb_gsl_multiroot_fdfsolver_x(VALUE obj)
 {
   gsl_multiroot_fdfsolver *s = NULL;
   TypedData_Get_Struct(obj, gsl_multiroot_fdfsolver, &gsl_multiroot_fdfsolver_data_type, s);
-  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, s->x);
+  /* Use tmp type: vector is owned by solver and must not be freed by Ruby */
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_tmp_data_type, s->x);
 }
 
 static VALUE rb_gsl_multiroot_fdfsolver_dx(VALUE obj)
 {
   gsl_multiroot_fdfsolver *s = NULL;
   TypedData_Get_Struct(obj, gsl_multiroot_fdfsolver, &gsl_multiroot_fdfsolver_data_type, s);
-  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, s->dx);
+  /* Use tmp type: vector is owned by solver and must not be freed by Ruby */
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_tmp_data_type, s->dx);
 }
 
 static VALUE rb_gsl_multiroot_fdfsolver_f(VALUE obj)
 {
   gsl_multiroot_fdfsolver *s = NULL;
   TypedData_Get_Struct(obj, gsl_multiroot_fdfsolver, &gsl_multiroot_fdfsolver_data_type, s);
-  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, s->f);
+  /* Use tmp type: vector is owned by solver and must not be freed by Ruby */
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_tmp_data_type, s->f);
 }
 
 static VALUE rb_gsl_multiroot_fdfsolver_J(VALUE obj)

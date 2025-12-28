@@ -535,7 +535,8 @@ static VALUE rb_gsl_fdfminimizer_x(VALUE obj)
   gsl_vector *x = NULL;
   TypedData_Get_Struct(obj, gsl_multimin_fdfminimizer, &gsl_multimin_fdfminimizer_data_type, gmf);
   x = gsl_multimin_fdfminimizer_x(gmf);
-  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, x);
+  /* Use tmp type: vector is owned by minimizer and must not be freed by Ruby */
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_tmp_data_type, x);
 }
 
 static VALUE rb_gsl_fdfminimizer_gradient(VALUE obj)
@@ -544,7 +545,8 @@ static VALUE rb_gsl_fdfminimizer_gradient(VALUE obj)
   gsl_vector *gradient = NULL;
   TypedData_Get_Struct(obj, gsl_multimin_fdfminimizer, &gsl_multimin_fdfminimizer_data_type, gmf);
   gradient = gsl_multimin_fdfminimizer_gradient(gmf);
-  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, gradient);
+  /* Use tmp type: vector is owned by minimizer and must not be freed by Ruby */
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_tmp_data_type, gradient);
 }
 
 static VALUE rb_gsl_fdfminimizer_minimum(VALUE obj)
@@ -664,7 +666,8 @@ static VALUE rb_gsl_fminimizer_x(VALUE obj)
   gsl_vector *x = NULL;
   TypedData_Get_Struct(obj, gsl_multimin_fminimizer, &gsl_multimin_fminimizer_data_type, gmf);
   x = gsl_multimin_fminimizer_x(gmf);
-  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_data_type, x);
+  /* Use tmp type: vector is owned by minimizer and must not be freed by Ruby */
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_tmp_data_type, x);
 }
 
 static VALUE rb_gsl_fminimizer_minimum(VALUE obj)
