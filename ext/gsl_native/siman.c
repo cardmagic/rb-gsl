@@ -16,6 +16,7 @@
 #include "include/rb_gsl_function.h"
 #include "include/rb_gsl_rng.h"
 #include "include/rb_gsl_common.h"
+#include "include/rb_gsl_types.h"
 
 static VALUE cgsl_siman_Efunc;
 static VALUE cgsl_siman_step;
@@ -63,12 +64,22 @@ static void gsl_siman_solver_free(siman_solver *ss)
   free((siman_solver *) ss);
 }
 
+static const rb_data_type_t siman_solver_data_type = {
+    .wrap_struct_name = "GSL::Siman::Solver",
+    .function = {
+        .dmark = (void (*)(void *))gsl_siman_solver_mark,
+        .dfree = (void (*)(void *))gsl_siman_solver_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
 static VALUE rb_gsl_siman_solver_new(int argc, VALUE *argv, VALUE klass)
 {
   siman_solver *ss = NULL;
   if (argc == 1) ss = gsl_siman_solver_alloc(FIX2INT(argv[0]));
   else ss = gsl_siman_solver_alloc(0);
-  return Data_Wrap_Struct(klass, gsl_siman_solver_mark, gsl_siman_solver_free, ss);
+  return TypedData_Wrap_Struct(klass, &siman_solver_data_type, ss);
 }
 
 /***** siman_Efunc *****/
@@ -101,12 +112,22 @@ static void siman_Efunc_free(siman_Efunc *se)
   free((siman_Efunc *) se);
 }
 
+static const rb_data_type_t siman_Efunc_data_type = {
+    .wrap_struct_name = "GSL::Siman::Efunc",
+    .function = {
+        .dmark = (void (*)(void *))siman_Efunc_mark,
+        .dfree = (void (*)(void *))siman_Efunc_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
 static VALUE rb_gsl_siman_Efunc_new(int argc, VALUE *argv, VALUE klass)
 {
   VALUE obj;
   siman_Efunc *se = NULL;
   se = siman_Efunc_alloc();
-  obj = Data_Wrap_Struct(klass, siman_Efunc_mark, siman_Efunc_free, se);
+  obj = TypedData_Wrap_Struct(klass, &siman_Efunc_data_type, se);
   rb_gsl_siman_Efunc_set(argc, argv, obj);
   return obj;
 }
@@ -125,7 +146,7 @@ static double rb_gsl_siman_Efunc_t(void *data)
 static VALUE rb_gsl_siman_Efunc_set(int argc, VALUE *argv, VALUE obj)
 {
   siman_Efunc *se = NULL;
-  Data_Get_Struct(obj, siman_Efunc, se);
+  TypedData_Get_Struct(obj, siman_Efunc, &siman_Efunc_data_type, se);
   switch (argc) {
   case 0:
     if (rb_block_given_p()) se->proc = rb_block_proc();
@@ -206,12 +227,22 @@ static void siman_print_free(siman_print *se)
   free((siman_print *) se);
 }
 
+static const rb_data_type_t siman_print_data_type = {
+    .wrap_struct_name = "GSL::Siman::Print",
+    .function = {
+        .dmark = (void (*)(void *))siman_print_mark,
+        .dfree = (void (*)(void *))siman_print_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
 static VALUE rb_gsl_siman_print_new(int argc, VALUE *argv, VALUE klass)
 {
   VALUE obj;
   siman_print *se = NULL;
   se = siman_print_alloc();
-  obj = Data_Wrap_Struct(klass, siman_print_mark, siman_print_free, se);
+  obj = TypedData_Wrap_Struct(klass, &siman_print_data_type, se);
   rb_gsl_siman_print_set(argc, argv, obj);
   return obj;
 }
@@ -230,7 +261,7 @@ static void rb_gsl_siman_print_t(void *data)
 static VALUE rb_gsl_siman_print_set(int argc, VALUE *argv, VALUE obj)
 {
   siman_print *se = NULL;
-  Data_Get_Struct(obj, siman_print, se);
+  TypedData_Get_Struct(obj, siman_print, &siman_print_data_type, se);
   switch (argc) {
   case 0:
     if (rb_block_given_p()) se->proc = rb_block_proc();
@@ -274,12 +305,22 @@ static void siman_step_free(siman_step *se)
   free((siman_step *) se);
 }
 
+static const rb_data_type_t siman_step_data_type = {
+    .wrap_struct_name = "GSL::Siman::Step",
+    .function = {
+        .dmark = (void (*)(void *))siman_step_mark,
+        .dfree = (void (*)(void *))siman_step_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
 static VALUE rb_gsl_siman_step_new(int argc, VALUE *argv, VALUE klass)
 {
   VALUE obj;
   siman_step *se = NULL;
   se = siman_step_alloc();
-  obj = Data_Wrap_Struct(klass, siman_step_mark, siman_step_free, se);
+  obj = TypedData_Wrap_Struct(klass, &siman_step_data_type, se);
   rb_gsl_siman_step_set(argc, argv, obj);
   return obj;
 }
@@ -299,7 +340,7 @@ static void rb_gsl_siman_step_t(const gsl_rng *r, void *data, double step_size)
 static VALUE rb_gsl_siman_step_set(int argc, VALUE *argv, VALUE obj)
 {
   siman_step *se = NULL;
-  Data_Get_Struct(obj, siman_step, se);
+  TypedData_Get_Struct(obj, siman_step, &siman_step_data_type, se);
   switch (argc) {
   case 0:
     if (rb_block_given_p()) se->proc = rb_block_proc();
@@ -344,12 +385,22 @@ static void siman_metric_free(siman_metric *se)
   free((siman_metric *) se);
 }
 
+static const rb_data_type_t siman_metric_data_type = {
+    .wrap_struct_name = "GSL::Siman::Metric",
+    .function = {
+        .dmark = (void (*)(void *))siman_metric_mark,
+        .dfree = (void (*)(void *))siman_metric_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
 static VALUE rb_gsl_siman_metric_new(int argc, VALUE *argv, VALUE klass)
 {
   VALUE obj;
   siman_metric *se = NULL;
   se = siman_metric_alloc();
-  obj = Data_Wrap_Struct(klass, siman_metric_mark, siman_metric_free, se);
+  obj = TypedData_Wrap_Struct(klass, &siman_metric_data_type, se);
   rb_gsl_siman_metric_set(argc, argv, obj);
   return obj;
 }
@@ -370,7 +421,7 @@ static double rb_gsl_siman_metric_t(void *data, void *yp)
 static VALUE rb_gsl_siman_metric_set(int argc, VALUE *argv, VALUE obj)
 {
   siman_metric *se = NULL;
-  Data_Get_Struct(obj, siman_metric, se);
+  TypedData_Get_Struct(obj, siman_metric, &siman_metric_data_type, se);
   switch (argc) {
   case 0:
     if (rb_block_given_p()) se->proc = rb_block_proc();
@@ -400,6 +451,16 @@ static void gsl_siman_params_free(gsl_siman_params_t *params)
   free((gsl_siman_params_t *) params);
 }
 
+static const rb_data_type_t gsl_siman_params_data_type = {
+    .wrap_struct_name = "GSL::Siman::Params",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))gsl_siman_params_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
 static VALUE rb_gsl_siman_params_set(int argc, VALUE *argv, VALUE obj);
 
 static VALUE rb_gsl_siman_params_new(int argc, VALUE *argv, VALUE klass)
@@ -407,7 +468,7 @@ static VALUE rb_gsl_siman_params_new(int argc, VALUE *argv, VALUE klass)
   gsl_siman_params_t *params = NULL;
   VALUE obj;
   params = gsl_siman_params_alloc();
-  obj = Data_Wrap_Struct(klass, 0, gsl_siman_params_free, params);
+  obj = TypedData_Wrap_Struct(klass, &gsl_siman_params_data_type, params);
   rb_gsl_siman_params_set(argc, argv, obj);
   return obj;
 }
@@ -415,7 +476,7 @@ static VALUE rb_gsl_siman_params_new(int argc, VALUE *argv, VALUE klass)
 static VALUE rb_gsl_siman_params_set(int argc, VALUE *argv, VALUE obj)
 {
   gsl_siman_params_t *params = NULL;
-  Data_Get_Struct(obj, gsl_siman_params_t, params);
+  TypedData_Get_Struct(obj, gsl_siman_params_t, &gsl_siman_params_data_type, params);
   switch (argc) {
   case 7:
     params->t_min = NUM2DBL(argv[6]);
@@ -444,14 +505,14 @@ static VALUE rb_gsl_siman_params_set(int argc, VALUE *argv, VALUE obj)
 static VALUE rb_gsl_siman_params_n_tries(VALUE obj)
 {
   gsl_siman_params_t *params = NULL;
-  Data_Get_Struct(obj, gsl_siman_params_t, params);
+  TypedData_Get_Struct(obj, gsl_siman_params_t, &gsl_siman_params_data_type, params);
   return INT2FIX(params->n_tries);
 }
 
 static VALUE rb_gsl_siman_params_set_n_tries(VALUE obj, VALUE n)
 {
   gsl_siman_params_t *params = NULL;
-  Data_Get_Struct(obj, gsl_siman_params_t, params);
+  TypedData_Get_Struct(obj, gsl_siman_params_t, &gsl_siman_params_data_type, params);
   params->n_tries = NUM2INT(n);
   return obj;
 }
@@ -459,14 +520,14 @@ static VALUE rb_gsl_siman_params_set_n_tries(VALUE obj, VALUE n)
 static VALUE rb_gsl_siman_params_iters_fixed_T(VALUE obj)
 {
   gsl_siman_params_t *params = NULL;
-  Data_Get_Struct(obj, gsl_siman_params_t, params);
+  TypedData_Get_Struct(obj, gsl_siman_params_t, &gsl_siman_params_data_type, params);
   return INT2FIX(params->iters_fixed_T);
 }
 
 static VALUE rb_gsl_siman_params_set_iters_fixed_T(VALUE obj, VALUE n)
 {
   gsl_siman_params_t *params = NULL;
-  Data_Get_Struct(obj, gsl_siman_params_t, params);
+  TypedData_Get_Struct(obj, gsl_siman_params_t, &gsl_siman_params_data_type, params);
   params->iters_fixed_T = NUM2INT(n);
   return obj;
 }
@@ -474,14 +535,14 @@ static VALUE rb_gsl_siman_params_set_iters_fixed_T(VALUE obj, VALUE n)
 static VALUE rb_gsl_siman_params_step_size(VALUE obj)
 {
   gsl_siman_params_t *params = NULL;
-  Data_Get_Struct(obj, gsl_siman_params_t, params);
+  TypedData_Get_Struct(obj, gsl_siman_params_t, &gsl_siman_params_data_type, params);
   return rb_float_new(params->step_size);
 }
 
 static VALUE rb_gsl_siman_params_set_step_size(VALUE obj, VALUE s)
 {
   gsl_siman_params_t *params = NULL;
-  Data_Get_Struct(obj, gsl_siman_params_t, params);
+  TypedData_Get_Struct(obj, gsl_siman_params_t, &gsl_siman_params_data_type, params);
   params->step_size = NUM2DBL(s);
   return obj;
 }
@@ -489,14 +550,14 @@ static VALUE rb_gsl_siman_params_set_step_size(VALUE obj, VALUE s)
 static VALUE rb_gsl_siman_params_k(VALUE obj)
 {
   gsl_siman_params_t *params = NULL;
-  Data_Get_Struct(obj, gsl_siman_params_t, params);
+  TypedData_Get_Struct(obj, gsl_siman_params_t, &gsl_siman_params_data_type, params);
   return rb_float_new(params->k);
 }
 
 static VALUE rb_gsl_siman_params_set_k(VALUE obj, VALUE s)
 {
   gsl_siman_params_t *params = NULL;
-  Data_Get_Struct(obj, gsl_siman_params_t, params);
+  TypedData_Get_Struct(obj, gsl_siman_params_t, &gsl_siman_params_data_type, params);
   params->k = NUM2DBL(s);
   return obj;
 }
@@ -504,14 +565,14 @@ static VALUE rb_gsl_siman_params_set_k(VALUE obj, VALUE s)
 static VALUE rb_gsl_siman_params_t_initial(VALUE obj)
 {
   gsl_siman_params_t *params = NULL;
-  Data_Get_Struct(obj, gsl_siman_params_t, params);
+  TypedData_Get_Struct(obj, gsl_siman_params_t, &gsl_siman_params_data_type, params);
   return rb_float_new(params->t_initial);
 }
 
 static VALUE rb_gsl_siman_params_set_t_initial(VALUE obj, VALUE s)
 {
   gsl_siman_params_t *params = NULL;
-  Data_Get_Struct(obj, gsl_siman_params_t, params);
+  TypedData_Get_Struct(obj, gsl_siman_params_t, &gsl_siman_params_data_type, params);
   params->t_initial = NUM2DBL(s);
   return obj;
 }
@@ -519,14 +580,14 @@ static VALUE rb_gsl_siman_params_set_t_initial(VALUE obj, VALUE s)
 static VALUE rb_gsl_siman_params_mu_t(VALUE obj)
 {
   gsl_siman_params_t *params = NULL;
-  Data_Get_Struct(obj, gsl_siman_params_t, params);
+  TypedData_Get_Struct(obj, gsl_siman_params_t, &gsl_siman_params_data_type, params);
   return rb_float_new(params->mu_t);
 }
 
 static VALUE rb_gsl_siman_params_set_mu_t(VALUE obj, VALUE s)
 {
   gsl_siman_params_t *params = NULL;
-  Data_Get_Struct(obj, gsl_siman_params_t, params);
+  TypedData_Get_Struct(obj, gsl_siman_params_t, &gsl_siman_params_data_type, params);
   params->mu_t = NUM2DBL(s);
   return obj;
 }
@@ -534,14 +595,14 @@ static VALUE rb_gsl_siman_params_set_mu_t(VALUE obj, VALUE s)
 static VALUE rb_gsl_siman_params_t_min(VALUE obj)
 {
   gsl_siman_params_t *params = NULL;
-  Data_Get_Struct(obj, gsl_siman_params_t, params);
+  TypedData_Get_Struct(obj, gsl_siman_params_t, &gsl_siman_params_data_type, params);
   return rb_float_new(params->t_min);
 }
 
 static VALUE rb_gsl_siman_params_set_t_min(VALUE obj, VALUE s)
 {
   gsl_siman_params_t *params = NULL;
-  Data_Get_Struct(obj, gsl_siman_params_t, params);
+  TypedData_Get_Struct(obj, gsl_siman_params_t, &gsl_siman_params_data_type, params);
   params->t_min = NUM2DBL(s);
   return obj;
 }
@@ -549,7 +610,7 @@ static VALUE rb_gsl_siman_params_set_t_min(VALUE obj, VALUE s)
 static VALUE rb_gsl_siman_params_params(VALUE obj)
 {
   gsl_siman_params_t *params = NULL;
-  Data_Get_Struct(obj, gsl_siman_params_t, params);
+  TypedData_Get_Struct(obj, gsl_siman_params_t, &gsl_siman_params_data_type, params);
   return rb_ary_new3(7, INT2FIX(params->n_tries), INT2FIX(params->iters_fixed_T),
                      rb_float_new(params->step_size), rb_float_new(params->k),
                      rb_float_new(params->t_initial), rb_float_new(params->mu_t),
@@ -583,7 +644,7 @@ static VALUE rb_gsl_siman_solver_solve(VALUE obj, VALUE rng,
     flag = 1;
     break;
   default:
-    Data_Get_Struct(obj, siman_solver, ss);
+    TypedData_Get_Struct(obj, siman_solver, &siman_solver_data_type, ss);
   }
   if (!rb_obj_is_kind_of(rng, cgsl_rng))
     rb_raise(rb_eTypeError, "wrong argument type %s (GSL::Rng expected)",
@@ -598,22 +659,22 @@ static VALUE rb_gsl_siman_solver_solve(VALUE obj, VALUE rng,
     rb_raise(rb_eTypeError, "wrong argument type %s (GSL::Siman::Metric expected)",
              rb_class2name(CLASS_OF(vmetric)));
   TypedData_Get_Struct(rng, gsl_rng, &gsl_rng_data_type, r);
-  Data_Get_Struct(vefunc, siman_Efunc, efunc);
-  Data_Get_Struct(vstep, siman_step, step);
-  Data_Get_Struct(vmetric, siman_metric, metric);
+  TypedData_Get_Struct(vefunc, siman_Efunc, &siman_Efunc_data_type, efunc);
+  TypedData_Get_Struct(vstep, siman_step, &siman_step_data_type, step);
+  TypedData_Get_Struct(vmetric, siman_metric, &siman_metric_data_type, metric);
   if (NIL_P(vprint)) {
     ss->proc_print = Qnil;
   } else {
     if (!rb_obj_is_kind_of(vprint, cgsl_siman_print))
       rb_raise(rb_eTypeError, "wrong argument type %s (GSL::Siman::Print expected)",
                rb_class2name(CLASS_OF(vprint)));
-    Data_Get_Struct(vprint, siman_print, print);
+    TypedData_Get_Struct(vprint, siman_print, &siman_print_data_type, print);
     ss->proc_print   = print->proc;
   }
   if (!rb_obj_is_kind_of(vparams, cgsl_siman_params))
     rb_raise(rb_eTypeError, "wrong argument type %s (GSL::Siman::Params expected)",
              rb_class2name(CLASS_OF(vparams)));
-  Data_Get_Struct(vparams, gsl_siman_params_t, params);
+  TypedData_Get_Struct(vparams, gsl_siman_params_t, &gsl_siman_params_data_type, params);
 
   ss->proc_efunc   = efunc->proc;
   ss->proc_step    = step->proc;
