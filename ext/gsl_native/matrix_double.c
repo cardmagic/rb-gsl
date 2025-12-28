@@ -196,15 +196,15 @@ static VALUE rb_gsl_matrix_mul(VALUE obj, VALUE bb)
   gsl_matrix_complex *mc, *mcb, *mcnew;
   gsl_vector_complex *vc, *vcnew;
   gsl_complex za, zb;
-  TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
+  Data_Get_Matrix(obj, m);
   if (VECTOR_INT_P(bb)) bb = rb_gsl_vector_int_to_f(bb);
   if (MATRIX_P(bb)) {
-    TypedData_Get_Struct(bb, gsl_matrix, &gsl_matrix_data_type, b);
+    Data_Get_Matrix(bb, b);
     mnew = gsl_matrix_alloc(m->size1, b->size2);
     gsl_linalg_matmult(m, b, mnew);
     return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
   } else if (VECTOR_P(bb)) {
-    TypedData_Get_Struct(bb, gsl_vector, &gsl_vector_data_type, v);
+    Data_Get_Vector(bb, v);
     //    vnew = gsl_vector_alloc(v->size);
     //    printf("%d %d\n", m->size1, m->size2);
     vnew = gsl_vector_alloc(m->size1);
@@ -245,16 +245,16 @@ static VALUE rb_gsl_matrix_mul_bang(VALUE obj, VALUE bb)
 {
   gsl_matrix *m = NULL, *b = NULL, *mtmp = NULL;
   gsl_vector *v = NULL, *vnew = NULL;
-  TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
+  Data_Get_Matrix(obj, m);
   if (MATRIX_P(bb)) {
-    TypedData_Get_Struct(bb, gsl_matrix, &gsl_matrix_data_type, b);
+    Data_Get_Matrix(bb, b);
     mtmp = gsl_matrix_alloc(m->size1, b->size2);
     gsl_linalg_matmult(m, b, mtmp);
     gsl_matrix_memcpy(m, mtmp);
     gsl_matrix_free(mtmp);
     return obj;
   } else if (VECTOR_P(bb)) {
-    TypedData_Get_Struct(bb, gsl_vector, &gsl_vector_data_type, v);
+    Data_Get_Vector(bb, v);
     vnew = gsl_vector_alloc(v->size);
     if (vnew == NULL) rb_raise(rb_eNoMemError, "gsl_vector_alloc failed");
     gsl_matrix_mul_vector(vnew, m, v);

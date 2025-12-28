@@ -331,4 +331,177 @@ class ViewCompatibilityTest < GSL::TestCase
     assert_rel result, expected, DBLEPS, 'dnrm2 with row view'
   end
 
+  # ==========================================================================
+  # TypedData Migration: Vector Operations with Views
+  # ==========================================================================
+
+  def test_vector_view_set_element
+    v = GSL::Vector.alloc(1, 2, 3, 4, 5)
+    view = v.subvector(1, 3)  # [2, 3, 4]
+
+    # Setting through view should modify original
+    view[1] = 99  # Set middle element
+    assert_rel v[2], 99.0, DBLEPS, 'set element through view modifies original'
+  end
+
+  def test_vector_view_set_all
+    v = GSL::Vector.alloc(1, 2, 3, 4, 5)
+    view = v.subvector(1, 3)  # [2, 3, 4]
+
+    view.set_all(7)
+    assert_rel v[1], 7.0, DBLEPS, 'set_all through view [0]'
+    assert_rel v[2], 7.0, DBLEPS, 'set_all through view [1]'
+    assert_rel v[3], 7.0, DBLEPS, 'set_all through view [2]'
+    # Original elements outside view unchanged
+    assert_rel v[0], 1.0, DBLEPS, 'set_all did not modify outside view [0]'
+    assert_rel v[4], 5.0, DBLEPS, 'set_all did not modify outside view [4]'
+  end
+
+  def test_vector_view_memcpy
+    src = GSL::Vector.alloc(10, 20, 30, 0, 0)
+    dst = GSL::Vector.alloc(0, 0, 0, 0, 0)
+    src_view = src.subvector(0, 3)
+    dst_view = dst.subvector(1, 3)
+
+    GSL::Vector.memcpy(dst_view, src_view)
+    assert_rel dst[1], 10.0, DBLEPS, 'memcpy with views dst[1]'
+    assert_rel dst[2], 20.0, DBLEPS, 'memcpy with views dst[2]'
+    assert_rel dst[3], 30.0, DBLEPS, 'memcpy with views dst[3]'
+    assert_rel dst[0], 0.0, DBLEPS, 'memcpy did not modify outside view'
+  end
+
+  def test_vector_view_each
+    v = GSL::Vector.alloc(1, 2, 3, 4, 5)
+    view = v.subvector(1, 3)  # [2, 3, 4]
+
+    collected = []
+    view.each { |x| collected << x }
+    assert_equal [2, 3, 4], collected, 'each iterates over view correctly'
+  end
+
+  def test_vector_view_reverse_each
+    v = GSL::Vector.alloc(1, 2, 3, 4, 5)
+    view = v.subvector(1, 3)  # [2, 3, 4]
+
+    collected = []
+    view.reverse_each { |x| collected << x }
+    assert_equal [4, 3, 2], collected, 'reverse_each iterates over view correctly'
+  end
+
+  def test_vector_view_clone
+    v = GSL::Vector.alloc(1, 2, 3, 4, 5)
+    view = v.subvector(1, 3)  # [2, 3, 4]
+
+    cloned = view.clone
+    assert_kind_of GSL::Vector, cloned, 'clone of view is a Vector'
+    assert_equal 3, cloned.size, 'cloned view has correct size'
+    assert_rel cloned[0], 2.0, DBLEPS, 'cloned view has correct data [0]'
+    assert_rel cloned[1], 3.0, DBLEPS, 'cloned view has correct data [1]'
+    assert_rel cloned[2], 4.0, DBLEPS, 'cloned view has correct data [2]'
+
+    # Modifying clone should not affect original
+    cloned[0] = 99
+    assert_rel v[1], 2.0, DBLEPS, 'modifying clone does not affect original'
+  end
+
+  def test_vector_view_swap
+    v1 = GSL::Vector.alloc(1, 2, 3, 4, 5)
+    v2 = GSL::Vector.alloc(10, 20, 30, 40, 50)
+    view1 = v1.subvector(1, 3)  # [2, 3, 4]
+    view2 = v2.subvector(1, 3)  # [20, 30, 40]
+
+    GSL::Vector.swap(view1, view2)
+    assert_rel v1[1], 20.0, DBLEPS, 'swap with views v1[1]'
+    assert_rel v2[1], 2.0, DBLEPS, 'swap with views v2[1]'
+  end
+
+  # ==========================================================================
+  # TypedData Migration: Matrix Operations with Views
+  # ==========================================================================
+
+  def test_matrix_view_set_element
+    m = GSL::Matrix.alloc([1, 2, 3], [4, 5, 6], [7, 8, 9])
+    view = m.submatrix(0, 0, 2, 2)  # Top-left 2x2
+
+    # Setting through view should modify original
+    view.set(0, 1, 99)
+    assert_rel m[0, 1], 99.0, DBLEPS, 'set element through matrix view modifies original'
+  end
+
+  def test_matrix_view_set_all
+    m = GSL::Matrix.alloc([1, 2, 3], [4, 5, 6], [7, 8, 9])
+    view = m.submatrix(0, 0, 2, 2)
+
+    view.set_all(7)
+    assert_rel m[0, 0], 7.0, DBLEPS, 'matrix set_all through view [0,0]'
+    assert_rel m[1, 1], 7.0, DBLEPS, 'matrix set_all through view [1,1]'
+    # Outside view unchanged
+    assert_rel m[2, 2], 9.0, DBLEPS, 'matrix set_all did not modify outside view'
+  end
+
+  def test_matrix_view_transpose
+    m = GSL::Matrix.alloc([1, 2], [3, 4], [5, 6])
+    view = m.submatrix(0, 0, 2, 2)  # Top 2x2
+
+    transposed = view.transpose
+    assert_kind_of GSL::Matrix, transposed, 'transpose of view returns matrix'
+    assert_rel transposed[0, 1], 3.0, DBLEPS, 'transposed view [0,1]'
+    assert_rel transposed[1, 0], 2.0, DBLEPS, 'transposed view [1,0]'
+  end
+
+  def test_matrix_view_mul_vector_view
+    m = GSL::Matrix.alloc([1, 2, 3, 0], [4, 5, 6, 0], [7, 8, 9, 0])
+    m_view = m.submatrix(0, 0, 3, 3)  # 3x3 submatrix
+    v = GSL::Vector.alloc(1, 1, 1, 0)
+    v_view = v.subvector(0, 3)  # [1, 1, 1]
+
+    result = m_view * v_view
+    assert_kind_of GSL::Vector, result, 'matrix view * vector view returns vector'
+    assert_equal 3, result.size, 'result has correct size'
+    # [1,2,3]*[1,1,1] = 6, [4,5,6]*[1,1,1] = 15, [7,8,9]*[1,1,1] = 24
+    assert_rel result[0], 6.0, DBLEPS, 'matrix*vector view result [0]'
+    assert_rel result[1], 15.0, DBLEPS, 'matrix*vector view result [1]'
+    assert_rel result[2], 24.0, DBLEPS, 'matrix*vector view result [2]'
+  end
+
+  # ==========================================================================
+  # TypedData Migration: Stability and Edge Cases
+  # ==========================================================================
+
+  def test_nested_views
+    v = GSL::Vector.alloc(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+    view1 = v.subvector(2, 6)  # [3, 4, 5, 6, 7, 8]
+    # Can't create nested views directly but operations should work
+    norm = GSL::Blas.dnrm2(view1)
+    expected = Math.sqrt(9 + 16 + 25 + 36 + 49 + 64)
+    assert_rel norm, expected, DBLEPS, 'operations on view work correctly'
+  end
+
+  def test_strided_view_operations
+    v = GSL::Vector.alloc(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+    # subvector_with_stride(offset, stride, n)
+    strided_view = v.subvector_with_stride(0, 2, 5)  # [1, 3, 5, 7, 9]
+
+    # Sum should be 25
+    assert_rel strided_view.sum, 25.0, DBLEPS, 'strided view sum'
+    # norm = sqrt(1 + 9 + 25 + 49 + 81) = sqrt(165)
+    norm = GSL::Blas.dnrm2(strided_view)
+    assert_rel norm, Math.sqrt(165), DBLEPS, 'strided view norm'
+  end
+
+  def test_gc_safety_with_views
+    # Create views, let original go out of scope, ensure no crashes
+    view = nil
+    10.times do
+      v = GSL::Vector.alloc(1, 2, 3, 4, 5)
+      view = v.subvector(1, 3)
+      # Force potential GC
+      GC.start
+    end
+    # Operations should still work (if view keeps reference to original)
+    # This may or may not crash depending on implementation
+    # Just ensure no segfault
+    assert true, 'GC with views did not crash'
+  end
+
 end

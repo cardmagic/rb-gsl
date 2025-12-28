@@ -27,6 +27,8 @@
 #define VEC_COL_P VECTOR_COL_P
 #define CHECK_VEC CHECK_VECTOR
 #define VEC_VIEW_P VECTOR_VIEW_P
+#define MAT_VIEW_TYPE gsl_matrix_view
+#define VEC_VIEW_TYPE gsl_vector_view
 #elif defined(BASE_INT)
 #define NUMCONV(x) FIX2INT(x)
 #define NUMCONV2(x) NUM2INT(x)
@@ -45,7 +47,31 @@
 #define VEC_COL_P VECTOR_INT_COL_P
 #define CHECK_VEC CHECK_VECTOR_INT
 #define VEC_VIEW_P VECTOR_INT_VIEW_P
+#define MAT_VIEW_TYPE gsl_matrix_int_view
+#define VEC_VIEW_TYPE gsl_vector_int_view
 #endif
+
+/* View-compatible macro for getting matrix pointer from Ruby object */
+#define Data_Get_Mat(obj, m) do { \
+    CHECK_MAT(obj); \
+    if (MAT_VIEW_P(obj)) { \
+      MAT_VIEW_TYPE *_mv = (MAT_VIEW_TYPE*)RTYPEDDATA_DATA(obj); \
+      m = &_mv->matrix; \
+    } else { \
+      m = (GSL_TYPE(gsl_matrix)*)RTYPEDDATA_DATA(obj); \
+    } \
+} while (0)
+
+/* View-compatible macro for getting vector pointer from Ruby object */
+#define Data_Get_Vec(obj, v) do { \
+    CHECK_VEC(obj); \
+    if (VEC_VIEW_P(obj)) { \
+      VEC_VIEW_TYPE *_vv = (VEC_VIEW_TYPE*)RTYPEDDATA_DATA(obj); \
+      v = &_vv->vector; \
+    } else { \
+      v = (GSL_TYPE(gsl_vector)*)RTYPEDDATA_DATA(obj); \
+    } \
+} while (0)
 
 // From ext/vector_source.c
 void FUNCTION(get_range,beg_en_n)(VALUE range, BASE *beg, BASE *en, size_t *n, int *step);
@@ -244,7 +270,7 @@ void parse_submatrix_args(int argc, VALUE *argv, size_t size1, size_t size2,
 VALUE FUNCTION(rb_gsl_matrix,do_something)(VALUE obj, void (*f)(GSL_TYPE (gsl_matrix) *))
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   (*f)(m);
   return obj;
 }
@@ -407,12 +433,12 @@ GSL_TYPE(gsl_matrix)* FUNCTION(gsl_matrix,alloc_from_vectors)(int argc, VALUE *a
   GSL_TYPE(gsl_vector) *v = NULL;
   if (argc < 1) rb_raise(rb_eArgError, "too few arguments");
   CHECK_VEC(argv[0]);
-  TypedData_Get_Struct(argv[0], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+  Data_Get_Vec(argv[0], v);
   m = FUNCTION(gsl_matrix,alloc)(argc, v->size);
   if (m == NULL) rb_raise(rb_eNoMemError, "gsl_matrix_alloc failed");
   for (i = 0; (int) i < argc; i++) {
     CHECK_VEC(argv[i]);
-    TypedData_Get_Struct(argv[i], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+    Data_Get_Vec(argv[i], v);
     FUNCTION(gsl_matrix,set_row)(m, i, v);
   }
   return m;
@@ -425,13 +451,13 @@ GSL_TYPE(gsl_matrix)* FUNCTION(gsl_matrix,alloc_from_colvectors)(int argc, VALUE
   GSL_TYPE(gsl_vector) *v = NULL;
   if (argc < 1) rb_raise(rb_eArgError, "too few arguments");
   CHECK_VEC(argv[0]);
-  TypedData_Get_Struct(argv[0], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+  Data_Get_Vec(argv[0], v);
 //  m = FUNCTION(gsl_matrix,alloc)(argc, v->size);
   m = FUNCTION(gsl_matrix,alloc)(v->size, argc);
   if (m == NULL) rb_raise(rb_eNoMemError, "gsl_matrix_alloc failed");
   for (i = 0; (int) i < argc; i++) {
     CHECK_VEC(argv[i]);
-    TypedData_Get_Struct(argv[i], GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+    Data_Get_Vec(argv[i], v);
     FUNCTION(gsl_matrix,set_col)(m, i, v);
   }
   return m;
@@ -472,7 +498,7 @@ GSL_TYPE(gsl_matrix)* FUNCTION(gsl_matrix,alloc_from_vector_sizes)(VALUE ary,
   size_t i, j, k;
   CHECK_VEC(ary);
   CHECK_FIXNUM(nn1); CHECK_FIXNUM(nn2);
-  TypedData_Get_Struct(ary, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+  Data_Get_Vec(ary, v);
   n1 = FIX2INT(nn1); n2 = FIX2INT(nn2);
   m = FUNCTION(gsl_matrix,alloc)(n1, n2);
   if (m == NULL) rb_raise(rb_eNoMemError, "gsl_matrix_alloc failed");
@@ -532,7 +558,7 @@ static VALUE FUNCTION(rb_gsl_matrix,diagonal_singleton)(int argc, VALUE *argv, V
       break;
     default:
       CHECK_VEC(ary);
-      TypedData_Get_Struct(ary, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+      Data_Get_Vec(ary, v);
       len = v->size;
       m = FUNCTION(gsl_matrix,calloc)(len, len);
       for (i = 0; i < len; i++) {
@@ -653,21 +679,21 @@ static VALUE FUNCTION(rb_gsl_matrix,identity)(VALUE klass, VALUE nn)
 static VALUE FUNCTION(rb_gsl_matrix,size1)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   return INT2FIX(m->size1);
 }
 
 static VALUE FUNCTION(rb_gsl_matrix,size2)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   return INT2FIX(m->size2);
 }
 
 static VALUE FUNCTION(rb_gsl_matrix,shape)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   return rb_ary_new3(2, INT2FIX(m->size1), INT2FIX(m->size2));
 }
 
@@ -680,7 +706,7 @@ static VALUE FUNCTION(rb_gsl_matrix,get)(int argc, VALUE *argv, VALUE obj)
 
   if(argc == 2 && TYPE(argv[0]) == T_FIXNUM && TYPE(argv[1]) == T_FIXNUM) {
     // m[i,j]
-    TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+    Data_Get_Mat(obj, m);
     ii = FIX2INT(argv[0]);
     ij = FIX2INT(argv[1]);
     if(ii < 0) ii += m->size1;
@@ -688,14 +714,14 @@ static VALUE FUNCTION(rb_gsl_matrix,get)(int argc, VALUE *argv, VALUE obj)
     retval = C_TO_VALUE2(FUNCTION(gsl_matrix,get)(m, (size_t)ii, (size_t)ij));
   } else if(argc == 1 && TYPE(argv[0]) == T_FIXNUM) {
     // m[i]
-    TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+    Data_Get_Mat(obj, m);
     ii = FIX2INT(argv[0]);
     if(ii < 0) ii += m->size1 * m->size2;
     retval = C_TO_VALUE2(FUNCTION(gsl_matrix,get)(m, (size_t)(ii / m->size2), (size_t)(ii % m->size2)));
   } else if(argc == 1 && TYPE(argv[0]) == T_ARRAY) {
     // m[[i,j]], to support m[m.max_index]
     if(RARRAY_LEN(argv[0]) == 2) {
-      TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+      Data_Get_Mat(obj, m);
       ii = FIX2INT(RARRAY_PTR(argv[0])[0]);
       ij = FIX2INT(RARRAY_PTR(argv[0])[1]);
       if(ii < 0) ii += m->size1;
@@ -724,7 +750,7 @@ static VALUE FUNCTION(rb_gsl_matrix,set)(int argc, VALUE *argv, VALUE obj)
   if(argc < 1 || argc > 5) {
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1-5)", argc);
   }
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   other = argv[argc-1];
 
   if(argc == 1 && TYPE(argv[0]) == T_ARRAY) {
@@ -774,7 +800,7 @@ static VALUE FUNCTION(rb_gsl_matrix,set)(int argc, VALUE *argv, VALUE obj)
     mv = FUNCTION(gsl_matrix,submatrix)(m, i, j, n1, n2);
     if(rb_obj_is_kind_of(other, GSL_TYPE(cgsl_matrix))) {
       // m[...] = m_other
-      TypedData_Get_Struct(other, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, mother);
+      Data_Get_Mat(other, mother);
       if(n1 * n2 != mother->size1 * mother->size2) {
         rb_raise(rb_eRangeError, "sizes do not match (%d x %d != %d x %d)",
                  (int) n1, (int) n2, (int) mother->size1, (int) mother->size2);
@@ -824,7 +850,7 @@ static VALUE FUNCTION(rb_gsl_matrix,set)(int argc, VALUE *argv, VALUE obj)
 static VALUE FUNCTION(rb_gsl_matrix,set_all)(VALUE obj, VALUE x)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   FUNCTION(gsl_matrix,set_all)(m, NUMCONV2(x));
   return obj;
 }
@@ -843,7 +869,7 @@ static VALUE FUNCTION(rb_gsl_matrix,print)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
   size_t i, j;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   printf("[ ");
   for (i = 0; i < m->size1; i++) {
     if (i != 0) printf("  ");
@@ -874,7 +900,7 @@ static VALUE FUNCTION(rb_gsl_matrix,to_s)(VALUE obj)
   BASE min;
   BASE max;
 #endif
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
 #ifdef BASE_INT
   min = FUNCTION(gsl_matrix,min)(m);
   max = gsl_matrix_int_max(m);
@@ -946,7 +972,7 @@ static VALUE FUNCTION(rb_gsl_matrix,fprintf)(int argc, VALUE *argv, VALUE obj)
   if (argc != 1 && argc != 2) {
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 2)", argc);
   }
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, h);
+  Data_Get_Mat(obj, h);
   fp = rb_gsl_open_writefile(argv[0], &flag);
   if (argc == 2) {
     Check_Type(argv[1], T_STRING);
@@ -962,7 +988,7 @@ static VALUE FUNCTION(rb_gsl_matrix,printf)(int argc, VALUE *argv, VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *h = NULL;
   int status;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, h);
+  Data_Get_Mat(obj, h);
   if (argc == 1) {
     Check_Type(argv[0], T_STRING);
     status = FUNCTION(gsl_matrix,fprintf)(stdout, h, STR2CSTR(argv[0]));
@@ -978,7 +1004,7 @@ static VALUE FUNCTION(rb_gsl_matrix,fscanf)(VALUE obj, VALUE io)
   GSL_TYPE(gsl_matrix) *h = NULL;
   FILE *fp = NULL;
   int status, flag = 0;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, h);
+  Data_Get_Mat(obj, h);
   fp = rb_gsl_open_readfile(io, &flag);
   status = FUNCTION(gsl_matrix,fscanf)(fp, h);
   if (flag == 1) fclose(fp);
@@ -991,7 +1017,7 @@ static VALUE FUNCTION(rb_gsl_matrix,set_diagonal)(VALUE obj, VALUE diag)
   GSL_TYPE(gsl_vector) *v;
   size_t i, len;
   BASE x;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   switch (TYPE(diag)) {
   case T_FIXNUM: case T_BIGNUM: case T_FLOAT:
     x = (BASE) NUMCONV2(diag);
@@ -1005,7 +1031,7 @@ static VALUE FUNCTION(rb_gsl_matrix,set_diagonal)(VALUE obj, VALUE diag)
     break;
   default:
     if (VEC_P(diag)) {
-      TypedData_Get_Struct(diag, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+      Data_Get_Vec(diag, v);
       len = GSL_MIN_INT(m->size1, v->size);
       for (i = 0; i < len; i++) {
         FUNCTION(gsl_matrix,set)(m, i, i, FUNCTION(gsl_vector,get)(v, i));
@@ -1024,7 +1050,7 @@ static VALUE FUNCTION(rb_gsl_matrix,get_row)(VALUE obj, VALUE i)
   GSL_TYPE(gsl_matrix) *m = NULL;
   GSL_TYPE(gsl_vector) *v = NULL;
   CHECK_FIXNUM(i);
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   v = FUNCTION(gsl_vector,alloc)(m->size1);
   if (v == NULL) rb_raise(rb_eNoMemError, "gsl_vector_alloc failed");
   FUNCTION(gsl_matrix,get_row)(v, m, FIX2INT(i));
@@ -1036,7 +1062,7 @@ static VALUE FUNCTION(rb_gsl_matrix,get_col)(VALUE obj, VALUE i)
   GSL_TYPE(gsl_matrix) *m = NULL;
   GSL_TYPE(gsl_vector) *v = NULL;
   CHECK_FIXNUM(i);
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   v = FUNCTION(gsl_vector,alloc)(m->size2);
   if (v == NULL) rb_raise(rb_eNoMemError, "gsl_vector_alloc failed");
   FUNCTION(gsl_matrix,get_col)(v, m, FIX2INT(i));
@@ -1061,9 +1087,9 @@ static VALUE FUNCTION(rb_gsl_matrix,set_row)(VALUE obj, VALUE i, VALUE vv)
     flag = 1;
   } else {
     CHECK_VEC(vv);
-    TypedData_Get_Struct(vv, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+    Data_Get_Vec(vv, v);
   }
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   FUNCTION(gsl_matrix,set_row)(m, FIX2INT(i), v);
   if (flag == 1) FUNCTION(gsl_vector,free)(v);
   return obj;
@@ -1085,9 +1111,9 @@ static VALUE FUNCTION(rb_gsl_matrix,set_col)(VALUE obj, VALUE j, VALUE vv)
     flag = 1;
   } else {
     CHECK_VECTOR(vv);
-    TypedData_Get_Struct(vv, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+    Data_Get_Vec(vv, v);
   }
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   FUNCTION(gsl_matrix,set_col)(m, FIX2INT(j), v);
   if (flag == 1) FUNCTION(gsl_vector,free)(v);
   return obj;
@@ -1096,7 +1122,7 @@ static VALUE FUNCTION(rb_gsl_matrix,set_col)(VALUE obj, VALUE j, VALUE vv)
 static VALUE FUNCTION(rb_gsl_matrix,clone)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL, *mnew = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(gsl_matrix,alloc)(m->size1, m->size2);
   FUNCTION(gsl_matrix,memcpy)(mnew, m);
   return TypedData_Wrap_Struct(GSL_TYPE(cgsl_matrix), &MATRIX_DATA_TYPE, mnew);
@@ -1106,8 +1132,8 @@ static VALUE FUNCTION(rb_gsl_matrix,memcpy)(VALUE obj, VALUE mm1, VALUE mm2)
 {
   GSL_TYPE(gsl_matrix) *m1 = NULL, *m2 = NULL;
   CHECK_MAT(mm1);  CHECK_MAT(mm2);
-  TypedData_Get_Struct(mm1, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m1);
-  TypedData_Get_Struct(mm2, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m2);
+  Data_Get_Mat(mm1, m1);
+  Data_Get_Mat(mm2, m2);
   FUNCTION(gsl_matrix,memcpy)(m1, m2);
   return mm1;
 }
@@ -1115,14 +1141,14 @@ static VALUE FUNCTION(rb_gsl_matrix,memcpy)(VALUE obj, VALUE mm1, VALUE mm2)
 static VALUE FUNCTION(rb_gsl_matrix,isnull)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   return INT2FIX(FUNCTION(gsl_matrix,isnull)(m));
 }
 
 static VALUE FUNCTION(rb_gsl_matrix,isnull2)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   if (FUNCTION(gsl_matrix,isnull)(m)) return Qtrue;
   else return Qfalse;
 }
@@ -1133,8 +1159,8 @@ static VALUE FUNCTION(rb_gsl_matrix,swap)(VALUE obj, VALUE mm1, VALUE mm2)
 {
   GSL_TYPE(gsl_matrix) *m1 = NULL, *m2 = NULL;
   CHECK_MAT(mm1);  CHECK_MAT(mm2);
-  TypedData_Get_Struct(mm1, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m1);
-  TypedData_Get_Struct(mm2, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m2);
+  Data_Get_Mat(mm1, m1);
+  Data_Get_Mat(mm2, m2);
   FUNCTION(gsl_matrix,swap)(m1, m2);
   return mm1;
 }
@@ -1143,7 +1169,7 @@ static VALUE FUNCTION(rb_gsl_matrix,swap_rows_bang)(VALUE obj, VALUE i, VALUE j)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
   CHECK_FIXNUM(i);   CHECK_FIXNUM(j);
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   FUNCTION(gsl_matrix,swap_rows)(m, FIX2INT(i), FIX2INT(j));
   return obj;
 }
@@ -1152,7 +1178,7 @@ static VALUE FUNCTION(rb_gsl_matrix,swap_rows)(VALUE obj, VALUE i, VALUE j)
 {
   GSL_TYPE(gsl_matrix) *m = NULL, *mnew;
   CHECK_FIXNUM(i);   CHECK_FIXNUM(j);
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(make_matrix,clone)(m);
   FUNCTION(gsl_matrix,swap_rows)(mnew, FIX2INT(i), FIX2INT(j));
   return TypedData_Wrap_Struct(GSL_TYPE(cgsl_matrix), &MATRIX_DATA_TYPE, mnew);
@@ -1162,7 +1188,7 @@ static VALUE FUNCTION(rb_gsl_matrix,swap_columns_bang)(VALUE obj, VALUE i, VALUE
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
   CHECK_FIXNUM(i);   CHECK_FIXNUM(j);
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   FUNCTION(gsl_matrix,swap_columns)(m, FIX2INT(i), FIX2INT(j));
   return obj;
 }
@@ -1171,7 +1197,7 @@ static VALUE FUNCTION(rb_gsl_matrix,swap_columns)(VALUE obj, VALUE i, VALUE j)
 {
   GSL_TYPE(gsl_matrix) *m = NULL, *mnew;
   CHECK_FIXNUM(i);   CHECK_FIXNUM(j);
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(make_matrix,clone)(m);
   FUNCTION(gsl_matrix,swap_columns)(mnew, FIX2INT(i), FIX2INT(j));
   return TypedData_Wrap_Struct(GSL_TYPE(cgsl_matrix), &MATRIX_DATA_TYPE, mnew);
@@ -1181,7 +1207,7 @@ static VALUE FUNCTION(rb_gsl_matrix,swap_rowcol_bang)(VALUE obj, VALUE i, VALUE 
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
   CHECK_FIXNUM(i);   CHECK_FIXNUM(j);
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   FUNCTION(gsl_matrix,swap_rowcol)(m, FIX2INT(i), FIX2INT(j));
   return obj;
 }
@@ -1190,7 +1216,7 @@ static VALUE FUNCTION(rb_gsl_matrix,swap_rowcol)(VALUE obj, VALUE i, VALUE j)
 {
   GSL_TYPE(gsl_matrix) *m = NULL, *mnew = NULL;
   CHECK_FIXNUM(i);   CHECK_FIXNUM(j);
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(make_matrix,clone)(m);
   FUNCTION(gsl_matrix,swap_rowcol)(mnew, FIX2INT(i), FIX2INT(j));
   return TypedData_Wrap_Struct(GSL_TYPE(cgsl_matrix), &MATRIX_DATA_TYPE, mnew);
@@ -1199,7 +1225,7 @@ static VALUE FUNCTION(rb_gsl_matrix,swap_rowcol)(VALUE obj, VALUE i, VALUE j)
 static VALUE FUNCTION(rb_gsl_matrix,transpose_memcpy)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL, *mnew = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(gsl_matrix,alloc)(m->size2, m->size1);
   FUNCTION(gsl_matrix,transpose_memcpy)(mnew, m);
   return TypedData_Wrap_Struct(GSL_TYPE(cgsl_matrix), &MATRIX_DATA_TYPE, mnew);
@@ -1208,7 +1234,7 @@ static VALUE FUNCTION(rb_gsl_matrix,transpose_memcpy)(VALUE obj)
 static VALUE FUNCTION(rb_gsl_matrix,transpose_bang)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   FUNCTION(gsl_matrix,transpose)(m);
   return obj;
 }
@@ -1216,14 +1242,14 @@ static VALUE FUNCTION(rb_gsl_matrix,transpose_bang)(VALUE obj)
 static VALUE FUNCTION(rb_gsl_matrix,max)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   return C_TO_VALUE2(FUNCTION(gsl_matrix,max)(m));
 }
 
 static VALUE FUNCTION(rb_gsl_matrix,min)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   return C_TO_VALUE2(FUNCTION(gsl_matrix,min)(m));
 }
 
@@ -1231,7 +1257,7 @@ static VALUE FUNCTION(rb_gsl_matrix,minmax)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
   BASE min, max;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   FUNCTION(gsl_matrix,minmax)(m, &min, &max);
   return rb_ary_new3(2, C_TO_VALUE2(min), C_TO_VALUE2(max));
 }
@@ -1240,7 +1266,7 @@ static VALUE FUNCTION(rb_gsl_matrix,max_index)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
   size_t imax, jmax;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   FUNCTION(gsl_matrix,max_index)(m, &imax, &jmax);
   return rb_ary_new3(2, INT2FIX(imax), INT2FIX(jmax));
 }
@@ -1249,7 +1275,7 @@ static VALUE FUNCTION(rb_gsl_matrix,min_index)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
   size_t imin, jmin;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   FUNCTION(gsl_matrix,min_index)(m, &imin, &jmin);
   return rb_ary_new3(2, INT2FIX(imin), INT2FIX(jmin));
 }
@@ -1258,7 +1284,7 @@ static VALUE FUNCTION(rb_gsl_matrix,minmax_index)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
   size_t imin, jmin, imax, jmax;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   FUNCTION(gsl_matrix,minmax_index)(m, &imin, &jmin, &imax, &jmax);
   return rb_ary_new3(2, rb_ary_new3(2, INT2FIX(imin), INT2FIX(jmin)),
                      rb_ary_new3(2, INT2FIX(imax), INT2FIX(jmax)));
@@ -1269,7 +1295,7 @@ static VALUE FUNCTION(rb_gsl_matrix,fwrite)(VALUE obj, VALUE io)
   GSL_TYPE(gsl_matrix) *h = NULL;
   FILE *f = NULL;
   int status, flag = 0;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, h);
+  Data_Get_Mat(obj, h);
   f = rb_gsl_open_writefile(io, &flag);
   status = FUNCTION(gsl_matrix,fwrite)(f, h);
   if (flag == 1) fclose(f);
@@ -1281,7 +1307,7 @@ static VALUE FUNCTION(rb_gsl_matrix,fread)(VALUE obj, VALUE io)
   GSL_TYPE(gsl_matrix) *h = NULL;
   FILE *f = NULL;
   int status, flag = 0;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, h);
+  Data_Get_Mat(obj, h);
   f = rb_gsl_open_readfile(io, &flag);
   status = FUNCTION(gsl_matrix,fread)(f, h);
   if (flag == 1) fclose(f);
@@ -1293,7 +1319,7 @@ static VALUE FUNCTION(rb_gsl_matrix,trace)(VALUE obj)
   GSL_TYPE(gsl_matrix) *m = NULL;
   size_t i;
   BASE trace = 0;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   for (i = 0; i < m->size1; i++) {
     trace += FUNCTION(gsl_matrix,get)(m, i, i);
   }
@@ -1310,7 +1336,7 @@ static VALUE FUNCTION(rb_gsl_matrix,uminus)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL, *mnew = NULL;
   size_t i, j;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(gsl_matrix,alloc)(m->size1, m->size2);
   for (i = 0; i < m->size1; i++) {
     for (j = 0; j < m->size2; j++) {
@@ -1325,7 +1351,7 @@ VALUE FUNCTION(rb_gsl_matrix,power)(VALUE obj, VALUE bb)
   GSL_TYPE(gsl_matrix) *m = NULL, *mtmp = NULL, *mnew = NULL;
   size_t i, b;
   CHECK_FIXNUM(bb);
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   b = FIX2INT(bb);
   mtmp = FUNCTION(gsl_matrix,alloc)(m->size1, m->size2);
   mnew = FUNCTION(gsl_matrix,alloc)(m->size1, m->size2);
@@ -1348,7 +1374,7 @@ static VALUE FUNCTION(rb_gsl_matrix,submatrix)(int argc, VALUE *argv, VALUE obj)
   QUALIFIED_VIEW(gsl_matrix,view) *mv = NULL;
   QUALIFIED_VIEW(gsl_vector,view) *vv = NULL;
   size_t i, j, n1, n2;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   parse_submatrix_args(argc, argv, m->size1, m->size2, &i, &j, &n1, &n2);
   if(n1 == 0) {
     vv = ALLOC(QUALIFIED_VIEW(gsl_vector,view));
@@ -1373,7 +1399,7 @@ static VALUE FUNCTION(rb_gsl_matrix,return_vector_view)(VALUE obj, VALUE index,
   GSL_TYPE(gsl_matrix) *m = NULL;
   QUALIFIED_VIEW(gsl_vector,view) *vv = NULL;
   CHECK_FIXNUM(index);
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   vv = ALLOC(QUALIFIED_VIEW(gsl_vector,view));
   *vv = (*f)(m, FIX2INT(index));
   return TypedData_Wrap_Struct(QUALIFIED_VIEW(cgsl_vector,view), &VECTOR_VIEW_DATA_TYPE, vv);
@@ -1389,7 +1415,7 @@ static VALUE FUNCTION(rb_gsl_matrix,column)(VALUE obj, VALUE j)
   GSL_TYPE(gsl_matrix) *m = NULL;
   QUALIFIED_VIEW(gsl_vector,view) *vv = NULL;
   CHECK_FIXNUM(j);
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   vv = ALLOC(QUALIFIED_VIEW(gsl_vector,view));
   *vv = FUNCTION(gsl_matrix,column)(m, FIX2INT(j));
   return TypedData_Wrap_Struct(QUALIFIED_VIEW(cgsl_vector,col_view), &VECTOR_VIEW_DATA_TYPE, vv);
@@ -1400,7 +1426,7 @@ static VALUE FUNCTION(rb_gsl_matrix,subrow)(VALUE obj, VALUE i, VALUE offset,
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
   QUALIFIED_VIEW(gsl_vector,view) *vv = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   vv = ALLOC(QUALIFIED_VIEW(gsl_vector,view));
   *vv = FUNCTION(gsl_matrix,subrow)(m, FIX2INT(i), FIX2INT(offset), FIX2INT(n));
   return TypedData_Wrap_Struct(QUALIFIED_VIEW(cgsl_vector,view), &VECTOR_VIEW_DATA_TYPE, vv);
@@ -1410,7 +1436,7 @@ static VALUE FUNCTION(rb_gsl_matrix,subcolumn)(VALUE obj, VALUE j, VALUE offset,
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
   QUALIFIED_VIEW(gsl_vector,view) *vv = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   vv = ALLOC(QUALIFIED_VIEW(gsl_vector,view));
   *vv = FUNCTION(gsl_matrix,subcolumn)(m, FIX2INT(j), FIX2INT(offset), FIX2INT(n));
   return TypedData_Wrap_Struct(QUALIFIED_VIEW(cgsl_vector,col_view), &VECTOR_VIEW_DATA_TYPE, vv);
@@ -1420,7 +1446,7 @@ static VALUE FUNCTION(rb_gsl_matrix,diagonal)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
   QUALIFIED_VIEW(gsl_vector,view) *vv = NULL;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   vv = ALLOC(QUALIFIED_VIEW(gsl_vector,view));
   *vv = FUNCTION(gsl_matrix,diagonal)(m);
   return TypedData_Wrap_Struct(QUALIFIED_VIEW(cgsl_vector,view), &VECTOR_VIEW_DATA_TYPE, vv);
@@ -1440,7 +1466,7 @@ static VALUE FUNCTION(rb_gsl_matrix,vector_view)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
   QUALIFIED_VIEW(gsl_vector,view) *vv;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   vv = ALLOC(QUALIFIED_VIEW(gsl_vector,view));
   vv->vector.size = m->size1*m->size2;
   vv->vector.owner = 0;
@@ -1455,7 +1481,7 @@ static VALUE FUNCTION(rb_gsl_matrix,each_row)(VALUE obj)
   GSL_TYPE(gsl_matrix) *m = NULL;
   QUALIFIED_VIEW(gsl_vector,view) *vv;
   size_t i;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   for (i = 0; i < m->size1; i++) {
     vv = ALLOC(QUALIFIED_VIEW(gsl_vector,view));
     *vv = FUNCTION(gsl_matrix,row)(m, i);
@@ -1473,7 +1499,7 @@ static VALUE FUNCTION(rb_gsl_matrix,each_col)(VALUE obj)
   GSL_TYPE(gsl_matrix) *m = NULL;
   QUALIFIED_VIEW(gsl_vector,view) *vv;
   size_t i;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   for (i = 0; i < m->size2; i++) {
     vv = ALLOC(QUALIFIED_VIEW(gsl_vector,view));
     *vv = FUNCTION(gsl_matrix,column)(m, i);
@@ -1489,7 +1515,7 @@ static VALUE FUNCTION(rb_gsl_matrix,each_col)(VALUE obj)
 static VALUE FUNCTION(rb_gsl_matrix,scale_bang)(VALUE obj, VALUE x)
 {
   GSL_TYPE(gsl_matrix) *m;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   FUNCTION(gsl_matrix,scale)(m, NUMCONV2(x));
   return obj;
 }
@@ -1497,7 +1523,7 @@ static VALUE FUNCTION(rb_gsl_matrix,scale_bang)(VALUE obj, VALUE x)
 static VALUE FUNCTION(rb_gsl_matrix,scale)(VALUE obj, VALUE b)
 {
   GSL_TYPE(gsl_matrix) *m = NULL, *mnew;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(make_matrix,clone)(m);
   FUNCTION(gsl_matrix,scale)(mnew, NUMCONV2(b));
   return TypedData_Wrap_Struct(GSL_TYPE(cgsl_matrix), &MATRIX_DATA_TYPE, mnew);
@@ -1506,7 +1532,7 @@ static VALUE FUNCTION(rb_gsl_matrix,scale)(VALUE obj, VALUE b)
 static VALUE FUNCTION(rb_gsl_matrix,add_constant_bang)(VALUE obj, VALUE x)
 {
   GSL_TYPE(gsl_matrix) *m;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   FUNCTION(gsl_matrix,add_constant)(m, NUMCONV2(x));
   return obj;
 }
@@ -1514,7 +1540,7 @@ static VALUE FUNCTION(rb_gsl_matrix,add_constant_bang)(VALUE obj, VALUE x)
 static VALUE FUNCTION(rb_gsl_matrix,add_constant)(VALUE obj, VALUE b)
 {
   GSL_TYPE(gsl_matrix) *m = NULL, *mnew;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(make_matrix,clone)(m);
   FUNCTION(gsl_matrix,add_constant)(mnew, NUMCONV2(b));
   return TypedData_Wrap_Struct(GSL_TYPE(cgsl_matrix), &MATRIX_DATA_TYPE, mnew);
@@ -1569,8 +1595,8 @@ static VALUE FUNCTION(rb_gsl_matrix,equal)(int argc, VALUE *argv, VALUE obj)
   }
 #endif
   CHECK_MAT(bb);
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, a);
-  TypedData_Get_Struct(bb, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, b);
+  Data_Get_Mat(obj, a);
+  Data_Get_Mat(bb, b);
   if (FUNCTION(mygsl_matrix,equal)(a, b, eps) == 1) return Qtrue;
   else return Qfalse;
 }
@@ -1603,8 +1629,8 @@ static VALUE FUNCTION(rb_gsl_matrix,equal_singleton)(int argc, VALUE *argv, VALU
     break;
   }
   CHECK_MAT(aa);  CHECK_MAT(bb);
-  TypedData_Get_Struct(aa, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, a);
-  TypedData_Get_Struct(bb, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, b);
+  Data_Get_Mat(aa, a);
+  Data_Get_Mat(bb, b);
   if (a->size1 != b->size1 || a->size2 != b->size2) return Qfalse;
   for (i = 0; i < a->size1; i++) {
     for (j = 0; j < a->size2; j++) {
@@ -1624,7 +1650,7 @@ static VALUE FUNCTION(rb_gsl_matrix,to_tensor)(VALUE obj)
   GSL_TYPE(rbgsl_tensor) *t;
   unsigned int rank;
   size_t dim;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   if (m->size1 != m->size2) rb_raise(rb_eRuntimeError, "matrix must have equal dimensions");
   rank = 2;
   dim = m->size1;
@@ -1638,7 +1664,7 @@ static VALUE FUNCTION(rb_gsl_matrix,collect)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL, *mnew;
   size_t i, j;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(gsl_matrix,alloc)(m->size1, m->size2);
   for (i = 0; i < m->size1; i++) {
     for (j = 0; j < m->size2; j++) {
@@ -1652,7 +1678,7 @@ static VALUE FUNCTION(rb_gsl_matrix,collect_bang)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL;
   size_t i, j;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   for (i = 0; i < m->size1; i++) {
     for (j = 0; j < m->size2; j++) {
       FUNCTION(gsl_matrix,set)(m, i, j, NUMCONV(rb_yield(C_TO_VALUE(FUNCTION(gsl_matrix,get)(m, i, j)))));
@@ -1665,7 +1691,7 @@ static VALUE FUNCTION(rb_gsl_matrix,upper)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL, *mnew;
   size_t i, j;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(make_matrix,clone)(m);
   for (i = 0; i < m->size1; i++) {
     for (j = 0; j < i; j++) {
@@ -1679,7 +1705,7 @@ static VALUE FUNCTION(rb_gsl_matrix,lower)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m = NULL, *mnew;
   size_t i, j;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(make_matrix,clone)(m);
   for (i = 0; i < m->size1; i++) {
     for (j = i+1; j < m->size2; j++) {
@@ -1773,7 +1799,7 @@ static VALUE FUNCTION(rb_gsl_matrix,vandermonde)(VALUE obj, VALUE vv)
     v = FUNCTION(make_cvector,from_rarray)(vv);
     flag = 1;
   } else if (VEC_P(vv)) {
-    TypedData_Get_Struct(vv, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+    Data_Get_Vec(vv, v);
   } else {
     rb_raise(rb_eTypeError, "wrong argument type %s (Array or Vector expected)",
              rb_class2name(CLASS_OF(vv)));
@@ -1806,7 +1832,7 @@ static VALUE FUNCTION(rb_gsl_matrix,toeplitz)(VALUE obj, VALUE vv)
     v = FUNCTION(make_cvector,from_rarray)(vv);
     flag = 1;
   } else if (VEC_P(vv)) {
-    TypedData_Get_Struct(vv, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+    Data_Get_Vec(vv, v);
   } else {
     rb_raise(rb_eTypeError, "wrong argument type %s (Array or Vector expected)",
              rb_class2name(CLASS_OF(vv)));
@@ -1827,7 +1853,7 @@ static VALUE FUNCTION(rb_gsl_matrix,circulant)(VALUE obj, VALUE vv)
     v = FUNCTION(make_cvector,from_rarray)(vv);
     flag = 1;
   } else if (VEC_P(vv)) {
-    TypedData_Get_Struct(vv, GSL_TYPE(gsl_vector), &VECTOR_DATA_TYPE, v);
+    Data_Get_Vec(vv, v);
   } else {
     rb_raise(rb_eTypeError, "wrong argument type %s (Array or Vector expected)",
              rb_class2name(CLASS_OF(vv)));
@@ -1894,7 +1920,7 @@ static VALUE FUNCTION(rb_gsl_matrix,indgen)(int argc, VALUE *argv, VALUE obj)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 0-2)", argc);
     break;
   }
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(gsl_matrix,alloc)(m->size1, m->size2);
   FUNCTION(mygsl_matrix,indgen)(mnew, start, step);
   return TypedData_Wrap_Struct(GSL_TYPE(cgsl_matrix), &MATRIX_DATA_TYPE, mnew);
@@ -1917,7 +1943,7 @@ static VALUE FUNCTION(rb_gsl_matrix,indgen_bang)(int argc, VALUE *argv, VALUE ob
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 0-2)", argc);
     break;
   }
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   FUNCTION(mygsl_matrix,indgen)(m, start, step);
   return obj;
 }
@@ -1927,7 +1953,7 @@ static VALUE FUNCTION(rb_gsl_matrix,to_a)(VALUE obj)
   GSL_TYPE(gsl_matrix) *m;
   VALUE ma, ra;
   size_t i, j;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   ma = rb_ary_new2(m->size1);
   for(i = 0; i < m->size1; i++) {
     ra = rb_ary_new2(m->size2);
@@ -1944,7 +1970,7 @@ static VALUE FUNCTION(rb_gsl_matrix,to_v)(VALUE obj)
   GSL_TYPE(gsl_matrix) *m;
   GSL_TYPE(gsl_vector) *v;
   size_t i, j, k;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   v = FUNCTION(gsl_vector,alloc)(m->size1*m->size2);
   //  memcpy(v->data, m->data, sizeof(BASE)*v->size);
   for (i = 0, k = 0; i < m->size1; i++) {
@@ -1963,7 +1989,7 @@ static VALUE FUNCTION(rb_gsl_matrix,to_vview)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m;
   QUALIFIED_VIEW(gsl_vector,view) *v;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   v = ALLOC(QUALIFIED_VIEW(gsl_vector,view));
   v->vector.size = m->size1*m->size2;
   v->vector.stride = 1;
@@ -1977,7 +2003,7 @@ static VALUE FUNCTION(rb_gsl_matrix,norm)(VALUE obj)
   GSL_TYPE(gsl_matrix) *m;
   size_t i, n;
   BASE x = 0;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   n = m->size1*m->size2;
   for (i = 0; i < n; i++) x += m->data[i]*m->data[i];
   return rb_float_new(sqrt(x));
@@ -2014,7 +2040,7 @@ static int FUNCTION(mygsl_matrix,reverse_rows)(GSL_TYPE(gsl_matrix) *dst,
 static VALUE FUNCTION(rb_gsl_matrix,reverse_columns)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m, *mnew;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(gsl_matrix,alloc)(m->size1, m->size2);
   FUNCTION(mygsl_matrix,reverse_columns)(mnew, m);
   return TypedData_Wrap_Struct(GSL_TYPE(cgsl_matrix), &MATRIX_DATA_TYPE, mnew);
@@ -2023,7 +2049,7 @@ static VALUE FUNCTION(rb_gsl_matrix,reverse_columns)(VALUE obj)
 static VALUE FUNCTION(rb_gsl_matrix,reverse_columns_bang)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m, *mnew;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(gsl_matrix,alloc)(m->size1, m->size2);
   FUNCTION(mygsl_matrix,reverse_columns)(mnew, m);
   FUNCTION(gsl_matrix,memcpy)(m, mnew);
@@ -2034,7 +2060,7 @@ static VALUE FUNCTION(rb_gsl_matrix,reverse_columns_bang)(VALUE obj)
 static VALUE FUNCTION(rb_gsl_matrix,reverse_rows)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m, *mnew;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(gsl_matrix,alloc)(m->size1, m->size2);
   FUNCTION(mygsl_matrix,reverse_rows)(mnew, m);
   return TypedData_Wrap_Struct(GSL_TYPE(cgsl_matrix), &MATRIX_DATA_TYPE, mnew);
@@ -2043,7 +2069,7 @@ static VALUE FUNCTION(rb_gsl_matrix,reverse_rows)(VALUE obj)
 static VALUE FUNCTION(rb_gsl_matrix,reverse_rows_bang)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m, *mnew;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(gsl_matrix,alloc)(m->size1, m->size2);
   FUNCTION(mygsl_matrix,reverse_rows)(mnew, m);
   FUNCTION(gsl_matrix,memcpy)(m, mnew);
@@ -2054,7 +2080,7 @@ static VALUE FUNCTION(rb_gsl_matrix,reverse_rows_bang)(VALUE obj)
 static VALUE FUNCTION(rb_gsl_matrix,block)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   return TypedData_Wrap_Struct(GSL_TYPE(cgsl_block), &BLOCK_DATA_TYPE, m->block);
 }
 
@@ -2062,7 +2088,7 @@ static VALUE FUNCTION(rb_gsl_matrix,info)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m;
   char buf[256];
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   sprintf(buf, "Class:      %s\n", rb_class2name(CLASS_OF(obj)));
   sprintf(buf, "%sSuperClass: %s\n", buf, rb_class2name(RCLASS_SUPER(CLASS_OF(obj))));
   sprintf(buf, "%sDimension:  %dx%d\n", buf, (int) m->size1, (int) m->size2);
@@ -2077,7 +2103,7 @@ static VALUE FUNCTION(rb_gsl_matrix,any)(VALUE obj)
   GSL_TYPE(gsl_vector) *v;
   gsl_vector_int *vnew;
   size_t j;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   vnew = gsl_vector_int_alloc(m->size2);
   for (j = 0; j < m->size2; j++) {
     vv = FUNCTION(gsl_matrix,column)(m, j);
@@ -2096,7 +2122,7 @@ static VALUE FUNCTION(rb_gsl_matrix,all)(VALUE obj)
   gsl_vector_int *vnew;
   size_t i, j;
   int flag = 0;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   vnew = gsl_vector_int_alloc(m->size2);
   for (j = 0; j < m->size2; j++) {
     vv = FUNCTION(gsl_matrix,column)(m, j);
@@ -2132,7 +2158,7 @@ static VALUE FUNCTION(rb_gsl_matrix,rot90)(int argc, VALUE *argv, VALUE obj)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 0 or 1)", argc);
     break;
   }
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   switch (p) {
   case 0:
     mnew = FUNCTION(gsl_matrix,alloc)(m->size1, m->size2);
@@ -2190,7 +2216,7 @@ static VALUE FUNCTION(rb_gsl_matrix,diff)(int argc, VALUE *argv, VALUE obj)
     break;
   }
   if (n <= 0) return obj;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(gsl_matrix,alloc)(m->size1-n, m->size2);
   if (m->size1 <= n) return obj;
   for (j = 0; j < m->size2; j++) {
@@ -2206,7 +2232,7 @@ static VALUE FUNCTION(rb_gsl_matrix,test)(VALUE obj, int (*f)(const double))
   GSL_TYPE(gsl_matrix) *m;
   gsl_matrix_int *mi;
   size_t i, j;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mi = gsl_matrix_int_alloc(m->size1, m->size2);
   for (i = 0; i < m->size1; i++) {
     for (j = 0; j < m->size2; j++) {
@@ -2236,7 +2262,7 @@ static VALUE FUNCTION(rb_gsl_matrix,sgn)(VALUE obj)
   GSL_TYPE(gsl_matrix) *m, *mnew;
   BASE x;
   size_t i, j;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(gsl_matrix,alloc)(m->size1, m->size2);
   for (i = 0; i < m->size1; i++) {
     for (j = 0; j < m->size2; j++) {
@@ -2251,7 +2277,7 @@ static VALUE FUNCTION(rb_gsl_matrix,abs)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m, *mnew;
   size_t i, j;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   mnew = FUNCTION(gsl_matrix,alloc)(m->size1, m->size2);
   for (i = 0; i < m->size1; i++) {
     for (j = 0; j < m->size2; j++) {
@@ -2267,8 +2293,8 @@ static VALUE FUNCTION(rb_gsl_matrix,horzcat)(VALUE obj, VALUE mm2)
   QUALIFIED_VIEW(gsl_vector,view) v;
   size_t j, k;
   CHECK_MAT(mm2);
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
-  TypedData_Get_Struct(mm2, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m2);
+  Data_Get_Mat(obj, m);
+  Data_Get_Mat(mm2, m2);
   if (m->size1 != m2->size1)
     rb_raise(rb_eRuntimeError, "Different number of rows (%d and %d).",
              (int) m->size1, (int) m2->size1);
@@ -2297,8 +2323,8 @@ static VALUE FUNCTION(rb_gsl_matrix,vertcat)(VALUE obj, VALUE mm2)
   QUALIFIED_VIEW(gsl_vector,view) v;
   size_t i, k;
   CHECK_MAT(mm2);
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
-  TypedData_Get_Struct(mm2, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m2);
+  Data_Get_Mat(obj, m);
+  Data_Get_Mat(mm2, m2);
   if (m->size2 != m2->size2)
     rb_raise(rb_eRuntimeError, "Different number of columns (%d and %d).",
              (int) m->size2, (int) m2->size2);
@@ -2323,14 +2349,14 @@ static VALUE FUNCTION(rb_gsl_matrix,vertcat_singleton)(VALUE klass, VALUE mm, VA
 static VALUE FUNCTION(rb_gsl_matrix,property)(VALUE obj,
                                               int (*f)(const GSL_TYPE (gsl_matrix)*)) {
   GSL_TYPE(gsl_matrix) *m;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   return INT2FIX((*f)(m));
 }
 
 static VALUE FUNCTION(rb_gsl_matrix,property2)(VALUE obj,
                                                int (*f)(const GSL_TYPE (gsl_matrix) *)) {
   GSL_TYPE(gsl_matrix) *m;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   if ((*f)(m)) return Qtrue;
   else return Qfalse;
 }
@@ -2364,7 +2390,7 @@ static VALUE FUNCTION(rb_gsl_matrix,symmetrize)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m, *mnew;
   size_t i, j;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   if (m->size1 != m->size2)
     rb_raise(rb_eRuntimeError, "symmetrize: not a square matrix.\n");
   mnew = FUNCTION(gsl_matrix,alloc)(m->size1, m->size2);
@@ -2383,7 +2409,7 @@ static VALUE FUNCTION(rb_gsl_matrix,symmetrize_bang)(VALUE obj)
 {
   GSL_TYPE(gsl_matrix) *m;
   size_t i, j;
-  TypedData_Get_Struct(obj, GSL_TYPE(gsl_matrix), &MATRIX_DATA_TYPE, m);
+  Data_Get_Mat(obj, m);
   if (m->size1 != m->size2)
     rb_raise(rb_eRuntimeError, "symmetrize: not a square matrix.\n");
   for (i = 0; i < m->size1; i++) {
@@ -2706,3 +2732,7 @@ void FUNCTION(Init_gsl_matrix,init)(VALUE module)
 #undef MAT_ROW_P
 #undef CHECK_MAT
 #undef MAT_VIEW_P
+#undef MAT_VIEW_TYPE
+#undef VEC_VIEW_TYPE
+#undef Data_Get_Mat
+#undef Data_Get_Vec

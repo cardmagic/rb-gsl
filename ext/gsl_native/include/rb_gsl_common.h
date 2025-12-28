@@ -258,6 +258,10 @@ extern ID rb_gsl_id_beg, rb_gsl_id_end, rb_gsl_id_excl, rb_gsl_id_to_a;
     rb_raise(rb_eTypeError, "wrong argument type (GSL::Matrix::Int expected)");
 #endif
 
+#ifndef MATRIX_INT_VIEW_P
+#define MATRIX_INT_VIEW_P(x) ((CLASS_OF(x)==cgsl_matrix_int_view||CLASS_OF(x)==cgsl_matrix_int_view_ro))
+#endif
+
 #ifndef MATRIX_COMPLEX_P
 #define MATRIX_COMPLEX_P(x) (rb_obj_is_kind_of(x,cgsl_matrix_complex))
 #endif
