@@ -490,7 +490,7 @@ static VALUE rb_gsl_multiroot_fsolver_new(VALUE klass, VALUE t, VALUE n)
   CHECK_FIXNUM(n);
   T = get_fsolver_type(t);
   s = gsl_multiroot_fsolver_alloc(T, FIX2INT(n));
-  return Data_Wrap_Struct(klass, 0, gsl_multiroot_fsolver_free, s);
+  return TypedData_Wrap_Struct(klass, &gsl_multiroot_fsolver_data_type, s);
 }
 
 static VALUE rb_gsl_multiroot_fsolver_set(VALUE obj, VALUE vf, VALUE vx)
@@ -581,7 +581,7 @@ static VALUE rb_gsl_multiroot_fdfsolver_new(VALUE klass, VALUE t, VALUE n)
   CHECK_FIXNUM(n);
   T = get_fdfsolver_type(t);
   s = gsl_multiroot_fdfsolver_alloc(T, FIX2INT(n));
-  return Data_Wrap_Struct(klass, 0, gsl_multiroot_fdfsolver_free, s);
+  return TypedData_Wrap_Struct(klass, &gsl_multiroot_fdfsolver_data_type, s);
 }
 
 static VALUE rb_gsl_multiroot_fdfsolver_set(VALUE obj, VALUE vf, VALUE vx)

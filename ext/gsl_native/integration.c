@@ -577,7 +577,7 @@ VALUE rb_gsl_integration_qaws_table_alloc(int argc, VALUE *argv, VALUE klass)
   }
   t = gsl_integration_qaws_table_alloc(NUM2DBL(alpha), NUM2DBL(beta),
                                        FIX2INT(mu), FIX2INT(nu));
-  return Data_Wrap_Struct(klass, 0, gsl_integration_qaws_table_free, t);
+  return TypedData_Wrap_Struct(klass, &gsl_integration_qaws_table_data_type, t);
 }
 
 static VALUE rb_gsl_integration_qaws_table_set(int argc, VALUE *argv, VALUE obj)
@@ -706,7 +706,7 @@ static VALUE rb_gsl_integration_qawo_table_alloc(int argc, VALUE *argv,
   }
   t = gsl_integration_qawo_table_alloc(omega, L, sine, n);
 
-  return Data_Wrap_Struct(klass, 0, gsl_integration_qawo_table_free, t);
+  return TypedData_Wrap_Struct(klass, &gsl_integration_qawo_table_data_type, t);
 }
 
 static VALUE rb_gsl_integration_qawo_table_to_a(VALUE obj)

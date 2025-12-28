@@ -507,7 +507,7 @@ static VALUE rb_gsl_matrix_randx(int argc, VALUE *argv, VALUE klass,
     }
   }
   if (argc == 2) gsl_rng_free(rng);
-  return Data_Wrap_Struct(klass, 0, gsl_matrix_free, m);
+  return TypedData_Wrap_Struct(klass, &gsl_matrix_data_type, m);
 }
 
 void Init_gsl_matrix_init(VALUE module);

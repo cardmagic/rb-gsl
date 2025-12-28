@@ -489,7 +489,7 @@ static VALUE rb_gsl_fdfminimizer_new(VALUE klass, VALUE t, VALUE n)
   const gsl_multimin_fdfminimizer_type *T;
   T = get_fdfminimizer_type(t);
   gmf = gsl_multimin_fdfminimizer_alloc(T, FIX2INT(n));
-  return Data_Wrap_Struct(klass, 0, gsl_multimin_fdfminimizer_free, gmf);
+  return TypedData_Wrap_Struct(klass, &gsl_multimin_fdfminimizer_data_type, gmf);
 }
 
 static VALUE rb_gsl_fdfminimizer_set(VALUE obj, VALUE ff, VALUE xx, VALUE ss,
@@ -624,7 +624,7 @@ static VALUE rb_gsl_fminimizer_new(VALUE klass, VALUE t, VALUE n)
   CHECK_FIXNUM(n);
   T = get_fminimizer_type(t);
   gmf = gsl_multimin_fminimizer_alloc(T, FIX2INT(n));
-  return Data_Wrap_Struct(klass, 0, gsl_multimin_fminimizer_free, gmf);
+  return TypedData_Wrap_Struct(klass, &gsl_multimin_fminimizer_data_type, gmf);
 }
 
 static VALUE rb_gsl_fminimizer_set(VALUE obj, VALUE ff, VALUE xx, VALUE ss)

@@ -254,7 +254,7 @@ static VALUE rb_gsl_multifit_fdfsolver_new(int argc, VALUE *argv, VALUE klass)
     break;
   }
   solver = gsl_multifit_fdfsolver_alloc(T, n, p);
-  return Data_Wrap_Struct(klass, 0, gsl_multifit_fdfsolver_free, solver);
+  return TypedData_Wrap_Struct(klass, &gsl_multifit_fdfsolver_data_type, solver);
 }
 
 static VALUE rb_gsl_multifit_fdfsolver_set(VALUE obj, VALUE ff, VALUE xx)

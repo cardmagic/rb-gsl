@@ -87,7 +87,7 @@ static VALUE rb_gsl_rng_alloc(int argc, VALUE *argv, VALUE klass)
   }
   r = gsl_rng_alloc(T);
   gsl_rng_set(r, seed);
-  return Data_Wrap_Struct(klass, 0, gsl_rng_free, r);
+  return TypedData_Wrap_Struct(klass, &gsl_rng_data_type, r);
 }
 
 static const gsl_rng_type* get_gsl_rng_type_int(int itype);
@@ -510,7 +510,7 @@ static VALUE rb_gsl_rng_clone(VALUE obj)
   gsl_rng *r = NULL, *rnew = NULL;
   TypedData_Get_Struct(obj, gsl_rng, &gsl_rng_data_type, r);
   rnew = gsl_rng_clone(r);
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_rng_free, rnew);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_rng_data_type, rnew);
 }
 
 static VALUE rb_gsl_rng_print_state(VALUE obj)

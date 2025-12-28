@@ -47,7 +47,7 @@ static VALUE rb_gsl_ntuple_new(int argc, VALUE *argv, VALUE klass)
     break;
   }
   n = gsl_ntuple_create(STR2CSTR(argv[0]), data, size*sizeof(double));
-  return Data_Wrap_Struct(klass, 0, gsl_ntuple_close, n);
+  return TypedData_Wrap_Struct(klass, &gsl_ntuple_data_type, n);
 }
 
 VALUE rb_gsl_ntuple_open(int argc, VALUE *argv, VALUE klass)
@@ -78,7 +78,7 @@ VALUE rb_gsl_ntuple_open(int argc, VALUE *argv, VALUE klass)
     break;
   }
   n = gsl_ntuple_open(STR2CSTR(argv[0]), data, size*sizeof(double));
-  return Data_Wrap_Struct(klass, 0, gsl_ntuple_close, n);
+  return TypedData_Wrap_Struct(klass, &gsl_ntuple_data_type, n);
 }
 
 VALUE rb_gsl_ntuple_write(VALUE obj)

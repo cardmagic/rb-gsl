@@ -50,7 +50,7 @@ static VALUE rb_gsl_histogram_alloc(int argc, VALUE *argv, VALUE klass)
       gsl_histogram_set_ranges(h, v->data, v->size);
       break;
     }
-    return Data_Wrap_Struct(klass, 0, gsl_histogram_free, h);
+    return TypedData_Wrap_Struct(klass, &gsl_histogram_data_type, h);
     break;
   case 3:
     CHECK_FIXNUM(argv[0]);
@@ -60,7 +60,7 @@ static VALUE rb_gsl_histogram_alloc(int argc, VALUE *argv, VALUE klass)
     max = NUM2DBL(argv[2]);
     h = gsl_histogram_calloc(n);
     gsl_histogram_set_ranges_uniform(h, min, max);
-    return Data_Wrap_Struct(klass, 0, gsl_histogram_free, h);
+    return TypedData_Wrap_Struct(klass, &gsl_histogram_data_type, h);
     break;
   case 2:
     switch (TYPE(argv[0])) {
@@ -75,7 +75,7 @@ static VALUE rb_gsl_histogram_alloc(int argc, VALUE *argv, VALUE klass)
       max = NUM2DBL(rb_ary_entry(argv[1], 1));
       h = gsl_histogram_calloc(n);
       gsl_histogram_set_ranges_uniform(h, min, max);
-      return Data_Wrap_Struct(klass, 0, gsl_histogram_free, h);
+      return TypedData_Wrap_Struct(klass, &gsl_histogram_data_type, h);
       break;
     case T_ARRAY:
       CHECK_FIXNUM(argv[1]);
@@ -84,7 +84,7 @@ static VALUE rb_gsl_histogram_alloc(int argc, VALUE *argv, VALUE klass)
       h = gsl_histogram_calloc(size-1);
       gsl_histogram_set_ranges(h, v->data, size);
       gsl_vector_free(v);
-      return Data_Wrap_Struct(klass, 0, gsl_histogram_free, h);
+      return TypedData_Wrap_Struct(klass, &gsl_histogram_data_type, h);
       break;
     default:
       CHECK_VECTOR(argv[0]);
@@ -93,7 +93,7 @@ static VALUE rb_gsl_histogram_alloc(int argc, VALUE *argv, VALUE klass)
       size = FIX2INT(argv[1]);
       h = gsl_histogram_calloc(size-1);
       gsl_histogram_set_ranges(h, v->data, size);
-      return Data_Wrap_Struct(klass, 0, gsl_histogram_free, h);
+      return TypedData_Wrap_Struct(klass, &gsl_histogram_data_type, h);
       break;
     }
     break;
@@ -131,7 +131,7 @@ static VALUE rb_gsl_histogram_alloc_from_file(VALUE klass, VALUE name)
   }
   h->range[n] = upper;
   fclose(fp);
-  return Data_Wrap_Struct(klass, 0, gsl_histogram_free, h);
+  return TypedData_Wrap_Struct(klass, &gsl_histogram_data_type, h);
 
 }
 
@@ -167,7 +167,7 @@ static VALUE rb_gsl_histogram_alloc_uniform(int argc, VALUE *argv, VALUE klass)
   }
   h = gsl_histogram_alloc(n);
   gsl_histogram_set_ranges_uniform(h, min, max);
-  return Data_Wrap_Struct(klass, 0, gsl_histogram_free, h);
+  return TypedData_Wrap_Struct(klass, &gsl_histogram_data_type, h);
 }
 
 /* initialization + set ranges with a given spacing from min to max */
@@ -193,7 +193,7 @@ static VALUE rb_gsl_histogram_alloc_with_min_max_step(VALUE klass, VALUE vmin,
   for (i = 0; i < n + 1; i++) gsl_vector_set(v, i, min + step*i);
   gsl_histogram_set_ranges(h, v->data, v->size);
   gsl_vector_free(v);
-  return Data_Wrap_Struct(klass, 0, gsl_histogram_free, h);
+  return TypedData_Wrap_Struct(klass, &gsl_histogram_data_type, h);
 }
 
 static VALUE rb_gsl_histogram_calloc(VALUE klass, VALUE nn)
@@ -201,7 +201,7 @@ static VALUE rb_gsl_histogram_calloc(VALUE klass, VALUE nn)
   gsl_histogram *h = NULL;
   CHECK_FIXNUM(nn);
   h = gsl_histogram_calloc(FIX2INT(nn));
-  return Data_Wrap_Struct(klass, 0, gsl_histogram_free, h);
+  return TypedData_Wrap_Struct(klass, &gsl_histogram_data_type, h);
 }
 
 static VALUE rb_gsl_histogram_calloc_range(int argc, VALUE *argv,  VALUE klass)
@@ -226,7 +226,7 @@ static VALUE rb_gsl_histogram_calloc_range(int argc, VALUE *argv,  VALUE klass)
     break;
   }
   h = gsl_histogram_calloc_range(n, v->data);
-  return Data_Wrap_Struct(klass, 0, gsl_histogram_free, h);
+  return TypedData_Wrap_Struct(klass, &gsl_histogram_data_type, h);
 }
 
 static VALUE rb_gsl_histogram_bins(VALUE obj)
@@ -324,7 +324,7 @@ static VALUE rb_gsl_histogram_clone(VALUE obj)
   gsl_histogram *hsrc = NULL, *hnew = NULL;
   TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, hsrc);
   hnew = gsl_histogram_clone(hsrc);
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram_free, hnew);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_histogram_data_type, hnew);
 }
 
 static VALUE rb_gsl_histogram_accumulate(int argc, VALUE *argv, VALUE obj)
@@ -518,7 +518,7 @@ static VALUE rb_gsl_histogram_normalize(VALUE obj)
   gsl_histogram *h = NULL, *hnew = NULL;
   TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   hnew = gsl_histogram_clone(h);
-  return rb_gsl_histogram_normalize_bang(Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram_free, hnew));
+  return rb_gsl_histogram_normalize_bang(TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_histogram_data_type, hnew));
 }
 
 static VALUE rb_gsl_histogram_integral(int argc, VALUE *argv, VALUE obj)
@@ -613,7 +613,7 @@ static VALUE rb_gsl_histogram_add(VALUE obj, VALUE hh2)
     Need_Float(hh2);
     gsl_histogram_shift(hnew, NUM2DBL(hh2));
   }
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram_free, hnew);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_histogram_data_type, hnew);
 }
 
 static VALUE rb_gsl_histogram_add2(VALUE obj, VALUE hh2)
@@ -642,7 +642,7 @@ static VALUE rb_gsl_histogram_sub(VALUE obj, VALUE hh2)
     Need_Float(hh2);
     gsl_histogram_shift(hnew, -NUM2DBL(hh2));
   }
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram_free, hnew);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_histogram_data_type, hnew);
 }
 
 static VALUE rb_gsl_histogram_sub2(VALUE obj, VALUE hh2)
@@ -671,7 +671,7 @@ static VALUE rb_gsl_histogram_mul(VALUE obj, VALUE hh2)
     Need_Float(hh2);
     gsl_histogram_scale(hnew, NUM2DBL(hh2));
   }
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram_free, hnew);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_histogram_data_type, hnew);
 }
 
 static VALUE rb_gsl_histogram_mul2(VALUE obj, VALUE hh2)
@@ -700,7 +700,7 @@ static VALUE rb_gsl_histogram_div(VALUE obj, VALUE hh2)
     Need_Float(hh2);
     gsl_histogram_scale(hnew, 1.0/NUM2DBL(hh2));
   }
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram_free, hnew);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_histogram_data_type, hnew);
 }
 
 static VALUE rb_gsl_histogram_div2(VALUE obj, VALUE hh2)
@@ -761,7 +761,7 @@ static VALUE rb_gsl_histogram_scale(int argc, VALUE *argv, VALUE obj)
   }
   hnew = gsl_histogram_clone(h);
   gsl_histogram_scale(hnew, scale);
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram_free, hnew);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_histogram_data_type, hnew);
 }
 
 static VALUE rb_gsl_histogram_shift(VALUE obj, VALUE shift)
@@ -780,7 +780,7 @@ static VALUE rb_gsl_histogram_shift2(VALUE obj, VALUE shift)
   TypedData_Get_Struct(obj, gsl_histogram, &gsl_histogram_data_type, h);
   hnew = gsl_histogram_clone(h);
   gsl_histogram_shift(hnew, NUM2DBL(shift));
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram_free, hnew);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_histogram_data_type, hnew);
 }
 
 static VALUE rb_gsl_histogram_fwrite(VALUE obj, VALUE io)
@@ -877,7 +877,7 @@ static VALUE rb_gsl_histogram_pdf_alloc(VALUE klass, VALUE nn)
     CHECK_FIXNUM(nn);
     h = gsl_histogram_pdf_alloc(FIX2INT(nn));
   }
-  return Data_Wrap_Struct(klass, 0, gsl_histogram_pdf_free, h);
+  return TypedData_Wrap_Struct(klass, &gsl_histogram_pdf_data_type, h);
 }
 
 static VALUE rb_gsl_histogram_pdf_init(VALUE obj, VALUE hh)

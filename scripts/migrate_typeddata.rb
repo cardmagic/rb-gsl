@@ -166,7 +166,15 @@ class TypedDataMigrator
   }.freeze
 
   # Patterns that need manual handling - completely skip these
-  SKIP_PATTERNS = /^(GSL_TYPE|QUALIFIED_VIEW|CONCAT|FUNCTION)\(|^CLASS_OF|^klass$|^argv\[/
+  # Note: klass and CLASS_OF are now handled via FREE_FUNCTION_TO_TYPE
+  SKIP_PATTERNS = /^(GSL_TYPE|QUALIFIED_VIEW|CONCAT|FUNCTION)\(/
+
+  # Classes without corresponding data types - skip these
+  SKIP_CLASSES = %w[
+    cgsl_poly_int
+    cgsl_index
+    cgsl_permutation_luc
+  ].freeze
 
   # Runtime class patterns that can be handled with known data types
   # Maps the macro/class pattern to its data type
@@ -191,6 +199,75 @@ class TypedDataMigrator
 
   # Pattern to detect runtime class macros that we don't have a mapping for
   RUNTIME_CLASS_MACRO_PATTERN = /^(VECTOR|MATRIX|VEC).*ROW_COL\(/
+
+  # Free function to data type mapping - for klass/CLASS_OF patterns
+  FREE_FUNCTION_TO_TYPE = {
+    # Histogram
+    'gsl_histogram_free' => 'gsl_histogram_data_type',
+    'gsl_histogram_pdf_free' => 'gsl_histogram_pdf_data_type',
+    'gsl_histogram2d_free' => 'gsl_histogram2d_data_type',
+    'gsl_histogram2d_pdf_free' => 'gsl_histogram2d_pdf_data_type',
+    # ODE
+    'gsl_odeiv_step_free' => 'gsl_odeiv_step_data_type',
+    'gsl_odeiv_control_free' => 'gsl_odeiv_control_data_type',
+    'gsl_odeiv_evolve_free' => 'gsl_odeiv_evolve_data_type',
+    # Root finding
+    'gsl_root_fsolver_free' => 'gsl_root_fsolver_data_type',
+    'gsl_root_fdfsolver_free' => 'gsl_root_fdfsolver_data_type',
+    'gsl_multiroot_fsolver_free' => 'gsl_multiroot_fsolver_data_type',
+    'gsl_multiroot_fdfsolver_free' => 'gsl_multiroot_fdfsolver_data_type',
+    # Minimization
+    'gsl_min_fminimizer_free' => 'gsl_min_fminimizer_data_type',
+    'gsl_multimin_fminimizer_free' => 'gsl_multimin_fminimizer_data_type',
+    'gsl_multimin_fdfminimizer_free' => 'gsl_multimin_fdfminimizer_data_type',
+    # Fitting
+    'gsl_multifit_linear_free' => 'gsl_multifit_linear_workspace_data_type',
+    'gsl_multifit_fdfsolver_free' => 'gsl_multifit_fdfsolver_data_type',
+    'gsl_multifit_fsolver_free' => 'gsl_multifit_fsolver_data_type',
+    # Interpolation
+    'gsl_interp_free' => 'gsl_interp_data_type',
+    'gsl_interp_accel_free' => 'gsl_interp_accel_data_type',
+    'gsl_spline_free' => 'gsl_spline_data_type',
+    'gsl_bspline_free' => 'gsl_bspline_workspace_data_type',
+    # Integration
+    'gsl_integration_workspace_free' => 'gsl_integration_workspace_data_type',
+    'gsl_integration_qaws_table_free' => 'gsl_integration_qaws_table_data_type',
+    'gsl_integration_qawo_table_free' => 'gsl_integration_qawo_table_data_type',
+    'gsl_integration_glfixed_table_free' => 'gsl_integration_glfixed_table_data_type',
+    # Random
+    'gsl_rng_free' => 'gsl_rng_data_type',
+    'gsl_qrng_free' => 'gsl_qrng_data_type',
+    'gsl_ran_discrete_free' => 'gsl_ran_discrete_data_type',
+    # Combination/Multiset
+    'gsl_combination_free' => 'gsl_combination_data_type',
+    'gsl_multiset_free' => 'gsl_multiset_data_type',
+    # Vectors and matrices
+    'gsl_vector_free' => 'gsl_vector_data_type',
+    'gsl_vector_int_free' => 'gsl_vector_int_data_type',
+    'gsl_vector_complex_free' => 'gsl_vector_complex_data_type',
+    'gsl_matrix_free' => 'gsl_matrix_data_type',
+    'gsl_matrix_int_free' => 'gsl_matrix_int_data_type',
+    'gsl_matrix_complex_free' => 'gsl_matrix_complex_data_type',
+    # Summation
+    'gsl_sum_levin_u_free' => 'gsl_sum_levin_u_workspace_data_type',
+    'gsl_sum_levin_utrunc_free' => 'gsl_sum_levin_utrunc_workspace_data_type',
+    # Wavelets
+    'gsl_wavelet_free' => 'gsl_wavelet_data_type',
+    'gsl_wavelet_workspace_free' => 'gsl_wavelet_workspace_data_type',
+    # FFT
+    'gsl_fft_complex_wavetable_free' => 'gsl_fft_complex_wavetable_data_type',
+    'gsl_fft_complex_workspace_free' => 'gsl_fft_complex_workspace_data_type',
+    'gsl_fft_real_wavetable_free' => 'gsl_fft_real_wavetable_data_type',
+    'gsl_fft_real_workspace_free' => 'gsl_fft_real_workspace_data_type',
+    'gsl_fft_halfcomplex_wavetable_free' => 'gsl_fft_halfcomplex_wavetable_data_type',
+    # DHT
+    'gsl_dht_free' => 'gsl_dht_data_type',
+    # Chebyshev
+    'gsl_cheb_free' => 'gsl_cheb_series_data_type',
+    # NTuple
+    'gsl_ntuple_close' => 'gsl_ntuple_data_type',
+    # Note: siman, mathieu, alf don't have types defined yet
+  }.freeze
 
   # Runtime class patterns
   RUNTIME_PATTERNS = {
@@ -419,6 +496,9 @@ class TypedDataMigrator
           # Skip complete skip patterns
           elsif cls =~ SKIP_PATTERNS
             match
+          # Skip classes without data types
+          elsif SKIP_CLASSES.include?(cls)
+            match
           # Handle runtime class macros with known types
           elsif runtime_type = RUNTIME_CLASS_TO_TYPE[cls]
             new_code = "TypedData_Wrap_Struct(#{cls}, &#{runtime_type}, #{ptr})"
@@ -427,6 +507,15 @@ class TypedDataMigrator
           # Skip unknown runtime class macros (we don't have a mapping for them)
           elsif cls =~ RUNTIME_CLASS_MACRO_PATTERN
             match
+          # Handle klass/CLASS_OF patterns via free function
+          elsif cls == 'klass' || cls.start_with?('CLASS_OF')
+            if data_type = FREE_FUNCTION_TO_TYPE[free]
+              new_code = "TypedData_Wrap_Struct(#{cls}, &#{data_type}, #{ptr})"
+              changes << { type: :wrap, old: match.strip, new: new_code }
+              new_code
+            else
+              match  # Unknown free function, skip
+            end
           # Handle static class mappings
           elsif type = @class_to_type[cls]
             new_code = "TypedData_Wrap_Struct(#{cls}, &#{type}, #{ptr})"

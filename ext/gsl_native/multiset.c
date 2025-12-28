@@ -7,14 +7,14 @@ VALUE rb_gsl_multiset_alloc(VALUE klass, VALUE nn, VALUE kk)
 
   gsl_multiset *m;
   m = gsl_multiset_alloc(FIX2INT(nn), FIX2INT(kk));
-  return Data_Wrap_Struct(klass, 0, gsl_multiset_free, m);
+  return TypedData_Wrap_Struct(klass, &gsl_multiset_data_type, m);
 }
 
 VALUE rb_gsl_multiset_calloc(VALUE klass, VALUE nn, VALUE kk)
 {
   gsl_multiset *m;
   m = gsl_multiset_alloc(FIX2INT(nn), FIX2INT(kk));
-  return Data_Wrap_Struct(klass, 0, gsl_multiset_free, m);
+  return TypedData_Wrap_Struct(klass, &gsl_multiset_data_type, m);
 }
 
 VALUE rb_gsl_multiset_init_first(VALUE mm)

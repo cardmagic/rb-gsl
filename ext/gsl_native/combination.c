@@ -19,7 +19,7 @@ static VALUE rb_gsl_combination_new(VALUE klass, VALUE n, VALUE k)
   gsl_combination *c = NULL;
   CHECK_FIXNUM(n); CHECK_FIXNUM(k);
   c = gsl_combination_alloc(FIX2INT(n), FIX2INT(k));
-  return Data_Wrap_Struct(klass, 0, gsl_combination_free, c);
+  return TypedData_Wrap_Struct(klass, &gsl_combination_data_type, c);
 }
 
 static VALUE rb_gsl_combination_calloc(VALUE klass, VALUE n, VALUE k)
@@ -27,7 +27,7 @@ static VALUE rb_gsl_combination_calloc(VALUE klass, VALUE n, VALUE k)
   gsl_combination *c = NULL;
   CHECK_FIXNUM(n); CHECK_FIXNUM(k);
   c = gsl_combination_calloc(FIX2INT(n), FIX2INT(k));
-  return Data_Wrap_Struct(klass, 0, gsl_combination_free, c);
+  return TypedData_Wrap_Struct(klass, &gsl_combination_data_type, c);
 }
 
 static VALUE rb_gsl_combination_init_first(VALUE obj)
@@ -68,7 +68,7 @@ static VALUE rb_gsl_combination_clone(VALUE obj)
   Data_Get_Struct(obj, gsl_combination, c);
   c2 = gsl_combination_alloc(c->n, c->k);
   gsl_combination_memcpy(c2, c);
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_combination_free, c2);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_combination_data_type, c2);
 }
 
 static VALUE rb_gsl_combination_get(VALUE obj, VALUE ii)

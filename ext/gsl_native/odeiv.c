@@ -308,7 +308,7 @@ static VALUE rb_gsl_odeiv_step_new(int argc, VALUE *argv, VALUE klass)
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 2)", argc);
   }
-  obj = Data_Wrap_Struct(klass, 0, gsl_odeiv_step_free, s);
+  obj = TypedData_Wrap_Struct(klass, &gsl_odeiv_step_data_type, s);
   return obj;
 }
 
@@ -459,7 +459,7 @@ static VALUE rb_gsl_odeiv_control_standard_new(VALUE klass, VALUE epsabs,
 {
   gsl_odeiv_control *c = NULL;
   c = make_control_standard(epsabs, epsrel, ay, adydt);
-  return Data_Wrap_Struct(klass, 0, gsl_odeiv_control_free, c);
+  return TypedData_Wrap_Struct(klass, &gsl_odeiv_control_data_type, c);
 }
 
 static gsl_odeiv_control* make_control_standard(VALUE epsabs,
@@ -483,7 +483,7 @@ static VALUE rb_gsl_odeiv_control_y_new(VALUE klass, VALUE epsabs,
 {
   gsl_odeiv_control *c = NULL;
   c = make_control_y(epsabs, epsrel);
-  return Data_Wrap_Struct(klass, 0, gsl_odeiv_control_free, c);
+  return TypedData_Wrap_Struct(klass, &gsl_odeiv_control_data_type, c);
 }
 
 static VALUE rb_gsl_odeiv_control_yp_new(VALUE klass, VALUE epsabs,
@@ -492,7 +492,7 @@ static VALUE rb_gsl_odeiv_control_yp_new(VALUE klass, VALUE epsabs,
   gsl_odeiv_control *c = NULL;
   Need_Float(epsabs); Need_Float(epsrel);
   c = gsl_odeiv_control_yp_new(NUM2DBL(epsabs), NUM2DBL(epsrel));
-  return Data_Wrap_Struct(klass, 0, gsl_odeiv_control_free, c);
+  return TypedData_Wrap_Struct(klass, &gsl_odeiv_control_data_type, c);
 }
 
 static VALUE rb_gsl_odeiv_control_scaled_new(VALUE klass, VALUE epsabs,
@@ -510,7 +510,7 @@ static VALUE rb_gsl_odeiv_control_scaled_new(VALUE klass, VALUE epsabs,
   c = gsl_odeiv_control_scaled_new(NUM2DBL(epsabs), NUM2DBL(epsrel),
                                    NUM2DBL(ay), NUM2DBL(adydt), v->data,
                                    FIX2INT(dd));
-  return Data_Wrap_Struct(klass, 0, gsl_odeiv_control_free, c);
+  return TypedData_Wrap_Struct(klass, &gsl_odeiv_control_data_type, c);
 }
 
 static VALUE rb_gsl_odeiv_control_init(VALUE obj, VALUE epsabs,
@@ -560,7 +560,7 @@ static VALUE rb_gsl_odeiv_evolve_new(VALUE klass, VALUE dim)
 {
   gsl_odeiv_evolve *e = NULL;
   e = make_evolve(dim);
-  return Data_Wrap_Struct(klass, 0, gsl_odeiv_evolve_free, e);
+  return TypedData_Wrap_Struct(klass, &gsl_odeiv_evolve_data_type, e);
 }
 
 static gsl_odeiv_evolve* make_evolve(VALUE dim)

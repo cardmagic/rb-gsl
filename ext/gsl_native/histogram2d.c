@@ -46,7 +46,7 @@ static VALUE rb_gsl_histogram2d_alloc(int argc, VALUE *argv, VALUE klass)
       gsl_histogram2d_set_ranges(h, vx->data, vx->size, vy->data, vy->size);
       break;
     }
-    return Data_Wrap_Struct(klass, 0, gsl_histogram2d_free, h);
+    return TypedData_Wrap_Struct(klass, &gsl_histogram2d_data_type, h);
     break;
   case 4:
     if (VECTOR_P(argv[0]) && VECTOR_P(argv[2])) {
@@ -56,7 +56,7 @@ static VALUE rb_gsl_histogram2d_alloc(int argc, VALUE *argv, VALUE klass)
       xsize = (size_t) FIX2UINT(argv[1]); ysize = (size_t) FIX2UINT(argv[3]);
       h = gsl_histogram2d_alloc(xsize-1, ysize-1);
       gsl_histogram2d_set_ranges(h, vx->data, xsize, vy->data, ysize);
-      return Data_Wrap_Struct(klass, 0, gsl_histogram2d_free, h);
+      return TypedData_Wrap_Struct(klass, &gsl_histogram2d_data_type, h);
     } else {
       return rb_gsl_histogram2d_alloc_uniform(argc, argv, klass);
     }
@@ -88,7 +88,7 @@ static VALUE rb_gsl_histogram2d_alloc_uniform(int argc, VALUE *argv, VALUE klass
     ymax = NUM2DBL(rb_ary_entry(argv[3], 1));
     h = gsl_histogram2d_alloc(FIX2INT(argv[0]), FIX2INT(argv[2]));
     gsl_histogram2d_set_ranges_uniform(h, xmin, xmax, ymin, ymax);
-    return Data_Wrap_Struct(klass, 0, gsl_histogram2d_free, h);
+    return TypedData_Wrap_Struct(klass, &gsl_histogram2d_data_type, h);
     break;
   case 6:
     CHECK_FIXNUM(argv[0]);
@@ -98,7 +98,7 @@ static VALUE rb_gsl_histogram2d_alloc_uniform(int argc, VALUE *argv, VALUE klass
     h = gsl_histogram2d_alloc(FIX2INT(argv[0]), FIX2INT(argv[3]));
     gsl_histogram2d_set_ranges_uniform(h, NUM2DBL(argv[1]), NUM2DBL(argv[2]),
                                        NUM2DBL(argv[4]), NUM2DBL(argv[5]));
-    return Data_Wrap_Struct(klass, 0, gsl_histogram2d_free, h);
+    return TypedData_Wrap_Struct(klass, &gsl_histogram2d_data_type, h);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments %d", argc);
@@ -164,7 +164,7 @@ static VALUE rb_gsl_histogram2d_clone(VALUE obj)
   gsl_histogram2d *h, *h2 = NULL;
   TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   h2 = gsl_histogram2d_clone(h);
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram2d_free, h2);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_histogram2d_data_type, h2);
 }
 
 /* singleton */
@@ -474,7 +474,7 @@ static VALUE rb_gsl_histogram2d_add(VALUE obj, VALUE hh2)
     Need_Float(hh2);
     gsl_histogram2d_shift(hnew, NUM2DBL(hh2));
   }
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram2d_free, hnew);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_histogram2d_data_type, hnew);
 }
 
 static VALUE rb_gsl_histogram2d_sub(VALUE obj, VALUE hh2)
@@ -489,7 +489,7 @@ static VALUE rb_gsl_histogram2d_sub(VALUE obj, VALUE hh2)
     Need_Float(hh2);
     gsl_histogram2d_shift(hnew, -NUM2DBL(hh2));
   }
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram2d_free, hnew);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_histogram2d_data_type, hnew);
 }
 
 static VALUE rb_gsl_histogram2d_mul(VALUE obj, VALUE hh2)
@@ -504,7 +504,7 @@ static VALUE rb_gsl_histogram2d_mul(VALUE obj, VALUE hh2)
     Need_Float(hh2);
     gsl_histogram2d_scale(hnew, NUM2DBL(hh2));
   }
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram2d_free, hnew);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_histogram2d_data_type, hnew);
 }
 
 static VALUE rb_gsl_histogram2d_div(VALUE obj, VALUE hh2)
@@ -519,7 +519,7 @@ static VALUE rb_gsl_histogram2d_div(VALUE obj, VALUE hh2)
     Need_Float(hh2);
     gsl_histogram2d_scale(hnew, 1.0/NUM2DBL(hh2));
   }
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram2d_free, hnew);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_histogram2d_data_type, hnew);
 }
 
 static VALUE rb_gsl_histogram2d_scale2(VALUE obj, VALUE val)
@@ -529,7 +529,7 @@ static VALUE rb_gsl_histogram2d_scale2(VALUE obj, VALUE val)
   TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h1);
   hnew = gsl_histogram2d_clone(h1);
   gsl_histogram2d_scale(hnew, NUM2DBL(val));
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram2d_free, hnew);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_histogram2d_data_type, hnew);
 }
 
 static VALUE rb_gsl_histogram2d_shift2(VALUE obj, VALUE val)
@@ -539,7 +539,7 @@ static VALUE rb_gsl_histogram2d_shift2(VALUE obj, VALUE val)
   TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h1);
   hnew = gsl_histogram2d_clone(h1);
   gsl_histogram2d_shift(hnew, NUM2DBL(val));
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram2d_free, hnew);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_histogram2d_data_type, hnew);
 }
 
 static VALUE rb_gsl_histogram2d_fwrite(VALUE obj, VALUE io)
@@ -612,7 +612,7 @@ static VALUE rb_gsl_histogram2d_pdf_alloc(VALUE klass, VALUE nx, VALUE ny)
   gsl_histogram2d_pdf *h = NULL;
   CHECK_FIXNUM(nx); CHECK_FIXNUM(ny);
   h = gsl_histogram2d_pdf_alloc(FIX2INT(nx), FIX2INT(ny));
-  return Data_Wrap_Struct(klass, 0, gsl_histogram2d_pdf_free, h);
+  return TypedData_Wrap_Struct(klass, &gsl_histogram2d_pdf_data_type, h);
 }
 
 static VALUE rb_gsl_histogram2d_pdf_init(VALUE obj, VALUE hh)
@@ -915,7 +915,7 @@ static VALUE rb_gsl_histogram2d_normalize(VALUE obj)
   gsl_histogram2d *h = NULL, *hnew = NULL;
   TypedData_Get_Struct(obj, gsl_histogram2d, &gsl_histogram2d_data_type, h);
   hnew = gsl_histogram2d_clone(h);
-  return rb_gsl_histogram2d_normalize_bang(Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_histogram2d_free, hnew));
+  return rb_gsl_histogram2d_normalize_bang(TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_histogram2d_data_type, hnew));
 }
 
 void Init_gsl_histogram2d(VALUE module)

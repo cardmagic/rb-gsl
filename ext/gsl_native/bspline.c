@@ -7,7 +7,7 @@ static VALUE rb_gsl_bspline_alloc(VALUE klass, VALUE k, VALUE n)
 {
   gsl_bspline_workspace *w;
   w = gsl_bspline_alloc(FIX2INT(k), FIX2INT(n));
-  return Data_Wrap_Struct(klass, 0, gsl_bspline_free, w);
+  return TypedData_Wrap_Struct(klass, &gsl_bspline_workspace_data_type, w);
 }
 
 static VALUE rb_gsl_bspline_ncoeffs(VALUE obj)

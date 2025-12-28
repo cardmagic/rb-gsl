@@ -31,7 +31,7 @@ static VALUE rb_gsl_dht_alloc(int argc, VALUE *argv, VALUE klass)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 3)", argc);
     break;
   }
-  return Data_Wrap_Struct(klass, 0, gsl_dht_free, t);
+  return TypedData_Wrap_Struct(klass, &gsl_dht_data_type, t);
 }
 
 static VALUE rb_gsl_dht_init(VALUE obj, VALUE nu, VALUE xmax)

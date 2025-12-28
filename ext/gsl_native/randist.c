@@ -1257,7 +1257,7 @@ static VALUE rb_gsl_ran_discrete_new(VALUE klass, VALUE vv)
   gsl_ran_discrete_t *g = NULL;
   TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
   g = gsl_ran_discrete_preproc(v->size, v->data);
-  return Data_Wrap_Struct(klass, 0, gsl_ran_discrete_free, g);
+  return TypedData_Wrap_Struct(klass, &gsl_ran_discrete_data_type, g);
 }
 
 static VALUE rb_gsl_ran_discrete(VALUE obj, VALUE gg)

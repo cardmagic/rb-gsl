@@ -54,7 +54,7 @@ static VALUE rb_gsl_wavelet_new(VALUE klass, VALUE t, VALUE m)
   member = FIX2INT(m);
   w = gsl_wavelet_alloc(T, member);
   if (w == NULL) rb_raise(rb_eNoMemError, "gsl_wavelet_alloc failed");
-  return Data_Wrap_Struct(klass, 0, gsl_wavelet_free, w);
+  return TypedData_Wrap_Struct(klass, &gsl_wavelet_data_type, w);
 }
 
 static const gsl_wavelet_type* rb_gsl_wavelet_get_type_str(char *name);
@@ -156,7 +156,7 @@ static VALUE rb_gsl_wavelet_workspace_new(VALUE klass, VALUE nn)
   CHECK_FIXNUM(nn);
   wspace = gsl_wavelet_workspace_alloc(FIX2INT(nn));
   if (wspace == NULL) rb_raise(rb_eNoMemError, "gsl_wavelet_workspace_alloc failed");
-  return Data_Wrap_Struct(klass, 0, gsl_wavelet_workspace_free, wspace);
+  return TypedData_Wrap_Struct(klass, &gsl_wavelet_workspace_data_type, wspace);
 }
 
 static VALUE rb_gsl_wavelet2d_trans(int argc, VALUE *argv, VALUE obj,

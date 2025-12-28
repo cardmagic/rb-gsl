@@ -191,7 +191,7 @@ static VALUE rb_gsl_matrix_complex_new(VALUE klass, VALUE s1, VALUE s2)
   CHECK_FIXNUM(s1); CHECK_FIXNUM(s2);
   m = gsl_matrix_complex_calloc(FIX2INT(s1),  FIX2INT(s2));
   if (m == NULL) rb_raise(rb_eNoMemError, "gsl_matrix_complex_alloc failed");
-  return Data_Wrap_Struct(klass, 0, gsl_matrix_complex_free, m);
+  return TypedData_Wrap_Struct(klass, &gsl_matrix_complex_data_type, m);
 }
 
 static VALUE rb_gsl_matrix_complex_eye(int argc, VALUE *argv, VALUE klass)
@@ -244,7 +244,7 @@ static VALUE rb_gsl_matrix_complex_eye(int argc, VALUE *argv, VALUE klass)
   m = gsl_matrix_complex_calloc(n, n);
   if (m == NULL) rb_raise(rb_eNoMemError, "gsl_matrix_complex_alloc failed");
   for (i = 0; i < n; i++) gsl_matrix_complex_set(m, i, i, z);
-  return Data_Wrap_Struct(klass, 0, gsl_matrix_complex_free, m);
+  return TypedData_Wrap_Struct(klass, &gsl_matrix_complex_data_type, m);
 }
 
 static VALUE rb_gsl_matrix_complex_identity(VALUE klass, VALUE nn)
@@ -258,7 +258,7 @@ static VALUE rb_gsl_matrix_complex_identity(VALUE klass, VALUE nn)
   if (m == NULL) rb_raise(rb_eNoMemError, "gsl_matrix_complex_calloc failed");
   z = gsl_complex_rect(1.0, 0.0);
   for (i = 0; i < n; i++) gsl_matrix_complex_set(m, i, i, z);
-  return Data_Wrap_Struct(klass, 0, gsl_matrix_complex_free, m);
+  return TypedData_Wrap_Struct(klass, &gsl_matrix_complex_data_type, m);
 }
 
 static VALUE rb_gsl_matrix_complex_set_zero(VALUE obj)

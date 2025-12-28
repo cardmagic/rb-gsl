@@ -73,7 +73,7 @@ static VALUE rb_gsl_qrng_new(VALUE klass, VALUE t, VALUE dd)
   d = NUM2UINT(dd);
   T = get_gsl_qrng_type(t);
   q = gsl_qrng_alloc(T, d);
-  return Data_Wrap_Struct(klass, 0, gsl_qrng_free, q);
+  return TypedData_Wrap_Struct(klass, &gsl_qrng_data_type, q);
 }
 
 static VALUE rb_gsl_qrng_init(VALUE obj)
@@ -103,7 +103,7 @@ static VALUE rb_gsl_qrng_clone(VALUE obj)
   gsl_qrng *q = NULL, *q2 = NULL;
   Data_Get_Struct(obj, gsl_qrng, q);
   q2 = gsl_qrng_clone(q);
-  return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_qrng_free, q2);
+  return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_qrng_data_type, q2);
 }
 
 /* singleton */

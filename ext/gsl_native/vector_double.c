@@ -170,7 +170,7 @@ static VALUE rb_gsl_vector_arithmetics(int flag, VALUE obj, VALUE bb)
       break;
     }
     if (!VECTOR_VIEW_P(obj))
-      return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_vector_data_type, vnew);
     else
       return TypedData_Wrap_Struct(VECTOR_ROW_COL(obj), &gsl_vector_data_type, vnew);
     break;
@@ -197,7 +197,7 @@ static VALUE rb_gsl_vector_arithmetics(int flag, VALUE obj, VALUE bb)
         break;
       }
       if (!VECTOR_VIEW_P(obj))
-        return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_vector_free, vnew);
+        return TypedData_Wrap_Struct(CLASS_OF(obj), &gsl_vector_data_type, vnew);
       else
         return TypedData_Wrap_Struct(VECTOR_ROW_COL(obj), &gsl_vector_data_type, vnew);
     } else if (VECTOR_COMPLEX_P(bb)) {
@@ -314,7 +314,7 @@ VALUE rb_ary_to_gv(VALUE klass, VALUE ary)
   for (i = 0; i < size; i++) {
     gsl_vector_set(v, i, NUM2DBL(rb_ary_entry(ary, i)));
   }
-  return Data_Wrap_Struct(klass, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(klass, &gsl_vector_data_type, v);
 }
 
 VALUE rb_gsl_range_to_gv(VALUE obj)

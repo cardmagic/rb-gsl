@@ -68,7 +68,7 @@ static VALUE rb_gsl_fsolver_new(VALUE klass, VALUE t)
     break;
   }
   s = gsl_root_fsolver_alloc(T);
-  return Data_Wrap_Struct(klass, 0, gsl_root_fsolver_free, s);
+  return TypedData_Wrap_Struct(klass, &gsl_root_fsolver_data_type, s);
 }
 
 static VALUE rb_gsl_fsolver_set(VALUE obj, VALUE func, VALUE xl, VALUE xh)
@@ -232,7 +232,7 @@ static VALUE rb_gsl_fdfsolver_new(VALUE klass, VALUE t)
     break;
   }
   s = gsl_root_fdfsolver_alloc(T);
-  return Data_Wrap_Struct(klass, 0, gsl_root_fdfsolver_free, s);
+  return TypedData_Wrap_Struct(klass, &gsl_root_fdfsolver_data_type, s);
 }
 
 static VALUE rb_gsl_fdfsolver_set(VALUE obj, VALUE func, VALUE r)

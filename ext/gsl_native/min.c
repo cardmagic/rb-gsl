@@ -67,7 +67,7 @@ static VALUE rb_gsl_min_fminimizer_new(VALUE klass, VALUE t)
   const gsl_min_fminimizer_type *T;
   T = rb_gsl_min_fminimizer_type_get(t);
   gmf = gsl_min_fminimizer_alloc(T);
-  return Data_Wrap_Struct(klass, 0, gsl_min_fminimizer_free, gmf);
+  return TypedData_Wrap_Struct(klass, &gsl_min_fminimizer_data_type, gmf);
 }
 
 static VALUE rb_gsl_min_fminimizer_name(VALUE obj)

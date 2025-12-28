@@ -47,7 +47,7 @@ static VALUE rb_gsl_sum_levin_u_new(VALUE klass, VALUE nn)
   gsl_sum_levin_u_workspace *w = NULL;
   CHECK_FIXNUM(nn);
   w = gsl_sum_levin_u_alloc(FIX2INT(nn));
-  return Data_Wrap_Struct(klass, 0, gsl_sum_levin_u_free, w);
+  return TypedData_Wrap_Struct(klass, &gsl_sum_levin_u_workspace_data_type, w);
 }
 
 static VALUE rb_gsl_sum_levin_utrunc_new(VALUE klass, VALUE nn)
@@ -55,7 +55,7 @@ static VALUE rb_gsl_sum_levin_utrunc_new(VALUE klass, VALUE nn)
   gsl_sum_levin_utrunc_workspace *w = NULL;
   CHECK_FIXNUM(nn);
   w = gsl_sum_levin_utrunc_alloc(FIX2INT(nn));
-  return Data_Wrap_Struct(klass, 0, gsl_sum_levin_utrunc_free, w);
+  return TypedData_Wrap_Struct(klass, &gsl_sum_levin_utrunc_workspace_data_type, w);
 }
 
 /* singleton */
