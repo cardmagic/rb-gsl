@@ -27,14 +27,14 @@ VALUE rb_gsl_vector_int_to_f(VALUE obj)
   gsl_vector_int *v;
   gsl_vector *vnew;
   size_t i;
-  Data_Get_Struct(obj, gsl_vector_int, v);
+  TypedData_Get_Struct(obj, gsl_vector_int, &gsl_vector_int_data_type, v);
   vnew = gsl_vector_alloc(v->size);
   for (i = 0; i < v->size; i++)
     gsl_vector_set(vnew, i, (double) gsl_vector_int_get(v, i));
   if (VECTOR_INT_COL_P(obj))
-    return Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_col_data_type, vnew);
   else
-    return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, vnew);
 }
 
 static VALUE rb_gsl_vector_int_to_complex(VALUE obj)
@@ -43,7 +43,7 @@ static VALUE rb_gsl_vector_int_to_complex(VALUE obj)
   gsl_vector_complex *vnew;
   gsl_complex z;
   size_t i;
-  Data_Get_Struct(obj, gsl_vector_int, v);
+  TypedData_Get_Struct(obj, gsl_vector_int, &gsl_vector_int_data_type, v);
   vnew = gsl_vector_complex_alloc(v->size);
   for (i = 0; i < v->size; i++) {
     GSL_SET_REAL(&z, (double) gsl_vector_int_get(v, i));
@@ -51,16 +51,16 @@ static VALUE rb_gsl_vector_int_to_complex(VALUE obj)
     gsl_vector_complex_set(vnew, i, z);
   }
   if (VECTOR_INT_COL_P(obj))
-    return Data_Wrap_Struct(cgsl_vector_complex_col, 0, gsl_vector_complex_free, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_col_data_type, vnew);
   else
-    return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vnew);
 }
 
 static VALUE rb_gsl_vector_int_coerce(VALUE obj, VALUE other)
 {
   gsl_vector_int *v = NULL, *vnew = NULL;
   VALUE vv;
-  Data_Get_Struct(obj, gsl_vector_int, v);
+  TypedData_Get_Struct(obj, gsl_vector_int, &gsl_vector_int_data_type, v);
   switch (TYPE(other)) {
   case T_FIXNUM:
     vnew = gsl_vector_int_alloc(v->size);
@@ -91,8 +91,8 @@ static VALUE rb_gsl_vector_int_add(VALUE obj, VALUE b)
     break;
   default:
     if (rb_obj_is_kind_of(b, cgsl_vector_int)) {
-      Data_Get_Struct(obj, gsl_vector_int, v);
-      Data_Get_Struct(b, gsl_vector_int, vb);
+      TypedData_Get_Struct(obj, gsl_vector_int, &gsl_vector_int_data_type, v);
+      TypedData_Get_Struct(b, gsl_vector_int, &gsl_vector_int_data_type, vb);
       vnew = gsl_vector_int_alloc(v->size);
       gsl_vector_int_memcpy(vnew, v);
       gsl_vector_int_add(vnew, vb);
@@ -117,8 +117,8 @@ static VALUE rb_gsl_vector_int_sub(VALUE obj, VALUE b)
     break;
   default:
     if (rb_obj_is_kind_of(b, cgsl_vector_int)) {
-      Data_Get_Struct(obj, gsl_vector_int, v);
-      Data_Get_Struct(b, gsl_vector_int, vb);
+      TypedData_Get_Struct(obj, gsl_vector_int, &gsl_vector_int_data_type, v);
+      TypedData_Get_Struct(b, gsl_vector_int, &gsl_vector_int_data_type, vb);
       vnew = gsl_vector_int_alloc(v->size);
       gsl_vector_int_memcpy(vnew, v);
       gsl_vector_int_sub(vnew, vb);
@@ -150,13 +150,13 @@ static VALUE rb_gsl_vector_int_mul(VALUE obj, VALUE b)
       argv[1] = b;
       return rb_gsl_vector_int_inner_product(2, argv, CLASS_OF(obj));
     } else if (VECTOR_INT_ROW_P(obj) && MATRIX_INT_P(b)) {
-      Data_Get_Struct(obj, gsl_vector_int, v);
-      Data_Get_Struct(b, gsl_matrix_int, m);
+      TypedData_Get_Struct(obj, gsl_vector_int, &gsl_vector_int_data_type, v);
+      TypedData_Get_Struct(b, gsl_matrix_int, &gsl_matrix_int_data_type, m);
       vnew = mygsl_vector_int_mul_matrix(v, m);
-      return Data_Wrap_Struct(cgsl_vector_int, 0, gsl_vector_int_free, vnew);
+      return TypedData_Wrap_Struct(cgsl_vector_int, &gsl_vector_int_data_type, vnew);
     } else if (VECTOR_INT_COL_P(obj) && VECTOR_INT_ROW_P(b)) {
-      Data_Get_Struct(obj, gsl_vector_int, v);
-      Data_Get_Struct(b, gsl_vector_int, v2);
+      TypedData_Get_Struct(obj, gsl_vector_int, &gsl_vector_int_data_type, v);
+      TypedData_Get_Struct(b, gsl_vector_int, &gsl_vector_int_data_type, v2);
       if (v->size != v2->size) rb_raise(rb_eIndexError, "Vector sizes does not match.");
       m = gsl_matrix_int_alloc(v->size, v2->size);
       for (i = 0; i < v->size; i++) {
@@ -165,7 +165,7 @@ static VALUE rb_gsl_vector_int_mul(VALUE obj, VALUE b)
           gsl_matrix_int_set(m, i, j, val);
         }
       }
-      return Data_Wrap_Struct(cgsl_matrix_int, 0, gsl_matrix_int_free, m);
+      return TypedData_Wrap_Struct(cgsl_matrix_int, &gsl_matrix_int_data_type, m);
     } else {
       return rb_gsl_vector_mul(rb_gsl_vector_int_to_f(obj), b);
     }

@@ -21,7 +21,7 @@ static VALUE jac_eval3(VALUE xx, VALUE aa, VALUE bb, double (*f)(double, double,
   a = NUM2DBL(aa);
   b = NUM2DBL(bb);
   if (VECTOR_P(xx)) {
-    Data_Get_Struct(xx, gsl_vector, x);
+    TypedData_Get_Struct(xx, gsl_vector, &gsl_vector_data_type, x);
     y = gsl_vector_alloc(x->size);
     for (i = 0; i < x->size; i++) {
       gsl_vector_set(y, i, (*f)(gsl_vector_get(x, i), a, b));
@@ -65,7 +65,7 @@ static VALUE rb_jac_jacobi_eval(int argc, VALUE *argv,
   int n, flag = 0;
   if (argc < 4) rb_raise(rb_eArgError, "Too few arguments (%d for >= 4)", argc);
   if (VECTOR_P(argv[0])) {
-    Data_Get_Struct(argv[0], gsl_vector, x);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, x);
     y = gsl_vector_alloc(x->size);
     ary = Data_Wrap_Struct(VECTOR_ROW_COL(CLASS_OF(x)), 0, gsl_vector_free, y);
     switch (argc) {
@@ -75,7 +75,7 @@ static VALUE rb_jac_jacobi_eval(int argc, VALUE *argv,
       break;
     case 5:
       CHECK_VECTOR(argv[4]);
-      Data_Get_Struct(argv[4], gsl_vector, ws);
+      TypedData_Get_Struct(argv[4], gsl_vector, &gsl_vector_data_type, ws);
       break;
     default:
       rb_raise(rb_eArgError, "Too many arguments (%d for 4 or 5)", argc);
@@ -181,9 +181,9 @@ static VALUE rb_jac_zeros_eval(int argc, VALUE *argv, VALUE module,
       a = NUM2DBL(argv[1]);
       b = NUM2DBL(argv[2]);
       x = gsl_vector_alloc(m);
-      xx = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, x);
+      xx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, x);
     } else if (VECTOR_P(argv[0])) {
-      Data_Get_Struct(argv[0], gsl_vector, x);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, x);
       m = x->size;
       a = NUM2DBL(argv[1]);
       b = NUM2DBL(argv[2]);
@@ -195,7 +195,7 @@ static VALUE rb_jac_zeros_eval(int argc, VALUE *argv, VALUE module,
     break;
   case 4:
     CHECK_VECTOR(argv[0]);
-    Data_Get_Struct(argv[0], gsl_vector, x);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, x);
     m = FIX2INT(argv[1]);
     a = NUM2DBL(argv[2]);
     b = NUM2DBL(argv[3]);
@@ -268,7 +268,7 @@ static VALUE rb_jac_quadrature_x(VALUE obj)
   v->vector.data = q->x;
   v->vector.size = q->Q;
   v->vector.stride = 1;
-  return Data_Wrap_Struct(cgsl_vector_view, 0, gsl_vector_view_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, v);
 }
 
 static VALUE rb_jac_quadrature_w(VALUE obj)
@@ -280,7 +280,7 @@ static VALUE rb_jac_quadrature_w(VALUE obj)
   v->vector.data = q->w;
   v->vector.size = q->Q;
   v->vector.stride = 1;
-  return Data_Wrap_Struct(cgsl_vector_view, 0, gsl_vector_view_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, v);
 }
 
 static VALUE rb_jac_quadrature_D(VALUE obj)
@@ -292,7 +292,7 @@ static VALUE rb_jac_quadrature_D(VALUE obj)
   v->vector.data = q->D;
   v->vector.size = q->Q;
   v->vector.stride = 1;
-  return Data_Wrap_Struct(cgsl_vector_view, 0, gsl_vector_view_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, v);
 }
 
 static VALUE rb_jac_quadrature_xp(VALUE obj)
@@ -304,7 +304,7 @@ static VALUE rb_jac_quadrature_xp(VALUE obj)
   v->vector.data = q->w;
   v->vector.size = q->np;
   v->vector.stride = 1;
-  return Data_Wrap_Struct(cgsl_vector_view, 0, gsl_vector_view_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, v);
 }
 
 static VALUE rb_jac_interpmat_alloc(int argc, VALUE *argv, VALUE obj)
@@ -317,12 +317,12 @@ static VALUE rb_jac_interpmat_alloc(int argc, VALUE *argv, VALUE obj)
   switch (argc) {
   case 1:
     CHECK_VECTOR(argv[0]);
-    Data_Get_Struct(argv[0], gsl_vector, xp);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, xp);
     np = xp->size;
     break;
   case 2:
     CHECK_VECTOR(argv[1]);
-    Data_Get_Struct(argv[1], gsl_vector, xp);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, xp);
     np = FIX2INT(argv[0]);
     break;
   default:
@@ -359,7 +359,7 @@ static VALUE rb_jac_quadrature_zwd(int argc, VALUE *argv, VALUE obj)
     type = FIX2INT(argv[0]);
     a = NUM2DBL(argv[1]);
     b = NUM2DBL(argv[2]);
-    Data_Get_Struct(argv[3], gsl_vector, ws);
+    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, ws);
     break;
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments (%d for 3 or 4)", argc);
@@ -375,7 +375,7 @@ static VALUE rb_jac_integrate(VALUE obj, VALUE ff)
   gsl_vector *f;
   CHECK_VECTOR(ff);
   Data_Get_Struct(obj, jac_quadrature, q);
-  Data_Get_Struct(ff, gsl_vector, f);
+  TypedData_Get_Struct(ff, gsl_vector, &gsl_vector_data_type, f);
   return rb_float_new(jac_integrate(q, f->data));
 }
 
@@ -387,15 +387,15 @@ static VALUE rb_jac_interpolate(int argc, VALUE *argv, VALUE obj)
   switch (argc) {
   case 1:
     CHECK_VECTOR(argv[0]);
-    Data_Get_Struct(argv[0], gsl_vector, f);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, f);
     fout = gsl_vector_alloc(f->size);
     vfout = Data_Wrap_Struct(VECTOR_ROW_COL(CLASS_OF(argv[0])), 0, gsl_vector_free, fout);
     break;
   case 2:
     CHECK_VECTOR(argv[0]);
-    Data_Get_Struct(argv[0], gsl_vector, f);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, f);
     CHECK_VECTOR(argv[1]);
-    Data_Get_Struct(argv[1], gsl_vector, fout);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, fout);
     vfout = argv[1];
     break;
   default:
@@ -414,15 +414,15 @@ static VALUE rb_jac_differentiate(int argc, VALUE *argv, VALUE obj)
   switch (argc) {
   case 1:
     CHECK_VECTOR(argv[0]);
-    Data_Get_Struct(argv[0], gsl_vector, f);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, f);
     fout = gsl_vector_alloc(f->size);
     vfout = Data_Wrap_Struct(VECTOR_ROW_COL(CLASS_OF(argv[0])), 0, gsl_vector_free, fout);
     break;
   case 2:
     CHECK_VECTOR(argv[0]);
-    Data_Get_Struct(argv[0], gsl_vector, f);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, f);
     CHECK_VECTOR(argv[1]);
-    Data_Get_Struct(argv[1], gsl_vector, fout);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, fout);
     vfout = argv[1];
     break;
   default:
@@ -444,11 +444,11 @@ static VALUE rb_jac_qeval(int argc, VALUE *argv,
   VALUE vD;
   if (argc < 3) rb_raise(rb_eArgError, "Too few arguments (%d for >= 3)", argc);
   CHECK_VECTOR(argv[0]);
-  Data_Get_Struct(argv[0], gsl_vector, z);
+  TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, z);
   argc -= 1;
   argv += 1;
   if (VECTOR_P(argv[argc-1])) {
-    Data_Get_Struct(argv[argc-1], gsl_vector, ws);
+    TypedData_Get_Struct(argv[argc-1], gsl_vector, &gsl_vector_data_type, ws);
     argc -= 1;
   } else {
     ws = gsl_vector_alloc(z->size);
@@ -460,10 +460,10 @@ static VALUE rb_jac_qeval(int argc, VALUE *argv,
     D = gsl_vector_alloc(Q*Q);
     alpha = NUM2DBL(argv[0]);
     beta = NUM2DBL(argv[1]);
-    vD = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, D);
+    vD = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, D);
     break;
   case 4:
-    Data_Get_Struct(argv[0], gsl_vector, D);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, D);
     vD = argv[0];
     Q = FIX2INT(argv[1]);
     alpha = NUM2DBL(argv[2]);
@@ -472,12 +472,12 @@ static VALUE rb_jac_qeval(int argc, VALUE *argv,
   case 3:
     if (VECTOR_P(argv[0])) {
       Q = z->size;
-      Data_Get_Struct(argv[0], gsl_vector, D);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, D);
       vD = argv[0];
     } else {
       Q = FIX2INT(argv[0]);
       D = gsl_vector_alloc(Q*Q);
-      vD = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, D);
+      vD = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, D);
     }
     alpha = NUM2DBL(argv[1]);
     beta = NUM2DBL(argv[2]);
@@ -560,7 +560,7 @@ static VALUE rb_jac_lagrange_eval(int argc, VALUE *argv,
     i = FIX2INT(argv[0]);
     zz = NUM2DBL(argv[1]);
     CHECK_VECTOR(argv[2]);
-    Data_Get_Struct(argv[2], gsl_vector, z);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, z);
     Q = z->size;
     alpha = NUM2DBL(argv[3]);
     beta = NUM2DBL(argv[4]);
@@ -570,7 +570,7 @@ static VALUE rb_jac_lagrange_eval(int argc, VALUE *argv,
     zz = NUM2DBL(argv[1]);
     Q = FIX2INT(argv[2]);
     CHECK_VECTOR(argv[3]);
-    Data_Get_Struct(argv[3], gsl_vector, z);
+    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, z);
     alpha = NUM2DBL(argv[4]);
     beta = NUM2DBL(argv[5]);
     break;
@@ -609,23 +609,23 @@ static VALUE rb_jac_interpmat_eval(int argc, VALUE *argv,
   if (argc < 3) rb_raise(rb_eArgError, "Too few arguments (%d for >= 3)", argc);
   CHECK_VECTOR(argv[0]);
   if (VECTOR_P(argv[1])) {
-    Data_Get_Struct(argv[0], gsl_vector, imat);
-    Data_Get_Struct(argv[1], gsl_vector, zp);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, imat);
+    TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, zp);
     vimat = argv[0];
     if (FIXNUM_P(argv[2])) np = FIX2INT(argv[2]);
     argc -= 3;
     argv += 3;
   } else {
-    Data_Get_Struct(argv[0], gsl_vector, zp);
+    TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, zp);
     if (FIXNUM_P(argv[1])) np = FIX2INT(argv[1]);
     else np = zp->size;
     imat = gsl_vector_alloc(np);
-    vimat = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, imat);
+    vimat = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, imat);
     argc -= 2;
     argv += 2;
   }
   CHECK_VECTOR(argv[0]);
-  Data_Get_Struct(argv[0], gsl_vector, z);
+  TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, z);
   argc -= 1;
   argv += 1;
   switch (argc) {

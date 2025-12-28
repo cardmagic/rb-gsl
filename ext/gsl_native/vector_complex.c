@@ -52,7 +52,7 @@ static VALUE rb_gsl_vector_complex_new(int argc, VALUE *argv, VALUE klass)
           GSL_SET_REAL(z2, NUM2DBL(rb_ary_entry(tmp, 0)));
           GSL_SET_IMAG(z2, NUM2DBL(rb_ary_entry(tmp, 1)));
         } else if (COMPLEX_P(tmp)) {
-          Data_Get_Struct(tmp, gsl_complex, z2);
+          TypedData_Get_Struct(tmp, gsl_complex, &gsl_complex_data_type, z2);
         } else {
           rb_raise(rb_eTypeError,
                    "wrong argument type %s (Array or Complex expected)",
@@ -70,8 +70,8 @@ static VALUE rb_gsl_vector_complex_new(int argc, VALUE *argv, VALUE klass)
     break;
   default:
     if (argc == 2 && (VECTOR_P(argv[0]) && VECTOR_P(argv[1]))) {
-      Data_Get_Struct(argv[0], gsl_vector, x);
-      Data_Get_Struct(argv[1], gsl_vector, y);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, x);
+      TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, y);
       n = GSL_MIN_INT(x->size, y->size);
       v = gsl_vector_complex_alloc(n);
       for (i = 0; i < n; i++) {
@@ -90,7 +90,7 @@ static VALUE rb_gsl_vector_complex_new(int argc, VALUE *argv, VALUE klass)
         GSL_SET_IMAG(&z, NUM2DBL(rb_ary_entry(argv[i], 1)));
         z2 = &z;
       } else if (COMPLEX_P(argv[i])) {
-        Data_Get_Struct(argv[i], gsl_complex, z2);
+        TypedData_Get_Struct(argv[i], gsl_complex, &gsl_complex_data_type, z2);
       } else {
         rb_raise(rb_eTypeError,
                  "wrong argument type %s (Array or Complex expected)",
@@ -120,29 +120,29 @@ static VALUE rb_gsl_vector_complex_calloc(VALUE klass, VALUE nn)
 static VALUE rb_gsl_vector_complex_size(VALUE obj)
 {
   gsl_vector_complex *v = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   return INT2FIX(v->size);
 }
 
 static VALUE rb_gsl_vector_complex_stride(VALUE obj)
 {
   gsl_vector_complex *v = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   return INT2FIX(v->stride);
 }
 
 static VALUE rb_gsl_vector_complex_owner(VALUE obj)
 {
   gsl_vector_complex *v = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   return INT2FIX(v->owner);
 }
 
 static VALUE rb_gsl_vector_complex_ptr(VALUE obj, VALUE i)
 {
   gsl_vector_complex *v = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
-  return Data_Wrap_Struct(cgsl_complex, 0, NULL, gsl_vector_complex_ptr(v, FIX2INT(i)));
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
+  return TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, gsl_vector_complex_ptr(v, FIX2INT(i)));
 }
 
 // TODO return Data_Wrap_Struct(VECTOR_COMPLEX_ROW_COL(obj),..." where appropriate
@@ -160,7 +160,7 @@ static VALUE rb_gsl_vector_complex_get(int argc, VALUE *argv, VALUE obj)
     // Treat as call to subvector
     retval = rb_gsl_vector_complex_subvector(argc, argv, obj);
   } else {
-    Data_Get_Struct(obj, gsl_vector_complex, v);
+    TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
 
     switch (TYPE(argv[0])) {
     case T_FIXNUM:
@@ -170,7 +170,7 @@ static VALUE rb_gsl_vector_complex_get(int argc, VALUE *argv, VALUE obj)
       else index = (size_t) i;
       c = ALLOC(gsl_complex);
       *c = gsl_vector_complex_get(v, index);
-      retval = Data_Wrap_Struct(cgsl_complex, 0, free, c);
+      retval = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, c);
       break;
     case T_ARRAY:
       vnew = gsl_vector_complex_alloc(RARRAY_LEN(argv[0]));
@@ -179,7 +179,7 @@ static VALUE rb_gsl_vector_complex_get(int argc, VALUE *argv, VALUE obj)
         if (i < 0) i = v->size + i;
         gsl_vector_complex_set(vnew, j, gsl_vector_complex_get(v, i));
       }
-      retval = Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vnew);
+      retval = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vnew);
       break;
     default:
       if (PERMUTATION_P(argv[0])) {
@@ -190,7 +190,7 @@ static VALUE rb_gsl_vector_complex_get(int argc, VALUE *argv, VALUE obj)
           if (k < 0) k = p->size + j;
           gsl_vector_complex_set(vnew, j, gsl_vector_complex_get(v, k));
         }
-        retval = Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vnew);
+        retval = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vnew);
       } else {
         // TODO Support Vector::Int (and even Vector?)
         rb_raise(rb_eTypeError, "wrong argument type %s (Array, Range, GSL::Permutation, or Fixnum expected)", rb_class2name(CLASS_OF(argv[0])));
@@ -207,7 +207,7 @@ static VALUE rb_gsl_vector_complex_set_all(int argc, VALUE *argv, VALUE obj)
   gsl_complex tmp;
 
   if (argc < 1) rb_raise(rb_eArgError, "wrong number of arguments");
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
 
   switch (argc) {
   case 1:
@@ -239,7 +239,7 @@ void rb_gsl_vector_complex_set_subvector(int argc, VALUE *argv, gsl_vector_compl
   parse_subvector_args(argc, argv, v->size, &offset, &stride, &n);
   vv = gsl_vector_complex_subvector_with_stride(v, offset, stride, n);
   if(rb_obj_is_kind_of(other, cgsl_vector_complex)) {
-    Data_Get_Struct(other, gsl_vector_complex, vother);
+    TypedData_Get_Struct(other, gsl_vector_complex, &gsl_vector_complex_data_type, vother);
     if(n != vother->size) {
       rb_raise(rb_eRangeError, "lengths do not match (%d != %d)", (int) n, (int) vother->size);
     }
@@ -283,7 +283,7 @@ static VALUE rb_gsl_vector_complex_set(int argc, VALUE *argv, VALUE obj)
   if(argc < 1 || argc > 4) {
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1-4)", argc);
   }
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   other = argv[argc-1];
 
   if(argc == 1) {
@@ -316,7 +316,7 @@ static VALUE rb_gsl_vector_complex_each(VALUE obj)
   VALUE vz;
   gsl_complex * zp;
   size_t i;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   for (i = 0; i < v->size; i++) {
     vz = Data_Make_Struct(cgsl_complex, gsl_complex, 0, free, zp);
     *zp = gsl_vector_complex_get(v, i);
@@ -331,7 +331,7 @@ static VALUE rb_gsl_vector_complex_reverse_each(VALUE obj)
   VALUE vz;
   gsl_complex * zp;
   size_t i;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   for (i = v->size-1;; i--) {
     vz = Data_Make_Struct(cgsl_complex, gsl_complex, 0, free, zp);
     *zp = gsl_vector_complex_get(v, i);
@@ -345,7 +345,7 @@ static VALUE rb_gsl_vector_complex_each_index(VALUE obj)
 {
   gsl_vector_complex *v = NULL;
   size_t i;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   for (i = 0; i < v->size; i++) rb_yield(INT2FIX(i));
   return obj;
 }
@@ -354,7 +354,7 @@ static VALUE rb_gsl_vector_complex_reverse_each_index(VALUE obj)
 {
   gsl_vector_complex *v = NULL;
   size_t i;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   for (i = v->size-1;; i--) {
     rb_yield(INT2FIX(i));
     if (i == 0) break;
@@ -372,7 +372,7 @@ static void rb_gsl_vector_complex_collect_native(gsl_vector_complex *src, gsl_ve
     *zp = gsl_vector_complex_get(src, i);
     vz = rb_yield(vz);
     CHECK_COMPLEX(vz);
-    Data_Get_Struct(vz, gsl_complex, zp);
+    TypedData_Get_Struct(vz, gsl_complex, &gsl_complex_data_type, zp);
     gsl_vector_complex_set(dst, i, *zp);
   }
 }
@@ -380,16 +380,16 @@ static void rb_gsl_vector_complex_collect_native(gsl_vector_complex *src, gsl_ve
 static VALUE rb_gsl_vector_complex_collect(VALUE obj)
 {
   gsl_vector_complex *v = NULL, *vnew;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   vnew = gsl_vector_complex_alloc(v->size);
   rb_gsl_vector_complex_collect_native(v, vnew);
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vnew);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vnew);
 }
 
 static VALUE rb_gsl_vector_complex_collect_bang(VALUE obj)
 {
   gsl_vector_complex *v = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   rb_gsl_vector_complex_collect_native(v, v);
   return obj;
 }
@@ -397,7 +397,7 @@ static VALUE rb_gsl_vector_complex_collect_bang(VALUE obj)
 static VALUE rb_gsl_vector_complex_set_zero(VALUE obj)
 {
   gsl_vector_complex *v = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   gsl_vector_complex_set_zero(v);
   return obj;
 }
@@ -406,7 +406,7 @@ static VALUE rb_gsl_vector_complex_set_basis(VALUE obj, VALUE ii)
 {
   gsl_vector_complex *v = NULL;
   CHECK_FIXNUM(ii);
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   gsl_vector_complex_set_basis(v, FIX2INT(ii));
   return obj;
 }
@@ -419,7 +419,7 @@ static VALUE rb_gsl_vector_complex_to_s(VALUE obj)
   VALUE str;
   gsl_complex * z;
 
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   if (v->size == 0) return rb_str_new2("[ ]");
   str = rb_str_new2("[ ");
   if (VECTOR_COMPLEX_COL_P(obj)) {
@@ -460,7 +460,7 @@ static VALUE rb_gsl_vector_complex_inspect(VALUE obj)
   char buf[128];
   gsl_vector_complex *v;
 
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   sprintf(buf, "#<%s[%lu]:%#lx>\n", rb_class2name(CLASS_OF(obj)), v->size, NUM2ULONG(rb_obj_id(obj)));
   str = rb_str_new2(buf);
   return rb_str_concat(str, rb_gsl_vector_complex_to_s(obj));
@@ -475,7 +475,7 @@ static VALUE rb_gsl_vector_complex_fprintf(int argc, VALUE *argv, VALUE obj)
   if (argc != 1 && argc != 2) {
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 1 or 2)", argc);
   }
-  Data_Get_Struct(obj, gsl_vector_complex, h);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, h);
   fp = rb_gsl_open_writefile(argv[0], &flag);
   if (argc == 2) {
     Check_Type(argv[1], T_STRING);
@@ -492,7 +492,7 @@ static VALUE rb_gsl_vector_complex_printf(int argc, VALUE *argv, VALUE obj)
 {
   gsl_vector_complex *h = NULL;
   int status;
-  Data_Get_Struct(obj, gsl_vector_complex, h);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, h);
   if (argc == 1) {
     Check_Type(argv[0], T_STRING);
     status = gsl_vector_complex_fprintf(stdout, h, STR2CSTR(argv[0]));
@@ -506,7 +506,7 @@ static VALUE rb_gsl_vector_complex_print(VALUE obj);
 static VALUE rb_gsl_vector_complex_inspect(VALUE obj)
 {
   gsl_vector_complex *h = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, h);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, h);
   printf("%s\n", rb_class2name(CLASS_OF(obj)));
   rb_gsl_vector_complex_print(obj);
   return Qtrue;
@@ -517,7 +517,7 @@ static VALUE rb_gsl_vector_complex_print(VALUE obj)
   gsl_vector_complex *h = NULL;
   gsl_complex *z = NULL;
   size_t i;
-  Data_Get_Struct(obj, gsl_vector_complex, h);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, h);
   printf("[ ");
   if (VECTOR_COMPLEX_COL_P(obj)) {
     printf("\n");
@@ -540,7 +540,7 @@ static VALUE rb_gsl_vector_complex_fwrite(VALUE obj, VALUE io)
   gsl_vector_complex *h = NULL;
   FILE *fp = NULL;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_vector_complex, h);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, h);
   fp = rb_gsl_open_writefile(io, &flag);
   status = gsl_vector_complex_fwrite(fp, h);
   if (flag == 1) fclose(fp);
@@ -552,7 +552,7 @@ static VALUE rb_gsl_vector_complex_fread(VALUE obj, VALUE io)
   gsl_vector_complex *h = NULL;
   FILE *f = NULL;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_vector_complex, h);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, h);
   f = rb_gsl_open_writefile(io, &flag);
   status = gsl_vector_complex_fread(f, h);
   if (flag == 1) fclose(f);
@@ -564,7 +564,7 @@ static VALUE rb_gsl_vector_complex_fscanf(VALUE obj, VALUE io)
   gsl_vector_complex *h = NULL;
   FILE *f = NULL;
   int status, flag = 0;
-  Data_Get_Struct(obj, gsl_vector_complex, h);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, h);
   f = rb_gsl_open_writefile(io, &flag);
   status = gsl_vector_complex_fscanf(f, h);
   if (flag == 1) fclose(f);
@@ -575,26 +575,26 @@ static VALUE rb_gsl_vector_complex_real(VALUE obj)
 {
   gsl_vector_complex *c = NULL;
   gsl_vector_view *vv = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, c);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, c);
   vv = gsl_vector_view_alloc();
   *vv = gsl_vector_complex_real(c);
   if (VECTOR_COMPLEX_ROW_P(obj))
-    return Data_Wrap_Struct(cgsl_vector_view, 0, gsl_vector_view_free, vv);
+    return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, vv);
   else
-    return Data_Wrap_Struct(cgsl_vector_col_view, 0, gsl_vector_view_free, vv);
+    return TypedData_Wrap_Struct(cgsl_vector_col_view, &gsl_vector_col_view_data_type, vv);
 }
 
 static VALUE rb_gsl_vector_complex_imag(VALUE obj)
 {
   gsl_vector_complex *c = NULL;
   gsl_vector_view *vv = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, c);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, c);
   vv = gsl_vector_view_alloc();
   *vv = gsl_vector_complex_imag(c);
   if (VECTOR_COMPLEX_ROW_P(obj))
-    return Data_Wrap_Struct(cgsl_vector_view, 0, gsl_vector_view_free, vv);
+    return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, vv);
   else
-    return Data_Wrap_Struct(cgsl_vector_col_view, 0, gsl_vector_view_free, vv);
+    return TypedData_Wrap_Struct(cgsl_vector_col_view, &gsl_vector_col_view_data_type, vv);
 }
 
 static VALUE rb_gsl_vector_complex_set_real(VALUE obj, VALUE val)
@@ -602,7 +602,7 @@ static VALUE rb_gsl_vector_complex_set_real(VALUE obj, VALUE val)
   gsl_vector_complex *v = NULL;
   gsl_vector_view vv;
   double d = NUM2DBL(val);
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   vv = gsl_vector_complex_real(v);
   gsl_vector_set_all(&vv.vector, d);
   return obj;
@@ -613,7 +613,7 @@ static VALUE rb_gsl_vector_complex_set_imag(VALUE obj, VALUE val)
   gsl_vector_complex *v = NULL;
   gsl_vector_view vv;
   double d = NUM2DBL(val);
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   vv = gsl_vector_complex_imag(v);
   gsl_vector_set_all(&vv.vector, d);
   return obj;
@@ -624,7 +624,7 @@ static VALUE rb_gsl_vector_complex_conj(VALUE obj)
   size_t i;
   gsl_vector_complex *vin = NULL;
   gsl_vector_complex *vout = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, vin);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, vin);
   vout = gsl_vector_complex_alloc(vin->size);
   for(i = 0; i<vin->size; i++) {
     gsl_vector_complex_set(vout, i,
@@ -638,7 +638,7 @@ static VALUE rb_gsl_vector_complex_conj_bang(VALUE obj)
 {
   size_t i;
   gsl_vector_complex *v = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   for(i = 0; i<v->size; i++) {
     gsl_vector_complex_set(v, i,
                            gsl_complex_conjugate(
@@ -653,7 +653,7 @@ static VALUE rb_gsl_vector_complex_to_a(VALUE obj)
   gsl_complex *z = NULL;
   size_t i, j;
   VALUE ary;
-  Data_Get_Struct(obj, gsl_vector_complex, c);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, c);
   ary = rb_ary_new2(c->size*2);
   for (i = 0, j = 0; i < c->size; i++, j += 2) {
     z = GSL_COMPLEX_AT(c, i);
@@ -669,12 +669,12 @@ static VALUE rb_gsl_vector_complex_to_a2(VALUE obj)
   gsl_complex *znew = NULL, *z = NULL;
   size_t i;
   VALUE ary, vz;
-  Data_Get_Struct(obj, gsl_vector_complex, c);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, c);
   ary = rb_ary_new2(c->size);
   for (i = 0; i < c->size; i++) {
     z = GSL_COMPLEX_AT(c, i);
     znew = make_complex(z->dat[0], z->dat[1]);
-    vz = Data_Wrap_Struct(cgsl_complex, 0, free, znew);
+    vz = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, znew);
     rb_ary_store(ary, i, vz);
   }
   return ary;
@@ -698,14 +698,14 @@ static VALUE rb_gsl_vector_complex_subvector(int argc, VALUE *argv, VALUE obj)
   gsl_vector_complex *v = NULL;
   gsl_vector_complex_view *vv = NULL;
   size_t offset, stride, n;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   parse_subvector_args(argc, argv, v->size, &offset, &stride, &n);
   vv = gsl_vector_complex_view_alloc();
   *vv = gsl_vector_complex_subvector_with_stride(v, offset, stride, n);
   if (VECTOR_COMPLEX_ROW_P(obj))
-    return Data_Wrap_Struct(cgsl_vector_complex_view, 0, gsl_vector_complex_view_free, vv);
+    return TypedData_Wrap_Struct(cgsl_vector_complex_view, &gsl_vector_complex_view_data_type, vv);
   else
-    return Data_Wrap_Struct(cgsl_vector_complex_col_view, 0, gsl_vector_complex_view_free, vv);
+    return TypedData_Wrap_Struct(cgsl_vector_complex_col_view, &gsl_vector_complex_col_view_data_type, vv);
 }
 
 static VALUE rb_gsl_vector_complex_subvector_with_stride(VALUE obj, VALUE o, VALUE s, VALUE nn)
@@ -715,16 +715,16 @@ static VALUE rb_gsl_vector_complex_subvector_with_stride(VALUE obj, VALUE o, VAL
   int offset;
   CHECK_FIXNUM(o); CHECK_FIXNUM(nn); CHECK_FIXNUM(s);
   offset = NUM2INT(o);
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   if(offset < 0) {
     offset += v->size;
   }
   vv = gsl_vector_complex_view_alloc();
   *vv = gsl_vector_complex_subvector_with_stride(v, (size_t)offset, FIX2INT(s), FIX2INT(nn));
   if (VECTOR_COMPLEX_ROW_P(obj))
-    return Data_Wrap_Struct(cgsl_vector_complex_view, 0, gsl_vector_complex_view_free, vv);
+    return TypedData_Wrap_Struct(cgsl_vector_complex_view, &gsl_vector_complex_view_data_type, vv);
   else
-    return Data_Wrap_Struct(cgsl_vector_complex_col_view, 0, gsl_vector_complex_view_free, vv);
+    return TypedData_Wrap_Struct(cgsl_vector_complex_col_view, &gsl_vector_complex_col_view_data_type, vv);
 }
 
 /* singleton */
@@ -733,8 +733,8 @@ static VALUE rb_gsl_vector_complex_memcpy(VALUE obj, VALUE dst, VALUE src)
   gsl_vector_complex *v = NULL, *dest = NULL;
   CHECK_VECTOR_COMPLEX(dst);
   CHECK_VECTOR_COMPLEX(src);
-  Data_Get_Struct(dst, gsl_vector_complex, dest);
-  Data_Get_Struct(src, gsl_vector_complex, v);
+  TypedData_Get_Struct(dst, gsl_vector_complex, &gsl_vector_complex_data_type, dest);
+  TypedData_Get_Struct(src, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   gsl_vector_complex_memcpy(dest, v);
   return dst;
 }
@@ -742,20 +742,20 @@ static VALUE rb_gsl_vector_complex_memcpy(VALUE obj, VALUE dst, VALUE src)
 static VALUE rb_gsl_vector_complex_clone(VALUE obj)
 {
   gsl_vector_complex *v = NULL, *vnew = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   vnew = gsl_vector_complex_alloc(v->size);
   if (vnew == NULL) rb_raise(rb_eNoMemError, "gsl_vector_complex_alloc failed");
   gsl_vector_complex_memcpy(vnew, v);
   if (VECTOR_COMPLEX_ROW_P(obj))
-    return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vnew);
   else
-    return Data_Wrap_Struct(cgsl_vector_complex_col, 0, gsl_vector_complex_free, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_col_data_type, vnew);
 }
 
 static VALUE rb_gsl_vector_complex_reverse(VALUE obj)
 {
   gsl_vector_complex *v = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   gsl_vector_complex_reverse(v);
   return obj;
 }
@@ -763,21 +763,21 @@ static VALUE rb_gsl_vector_complex_reverse(VALUE obj)
 static VALUE rb_gsl_vector_complex_reverse2(VALUE obj)
 {
   gsl_vector_complex *v = NULL, *vnew = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   vnew = gsl_vector_complex_alloc(v->size);
   gsl_vector_complex_memcpy(vnew, v);
   gsl_vector_complex_reverse(vnew);
   if (VECTOR_COMPLEX_ROW_P(obj))
-    return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vnew);
   else
-    return Data_Wrap_Struct(cgsl_vector_complex_col, 0, gsl_vector_complex_free, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_col_data_type, vnew);
 }
 
 static VALUE rb_gsl_vector_complex_swap_elements(VALUE obj, VALUE i, VALUE j)
 {
   gsl_vector_complex *v = NULL;
   CHECK_FIXNUM(i); CHECK_FIXNUM(j);
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   gsl_vector_complex_swap_elements(v, FIX2INT(i), FIX2INT(j));
   return obj;
 }
@@ -788,7 +788,7 @@ static VALUE rb_gsl_vector_complex_fftshift_bang(VALUE obj)
   gsl_complex tmp;
   size_t i, n;
 
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   n = v->size;
   if(n & 1) {
     // length is odd
@@ -813,7 +813,7 @@ static VALUE rb_gsl_vector_complex_fftshift(VALUE obj)
   gsl_vector_complex_view vv, vvnew;
   size_t n;
 
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   n = v->size;
   vnew = gsl_vector_complex_alloc(n);
   // Copy low to high
@@ -834,7 +834,7 @@ static VALUE rb_gsl_vector_complex_ifftshift_bang(VALUE obj)
   gsl_complex tmp;
   size_t i, n;
 
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   n = v->size;
   if(n & 1) {
     // length is odd
@@ -860,7 +860,7 @@ static VALUE rb_gsl_vector_complex_ifftshift(VALUE obj)
   gsl_vector_complex_view vv, vvnew;
   size_t n;
 
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   n = v->size;
   vnew = gsl_vector_complex_alloc(n);
   // Copy high to low
@@ -878,7 +878,7 @@ static VALUE rb_gsl_vector_complex_ifftshift(VALUE obj)
 static VALUE rb_gsl_vector_complex_isnull(VALUE obj)
 {
   gsl_vector_complex *v = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   if (gsl_vector_complex_isnull(v)) return Qtrue;
   else return Qfalse;
 }
@@ -887,7 +887,7 @@ static VALUE rb_gsl_vector_complex_matrix_view(int argc, VALUE *argv, VALUE obj)
 {
   gsl_vector_complex *v = NULL;
   gsl_matrix_complex_view *mv = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   switch (argc) {
   case 2:
     mv = gsl_matrix_complex_view_alloc();
@@ -902,7 +902,7 @@ static VALUE rb_gsl_vector_complex_matrix_view(int argc, VALUE *argv, VALUE obj)
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2 or 3)", argc);
     break;
   }
-  return Data_Wrap_Struct(cgsl_matrix_complex_view, 0, gsl_matrix_complex_view_free, mv);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex_view, &gsl_matrix_complex_view_data_type, mv);
 }
 
 static VALUE rb_gsl_vector_complex_matrix_view_with_tda(VALUE obj, VALUE nn1, VALUE nn2,
@@ -911,22 +911,22 @@ static VALUE rb_gsl_vector_complex_matrix_view_with_tda(VALUE obj, VALUE nn1, VA
   gsl_vector_complex *v = NULL;
   gsl_matrix_complex_view *mv = NULL;
   CHECK_FIXNUM(nn1); CHECK_FIXNUM(nn2); CHECK_FIXNUM(tda);
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   mv = gsl_matrix_complex_view_alloc();
   if (mv == NULL) rb_raise(rb_eNoMemError, "gsl_matrix_complex_alloc failed");
   *mv = gsl_matrix_complex_view_vector_with_tda(v, FIX2INT(nn1), FIX2INT(nn2), FIX2INT(tda));
-  return Data_Wrap_Struct(cgsl_matrix_complex_view, 0, gsl_matrix_complex_view_free, mv);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex_view, &gsl_matrix_complex_view_data_type, mv);
 }
 
 static VALUE rb_gsl_vector_complex_trans(VALUE obj)
 {
   gsl_vector_complex *v = NULL, *vnew = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   vnew = make_vector_complex_clone(v);
   if (VECTOR_COMPLEX_ROW_P(obj))
-    return Data_Wrap_Struct(cgsl_vector_complex_col, 0, gsl_vector_complex_free, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector_complex_col, &gsl_vector_complex_col_data_type, vnew);
   else if (VECTOR_COMPLEX_COL_P(obj))
-    return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vnew);
+    return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vnew);
   else {
     rb_raise(rb_eTypeError, "wrong type");
   }
@@ -951,7 +951,7 @@ static VALUE rb_gsl_vector_complex_to_real(VALUE obj)
   gsl_vector *v = NULL;
   gsl_complex z;
   size_t i;
-  Data_Get_Struct(obj, gsl_vector_complex, cv);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, cv);
   v = gsl_vector_alloc(cv->size);
   if (v == NULL) rb_raise(rb_eNoMemError, "gsl_vector_alloc failed");
   for (i = 0; i < cv->size; i++) {
@@ -959,9 +959,9 @@ static VALUE rb_gsl_vector_complex_to_real(VALUE obj)
     gsl_vector_set(v, i, GSL_REAL(z));
   }
   if (VECTOR_COMPLEX_ROW_P(obj))
-    return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+    return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
   else
-    return Data_Wrap_Struct(cgsl_vector_col, 0, gsl_vector_free, v);
+    return TypedData_Wrap_Struct(cgsl_vector_col, &gsl_vector_col_data_type, v);
 }
 
 enum {
@@ -982,7 +982,7 @@ static VALUE rb_gsl_vector_complex_arithmetics(int flag, VALUE obj, VALUE bb)
   gsl_vector *b = NULL;
   gsl_vector_complex *cv = NULL, *cvnew = NULL, *cb = NULL;
   gsl_complex *c = NULL, z;
-  Data_Get_Struct(obj, gsl_vector_complex, cv);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, cv);
   switch (flag) {
   case GSL_VECTOR_COMPLEX_ADD:
   case GSL_VECTOR_COMPLEX_SUB:
@@ -1027,7 +1027,7 @@ static VALUE rb_gsl_vector_complex_arithmetics(int flag, VALUE obj, VALUE bb)
     break;
   default:
     if (VECTOR_P(bb)) {
-      Data_Get_Struct(bb, gsl_vector, b);
+      TypedData_Get_Struct(bb, gsl_vector, &gsl_vector_data_type, b);
       cb = vector_to_complex(b);
       switch (flag) {
       case GSL_VECTOR_COMPLEX_ADD:
@@ -1049,7 +1049,7 @@ static VALUE rb_gsl_vector_complex_arithmetics(int flag, VALUE obj, VALUE bb)
       }
       gsl_vector_complex_free(cb);
     } else if (VECTOR_COMPLEX_P(bb)) {
-      Data_Get_Struct(bb, gsl_vector_complex, cb);
+      TypedData_Get_Struct(bb, gsl_vector_complex, &gsl_vector_complex_data_type, cb);
       switch (flag) {
       case GSL_VECTOR_COMPLEX_ADD:
       case GSL_VECTOR_COMPLEX_ADD_BANG:
@@ -1069,7 +1069,7 @@ static VALUE rb_gsl_vector_complex_arithmetics(int flag, VALUE obj, VALUE bb)
         break;
       }
     } else if (COMPLEX_P(bb)) {
-      Data_Get_Struct(bb, gsl_complex, c);
+      TypedData_Get_Struct(bb, gsl_complex, &gsl_complex_data_type, c);
       switch (flag) {
       case GSL_VECTOR_COMPLEX_ADD:
       case GSL_VECTOR_COMPLEX_ADD_BANG:
@@ -1152,7 +1152,7 @@ static VALUE rb_gsl_vector_complex_coerce(VALUE obj, VALUE other)
   gsl_vector_complex *cv = NULL, *cb = NULL;
   gsl_complex z;
   VALUE vv;
-  Data_Get_Struct(obj, gsl_vector_complex, cv);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, cv);
   switch (TYPE(other)) {
   case T_FLOAT:
   case T_FIXNUM:
@@ -1188,8 +1188,8 @@ static VALUE rb_gsl_vector_complex_inner_product(int argc, VALUE *argv, VALUE ob
     if (!VECTOR_COMPLEX_COL_P(argv[1]))
       rb_raise(rb_eTypeError, "wrong argument type %s (GSL::Vector::Complex::Col expected)",
                rb_class2name(CLASS_OF(argv[1])));
-    Data_Get_Struct(argv[0], gsl_vector_complex, v);
-    Data_Get_Struct(argv[1], gsl_vector_complex, v2);
+    TypedData_Get_Struct(argv[0], gsl_vector_complex, &gsl_vector_complex_data_type, v);
+    TypedData_Get_Struct(argv[1], gsl_vector_complex, &gsl_vector_complex_data_type, v2);
     break;
   default:
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)",
@@ -1197,8 +1197,8 @@ static VALUE rb_gsl_vector_complex_inner_product(int argc, VALUE *argv, VALUE ob
     if (!VECTOR_COMPLEX_COL_P(argv[0]))
       rb_raise(rb_eTypeError, "wrong argument type %s (GSL::Vector::Complex::Col expected)",
                rb_class2name(CLASS_OF(argv[0])));
-    Data_Get_Struct(obj, gsl_vector_complex, v);
-    Data_Get_Struct(argv[0], gsl_vector_complex, v2);
+    TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
+    TypedData_Get_Struct(argv[0], gsl_vector_complex, &gsl_vector_complex_data_type, v2);
     break;
   }
   if (v->size != v2->size) rb_raise(rb_eRangeError, "vector lengths are different.");
@@ -1210,7 +1210,7 @@ static VALUE rb_gsl_vector_complex_inner_product(int argc, VALUE *argv, VALUE ob
   }
   z = ALLOC(gsl_complex);
   *z = prod;
-  return Data_Wrap_Struct(cgsl_complex, 0, free, z);
+  return TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, z);
 }
 
 static VALUE rb_gsl_vector_complex_product_to_m(int argc, VALUE *argv, VALUE obj)
@@ -1233,8 +1233,8 @@ static VALUE rb_gsl_vector_complex_product_to_m(int argc, VALUE *argv, VALUE obj
       rb_raise(rb_eTypeError,
                "wrong argument type %s (GSL::Vector::Complex expected)",
                rb_class2name(CLASS_OF(argv[1])));
-    Data_Get_Struct(argv[0], gsl_vector_complex, v);
-    Data_Get_Struct(argv[1], gsl_vector_complex, v2);
+    TypedData_Get_Struct(argv[0], gsl_vector_complex, &gsl_vector_complex_data_type, v);
+    TypedData_Get_Struct(argv[1], gsl_vector_complex, &gsl_vector_complex_data_type, v2);
     break;
   default:
     if (argc != 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)",
@@ -1243,8 +1243,8 @@ static VALUE rb_gsl_vector_complex_product_to_m(int argc, VALUE *argv, VALUE obj
       rb_raise(rb_eTypeError,
                "wrong argument type %s (GSL::Vector::Complex expected)",
                rb_class2name(CLASS_OF(argv[0])));
-    Data_Get_Struct(obj, gsl_vector_complex, v);
-    Data_Get_Struct(argv[0], gsl_vector_complex, v2);
+    TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
+    TypedData_Get_Struct(argv[0], gsl_vector_complex, &gsl_vector_complex_data_type, v2);
     break;
   }
   m = gsl_matrix_complex_alloc(v->size, v2->size);
@@ -1255,7 +1255,7 @@ static VALUE rb_gsl_vector_complex_product_to_m(int argc, VALUE *argv, VALUE obj
       gsl_matrix_complex_set(m, i, j, gsl_complex_mul(a, b));
     }
   }
-  return Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, m);
+  return TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, m);
 }
 
 static VALUE rb_gsl_vector_complex_uplus(VALUE obj)
@@ -1267,7 +1267,7 @@ static VALUE rb_gsl_vector_complex_uminus(VALUE obj)
 {
   gsl_vector_complex *v = NULL, *vnew;
   size_t i;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   vnew = gsl_vector_complex_alloc(v->size);
   for (i = 0; i < v->size; i++) {
     gsl_vector_complex_set(vnew, i, gsl_complex_negative(gsl_vector_complex_get(v, i)));
@@ -1282,13 +1282,13 @@ static VALUE rb_gsl_vector_complex_XXX(VALUE obj, double (*f)(gsl_complex))
   gsl_vector *v;
   gsl_complex c;
   size_t i;
-  Data_Get_Struct(obj, gsl_vector_complex, m);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, m);
   v = gsl_vector_alloc(m->size);
   for (i = 0; i < m->size; i++) {
     c = gsl_vector_complex_get(m, i);
     gsl_vector_set(v, i, (*f)(c));
   }
-  return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
 }
 
 static VALUE rb_gsl_vector_complex_XXXz(VALUE obj, gsl_complex (*f)(gsl_complex))
@@ -1296,13 +1296,13 @@ static VALUE rb_gsl_vector_complex_XXXz(VALUE obj, gsl_complex (*f)(gsl_complex)
   gsl_vector_complex *m, *v;
   gsl_complex c;
   size_t i;
-  Data_Get_Struct(obj, gsl_vector_complex, m);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, m);
   v = gsl_vector_complex_alloc(m->size);
   for (i = 0; i < m->size; i++) {
     c = gsl_vector_complex_get(m, i);
     gsl_vector_complex_set(v, i, (*f)(c));
   }
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, v);
 }
 
 /* In-place version of rb_gsl_vector_complex_XXXz */
@@ -1311,7 +1311,7 @@ static VALUE rb_gsl_vector_complex_XXXz_bang(VALUE obj, gsl_complex (*f)(gsl_com
   gsl_vector_complex *v;
   gsl_complex c;
   size_t i;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   for (i = 0; i < v->size; i++) {
     c = gsl_vector_complex_get(v, i);
     gsl_vector_complex_set(v, i, (*f)(c));
@@ -1326,14 +1326,14 @@ static VALUE rb_gsl_vector_complex_XXXz2(VALUE obj, VALUE a,
   gsl_complex c, *z;
   size_t i;
   CHECK_COMPLEX(a);
-  Data_Get_Struct(obj, gsl_vector_complex, m);
-  Data_Get_Struct(a, gsl_complex, z);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, m);
+  TypedData_Get_Struct(a, gsl_complex, &gsl_complex_data_type, z);
   v = gsl_vector_complex_alloc(m->size);
   for (i = 0; i < m->size; i++) {
     c = gsl_vector_complex_get(m, i);
     gsl_vector_complex_set(v, i, (*f)(c, *z));
   }
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, v);
 }
 
 static VALUE rb_gsl_vector_complex_XXXz2_bang(VALUE obj, VALUE a,
@@ -1343,8 +1343,8 @@ static VALUE rb_gsl_vector_complex_XXXz2_bang(VALUE obj, VALUE a,
   gsl_complex c, *z;
   size_t i;
   CHECK_COMPLEX(a);
-  Data_Get_Struct(obj, gsl_vector_complex, v);
-  Data_Get_Struct(a, gsl_complex, z);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
+  TypedData_Get_Struct(a, gsl_complex, &gsl_complex_data_type, z);
   for (i = 0; i < v->size; i++) {
     c = gsl_vector_complex_get(v, i);
     gsl_vector_complex_set(v, i, (*f)(c, *z));
@@ -1524,7 +1524,7 @@ static VALUE rb_gsl_vector_complex_z_stats_v(VALUE obj,
   VALUE zv;
 
   CHECK_VECTOR_COMPLEX(obj);
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
 
   zv = Data_Make_Struct(cgsl_complex, gsl_complex, 0, free, zp);
   *zp = func(v);
@@ -1543,7 +1543,7 @@ static VALUE rb_gsl_vector_complex_d_stats_v(VALUE obj,
   double d;
 
   CHECK_VECTOR_COMPLEX(obj);
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
 
   d = func(v);
 
@@ -1563,7 +1563,7 @@ static VALUE rb_gsl_vector_complex_d_stats_v_z(VALUE obj, VALUE arg,
   double d;
 
   CHECK_VECTOR_COMPLEX(obj);
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
 
 
   switch (TYPE(arg)) {
@@ -1575,7 +1575,7 @@ static VALUE rb_gsl_vector_complex_d_stats_v_z(VALUE obj, VALUE arg,
     break;
   default:
     CHECK_COMPLEX(arg);
-    Data_Get_Struct(arg, gsl_complex, zp);
+    TypedData_Get_Struct(arg, gsl_complex, &gsl_complex_data_type, zp);
     break;
   }
 
@@ -1765,7 +1765,7 @@ static VALUE rb_gsl_vector_complex_concat(VALUE obj, VALUE other)
   int step;
   size_t i, size2;
 
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
 
   switch(TYPE(other)) {
   case T_FIXNUM:
@@ -1805,7 +1805,7 @@ static VALUE rb_gsl_vector_complex_concat(VALUE obj, VALUE other)
         GSL_SET_REAL(&tmp, GSL_REAL(tmp) + step);
       }
     } else if (rb_obj_is_kind_of(other, cgsl_vector_complex)) {
-      Data_Get_Struct(other, gsl_vector_complex, v2);
+      TypedData_Get_Struct(other, gsl_vector_complex, &gsl_vector_complex_data_type, v2);
       size2 = v2->size;
       vnew = gsl_vector_complex_alloc(v->size + size2);
       vv = gsl_vector_complex_subvector(vnew, 0, v->size);
@@ -1825,8 +1825,8 @@ static VALUE rb_gsl_vector_complex_concat(VALUE obj, VALUE other)
 static VALUE rb_gsl_vector_complex_block(VALUE obj)
 {
   gsl_vector_complex *v = NULL;
-  Data_Get_Struct(obj, gsl_vector_complex, v);
-  return Data_Wrap_Struct(cgsl_block_complex, 0, NULL, v->block);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
+  return TypedData_Wrap_Struct(cgsl_block_complex, &gsl_block_complex_data_type, v->block);
 }
 
 static VALUE rb_gsl_vector_complex_indgen_bang(int argc, VALUE *argv, VALUE obj)
@@ -1847,7 +1847,7 @@ static VALUE rb_gsl_vector_complex_indgen_bang(int argc, VALUE *argv, VALUE obj)
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments (%d for 0-2)", argc);
   }
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   for (i = 0, x = start; i < v->size; i++, x += step) {
     gsl_vector_complex_set(v, i, gsl_complex_rect(x,0));
   }
@@ -1872,12 +1872,12 @@ static VALUE rb_gsl_vector_complex_indgen(int argc, VALUE *argv, VALUE obj)
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments (%d for 0-2)", argc);
   }
-  Data_Get_Struct(obj, gsl_vector_complex, v);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v);
   vnew = gsl_vector_complex_calloc(v->size);
   for (i = 0, x = start; i < vnew->size; i++, x += step) {
     gsl_vector_complex_set(vnew, i, gsl_complex_rect(x,0));
   }
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vnew);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vnew);
 }
 
 static VALUE rb_gsl_vector_complex_indgen_singleton(int argc, VALUE *argv, VALUE obj)
@@ -1905,7 +1905,7 @@ static VALUE rb_gsl_vector_complex_indgen_singleton(int argc, VALUE *argv, VALUE
   for (i = 0, x = start; i < vnew->size; i++, x += step) {
     gsl_vector_complex_set(vnew, i, gsl_complex_rect(x,0));
   }
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vnew);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vnew);
 }
 
 static VALUE rb_gsl_vector_complex_phasor_singleton(int argc, VALUE *argv, VALUE obj)
@@ -1936,7 +1936,7 @@ static VALUE rb_gsl_vector_complex_phasor_singleton(int argc, VALUE *argv, VALUE
   for (i = 0, theta = start; i < vnew->size; i++, theta += step) {
     gsl_vector_complex_set(vnew, i, gsl_complex_polar(1.0,theta));
   }
-  return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vnew);
+  return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vnew);
 }
 
 static VALUE rb_gsl_vector_complex_zip(int argc, VALUE *argv, VALUE obj)
@@ -1948,12 +1948,12 @@ static VALUE rb_gsl_vector_complex_zip(int argc, VALUE *argv, VALUE obj)
   VALUE *argv2;
   gsl_complex zzero = gsl_complex_rect(0, 0);
   if (VECTOR_COMPLEX_P(obj)) {
-    Data_Get_Struct(obj, gsl_vector_complex, v0);
+    TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v0);
     argc2 = argc;
     argv2 = argv;
   } else {
     if (argc < 1) rb_raise(rb_eArgError, "Too few arguments.");
-    Data_Get_Struct(argv[0], gsl_vector_complex, v0);
+    TypedData_Get_Struct(argv[0], gsl_vector_complex, &gsl_vector_complex_data_type, v0);
     argc2 = argc - 1;
     argv2 = argv + 1;
   }
@@ -1962,7 +1962,7 @@ static VALUE rb_gsl_vector_complex_zip(int argc, VALUE *argv, VALUE obj)
   }
   vp = (gsl_vector_complex**) malloc(sizeof(gsl_vector_complex**));
   for (i = 0; (int) i < argc2; i++) {
-    Data_Get_Struct(argv2[i], gsl_vector_complex, vp[i]);
+    TypedData_Get_Struct(argv2[i], gsl_vector_complex, &gsl_vector_complex_data_type, vp[i]);
   }
   ary = rb_ary_new2(v0->size);
   for (i = 0; i < v0->size; i++) {
@@ -1975,7 +1975,7 @@ static VALUE rb_gsl_vector_complex_zip(int argc, VALUE *argv, VALUE obj)
         gsl_vector_complex_set(vnew, j+1, zzero);
       }
     }
-    rb_ary_store(ary, i, Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, vnew));
+    rb_ary_store(ary, i, TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, vnew));
   }
   free((gsl_vector_complex**) vp);
   return ary;
@@ -2014,9 +2014,9 @@ static VALUE rb_gsl_vector_complex_equal(int argc, VALUE *argv, VALUE obj)
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments (%d for 1 or 2)\n", argc);
   }
-  Data_Get_Struct(obj, gsl_vector_complex, v1);
+  TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, v1);
   CHECK_VECTOR_COMPLEX(argv[0]);
-  Data_Get_Struct(argv[0], gsl_vector_complex, v2);
+  TypedData_Get_Struct(argv[0], gsl_vector_complex, &gsl_vector_complex_data_type, v2);
   ret = gsl_vector_complex_equal_eps(v1, v2, eps);
   if (ret == 1) return Qtrue;
   else return Qfalse;

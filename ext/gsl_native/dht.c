@@ -60,7 +60,7 @@ static VALUE rb_gsl_dht_apply(int argc, VALUE *argv, VALUE obj)
   case 1:
     Data_Get_Struct(obj, gsl_dht, t);
     if (VECTOR_P(argv[0])) {
-      Data_Get_Struct(argv[0], gsl_vector, vin);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, vin);
       ptr1 = vin->data;
       vout = gsl_vector_alloc(vin->size);
       ptr2 = vout->data;
@@ -125,14 +125,14 @@ static VALUE rb_gsl_dht_xk_sample(VALUE obj, VALUE n,
     break;
   default:
     if (VECTOR_INT_P(n)) {
-      Data_Get_Struct(n, gsl_vector_int, vi);
+      TypedData_Get_Struct(n, gsl_vector_int, &gsl_vector_int_data_type, vi);
       v = gsl_vector_alloc(vi->size);
       for (i = 0; i < v->size; i++) {
         nn = gsl_vector_int_get(vi, i);
         val = (*sample)(t, nn);
         gsl_vector_set(v, i, val);
       }
-      return Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, v);
+      return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, v);
 #ifdef HAVE_NARRAY_H
     } else if (NA_IsNArray(n)) {
       struct NARRAY *na;
@@ -189,7 +189,7 @@ static VALUE rb_gsl_dht_j(VALUE obj)
   gsl_vector_view *v = NULL;
   Data_Get_Struct(obj, gsl_dht, t);
   v = rb_gsl_make_vector_view(t->j, (t->size+2), 1);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_ro_data_type, v);
 }
 
 static VALUE rb_gsl_dht_zero(VALUE obj)
@@ -198,7 +198,7 @@ static VALUE rb_gsl_dht_zero(VALUE obj)
   gsl_vector_view *v = NULL;
   Data_Get_Struct(obj, gsl_dht, t);
   v = rb_gsl_make_vector_view(t->j+1, (t->size+1), 1);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_ro_data_type, v);
 }
 
 static VALUE rb_gsl_dht_Jjj(VALUE obj)
@@ -207,7 +207,7 @@ static VALUE rb_gsl_dht_Jjj(VALUE obj)
   gsl_vector_view *v = NULL;
   Data_Get_Struct(obj, gsl_dht, t);
   v = rb_gsl_make_vector_view(t->Jjj, t->size*(t->size+1)/2, 1);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_ro_data_type, v);
 }
 
 static VALUE rb_gsl_dht_sample(int argc, VALUE *argv, VALUE obj)
@@ -226,7 +226,7 @@ static VALUE rb_gsl_dht_sample(int argc, VALUE *argv, VALUE obj)
         gsl_matrix_set(mm, n, m, val);
       }
     }
-    return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mm);
+    return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mm);
     break;
   case 2:
     n = FIX2INT(argv[0]);
@@ -257,7 +257,7 @@ static VALUE rb_gsl_dht_num(int argc, VALUE *argv, VALUE obj)
         gsl_matrix_set(mm, n, m, val);
       }
     }
-    return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mm);
+    return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mm);
     break;
   case 2:
     n = FIX2INT(argv[0]);
@@ -278,7 +278,7 @@ static VALUE rb_gsl_dht_J2(VALUE obj)
   gsl_vector_view *v = NULL;
   Data_Get_Struct(obj, gsl_dht, t);
   v = rb_gsl_make_vector_view(t->J2, t->size+1, 1);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_ro_data_type, v);
 }
 
 static VALUE rb_gsl_dht_den(VALUE obj)
@@ -287,7 +287,7 @@ static VALUE rb_gsl_dht_den(VALUE obj)
   gsl_vector_view *v = NULL;
   Data_Get_Struct(obj, gsl_dht, t);
   v = rb_gsl_make_vector_view(t->J2+1, t->size, 1);
-  return Data_Wrap_Struct(cgsl_vector_view_ro, 0, free, v);
+  return TypedData_Wrap_Struct(cgsl_vector_view_ro, &gsl_vector_view_ro_data_type, v);
 }
 
 static VALUE rb_gsl_dht_size(VALUE obj)
@@ -335,7 +335,7 @@ static VALUE rb_gsl_dht_coef(int argc, VALUE *argv, VALUE obj)
         gsl_matrix_set(mm, n, m, val);
       }
     }
-    return Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, mm);
+    return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mm);
     break;
   case 2:
     n = FIX2INT(argv[0]);
