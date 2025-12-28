@@ -148,7 +148,7 @@ static VALUE rb_gsl_linalg_LU_decomposition(int argc, VALUE *argv, VALUE obj, in
     break;
   }
   CHECK_MATRIX(omatrix);
-  TypedData_Get_Struct(omatrix, gsl_matrix, &gsl_matrix_data_type, mtmp);
+  Data_Get_Matrix(omatrix, mtmp);
   if (flag == LINALG_DECOMP_BANG) {
     m = mtmp;
     RBGSL_SET_CLASS(omatrix, cgsl_matrix_LU);
@@ -248,7 +248,7 @@ static gsl_vector* get_vector2(VALUE obj, int *flagv)
 #endif
   } else {
     CHECK_VECTOR(obj);
-    TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
+    Data_Get_Vector(obj, v);
     *flagv = 0;
   }
   return v;

@@ -64,12 +64,13 @@ static VALUE rb_gsl_blas_dgemv(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[3]);
     type = FIX2INT(argv[0]);
     a = NUM2DBL(argv[1]);
-    TypedData_Get_Struct(argv[2], gsl_matrix, &gsl_matrix_data_type, A);
-    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, x);
+    Data_Get_Matrix(argv[2], A);
+    Data_Get_Vector(argv[3], x);
     istart = 4;
     break;
   default:
-    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
+    CHECK_MATRIX(obj);
+    Data_Get_Matrix(obj, A);
     if (argc < 3) rb_raise(rb_eArgError, "wrong number of arguments (%d for >= 3)",
                            argc);
     CHECK_FIXNUM(argv[0]);
@@ -77,7 +78,7 @@ static VALUE rb_gsl_blas_dgemv(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[2]);
     type = FIX2INT(argv[0]);
     a = NUM2DBL(argv[1]);
-    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, x);
+    Data_Get_Vector(argv[2], x);
     istart = 3;
     break;
   }
@@ -86,7 +87,7 @@ static VALUE rb_gsl_blas_dgemv(int argc, VALUE *argv, VALUE obj)
     Need_Float(argv[istart]);
     CHECK_VECTOR(argv[istart+1]);
     b = NUM2DBL(argv[istart]);
-    TypedData_Get_Struct(argv[istart+1], gsl_vector, &gsl_vector_data_type, y);
+    Data_Get_Vector(argv[istart+1], y);
     break;
   case 0:
     b = 0.0;
@@ -120,12 +121,13 @@ static VALUE rb_gsl_blas_dgemv2(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[3]);
     type = FIX2INT(argv[0]);
     a = NUM2DBL(argv[1]);
-    TypedData_Get_Struct(argv[2], gsl_matrix, &gsl_matrix_data_type, A);
-    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, x);
+    Data_Get_Matrix(argv[2], A);
+    Data_Get_Vector(argv[3], x);
     istart = 4;
     break;
   default:
-    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
+    CHECK_MATRIX(obj);
+    Data_Get_Matrix(obj, A);
     if (argc < 3) rb_raise(rb_eArgError, "wrong number of arguments (%d for >= 3)",
                            argc);
     CHECK_FIXNUM(argv[0]);
@@ -133,7 +135,7 @@ static VALUE rb_gsl_blas_dgemv2(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[2]);
     type = FIX2INT(argv[0]);
     a = NUM2DBL(argv[1]);
-    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, x);
+    Data_Get_Vector(argv[2], x);
     istart = 3;
     break;
   }
@@ -142,7 +144,7 @@ static VALUE rb_gsl_blas_dgemv2(int argc, VALUE *argv, VALUE obj)
     Need_Float(argv[istart]);
     CHECK_VECTOR(argv[istart+1]);
     b = NUM2DBL(argv[istart]);
-    TypedData_Get_Struct(argv[istart+1], gsl_vector, &gsl_vector_data_type, y);
+    Data_Get_Vector(argv[istart+1], y);
     break;
   case 0:
     b = 0.0;

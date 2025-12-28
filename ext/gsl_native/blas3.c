@@ -24,8 +24,8 @@ static VALUE rb_gsl_blas_dgemm(int argc, VALUE *argv, VALUE obj)
   case 2:
     CHECK_MATRIX(argv[0]);
     CHECK_MATRIX(argv[1]);
-    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, A);
-    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, B);
+    Data_Get_Matrix(argv[0], A);
+    Data_Get_Matrix(argv[1], B);
     C = gsl_matrix_calloc(A->size1, B->size2);
     alpha = 1.0;
     beta = 0.0;
@@ -41,8 +41,8 @@ static VALUE rb_gsl_blas_dgemm(int argc, VALUE *argv, VALUE obj)
     TransA = FIX2INT(argv[0]);
     TransB = FIX2INT(argv[1]);
     alpha = NUM2DBL(argv[2]);
-    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, A);
-    TypedData_Get_Struct(argv[4], gsl_matrix, &gsl_matrix_data_type, B);
+    Data_Get_Matrix(argv[3], A);
+    Data_Get_Matrix(argv[4], B);
     C = gsl_matrix_calloc(A->size1, B->size2);
     beta = 0.0;
     flag = 1;
@@ -57,8 +57,8 @@ static VALUE rb_gsl_blas_dgemm(int argc, VALUE *argv, VALUE obj)
     TransA = FIX2INT(argv[0]);
     TransB = FIX2INT(argv[1]);
     alpha = NUM2DBL(argv[2]);
-    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, A);
-    TypedData_Get_Struct(argv[4], gsl_matrix, &gsl_matrix_data_type, B);
+    Data_Get_Matrix(argv[3], A);
+    Data_Get_Matrix(argv[4], B);
     beta = NUM2DBL(argv[5]);
     C = gsl_matrix_calloc(A->size1, B->size2);
     flag = 1;
@@ -74,10 +74,10 @@ static VALUE rb_gsl_blas_dgemm(int argc, VALUE *argv, VALUE obj)
     TransA = FIX2INT(argv[0]);
     TransB = FIX2INT(argv[1]);
     alpha = NUM2DBL(argv[2]);
-    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, A);
-    TypedData_Get_Struct(argv[4], gsl_matrix, &gsl_matrix_data_type, B);
+    Data_Get_Matrix(argv[3], A);
+    Data_Get_Matrix(argv[4], B);
     beta = NUM2DBL(argv[5]);
-    TypedData_Get_Struct(argv[6], gsl_matrix, &gsl_matrix_data_type, C);
+    Data_Get_Matrix(argv[6], C);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2, 5, 6, or 7)", argc);

@@ -217,7 +217,7 @@ double* get_ptr_double3(VALUE obj, size_t *size, size_t *stride, int *flag)
   }
 #endif
   CHECK_VECTOR(obj);
-  TypedData_Get_Struct(obj, gsl_vector, &gsl_vector_data_type, v);
+  Data_Get_Vector(obj, v);
   *size = v->size;
   *stride = v->stride;
   *flag = 0;
