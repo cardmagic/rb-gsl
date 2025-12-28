@@ -140,12 +140,12 @@ extern ID rb_gsl_id_beg, rb_gsl_id_end, rb_gsl_id_excl, rb_gsl_id_to_a;
       obj = rb_gsl_na_to_gsl_vector_view_method(obj); \
     } \
     CHECK_VECTOR(obj); \
-    Data_Get_Struct(obj,gsl_vector,sval); \
+    sval = (gsl_vector*)RTYPEDDATA_DATA(obj); \
 } while (0)
 #else
 #define Data_Get_Vector(obj,sval) do { \
     CHECK_VECTOR(obj); \
-    Data_Get_Struct(obj,gsl_vector,sval); \
+    sval = (gsl_vector*)RTYPEDDATA_DATA(obj); \
 } while (0)
 #endif
 
@@ -208,7 +208,7 @@ extern ID rb_gsl_id_beg, rb_gsl_id_end, rb_gsl_id_excl, rb_gsl_id_to_a;
 
 #define Data_Get_Matrix(obj,sval) do { \
     CHECK_MATRIX(obj); \
-    Data_Get_Struct(obj,gsl_matrix,sval); \
+    sval = (gsl_matrix*)RTYPEDDATA_DATA(obj); \
 } while (0)
 
 

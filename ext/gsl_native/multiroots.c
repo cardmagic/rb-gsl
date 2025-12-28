@@ -676,8 +676,8 @@ static VALUE rb_gsl_multiroot_test_delta(VALUE obj, VALUE vdx, VALUE vx,
 {
   gsl_vector *dx = NULL, *x = NULL;
   Need_Float(ea); Need_Float(er);
-  TypedData_Get_Struct(vdx, gsl_vector, &gsl_vector_data_type, dx);
-  TypedData_Get_Struct(vx, gsl_vector, &gsl_vector_data_type, x);
+  Data_Get_Vector(vdx, dx);
+  Data_Get_Vector(vx, x);
   return INT2FIX(gsl_multiroot_test_delta(dx, x, NUM2DBL(ea), NUM2DBL(er)));
 }
 
@@ -685,7 +685,7 @@ static VALUE rb_gsl_multiroot_test_residual(VALUE obj, VALUE vf, VALUE ea)
 {
   gsl_vector *f = NULL;
   Need_Float(ea);
-  TypedData_Get_Struct(vf, gsl_vector, &gsl_vector_data_type, f);
+  Data_Get_Vector(vf, f);
   return INT2FIX(gsl_multiroot_test_residual(f, NUM2DBL(ea)));
 }
 
