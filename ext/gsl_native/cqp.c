@@ -32,15 +32,15 @@ static VALUE rb_cqpminimizer_alloc(VALUE klass,  VALUE t, VALUE n, VALUE me, VAL
 {
   gsl_cqpminimizer *m;
   m = gsl_cqpminimizer_alloc(get_type(t), (size_t) FIX2INT(n), (size_t) FIX2INT(me), (size_t) FIX2INT(mi));
-  return Data_Wrap_Struct(klass, 0, gsl_cqpminimizer_free, m);
+  return TypedData_Wrap_Struct(klass, &gsl_cqpminimizer_data_type, m);
 }
 
 static VALUE rb_cqpminimizer_set(VALUE obj, VALUE data)
 {
   gsl_cqpminimizer *m;
   gsl_cqp_data *d;
-  Data_Get_Struct(obj, gsl_cqpminimizer, m);
-  Data_Get_Struct(data, gsl_cqp_data, d);
+  TypedData_Get_Struct(obj, gsl_cqpminimizer, &gsl_cqpminimizer_data_type, m);
+  TypedData_Get_Struct(data, gsl_cqp_data, &gsl_cqp_data_data_type, d);
   gsl_cqpminimizer_set(m, d);
   return Qtrue;
 }
@@ -48,72 +48,72 @@ static VALUE rb_cqpminimizer_set(VALUE obj, VALUE data)
 static VALUE rb_cqpminimizer_name(VALUE obj)
 {
   gsl_cqpminimizer *m;
-  Data_Get_Struct(obj, gsl_cqpminimizer, m);
+  TypedData_Get_Struct(obj, gsl_cqpminimizer, &gsl_cqpminimizer_data_type, m);
   return rb_str_new2(gsl_cqpminimizer_name(m));
 }
 
 static VALUE rb_cqpminimizer_iterate(VALUE obj)
 {
   gsl_cqpminimizer *m;
-  Data_Get_Struct(obj, gsl_cqpminimizer, m);
+  TypedData_Get_Struct(obj, gsl_cqpminimizer, &gsl_cqpminimizer_data_type, m);
   return INT2FIX(gsl_cqpminimizer_iterate(m));
 }
 
 static VALUE rb_cqpminimizer_x(VALUE obj)
 {
   gsl_cqpminimizer *m;
-  Data_Get_Struct(obj, gsl_cqpminimizer, m);
+  TypedData_Get_Struct(obj, gsl_cqpminimizer, &gsl_cqpminimizer_data_type, m);
   return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, gsl_cqpminimizer_x(m));
 }
 
 static VALUE rb_cqpminimizer_lm_eq(VALUE obj)
 {
   gsl_cqpminimizer *m;
-  Data_Get_Struct(obj, gsl_cqpminimizer, m);
+  TypedData_Get_Struct(obj, gsl_cqpminimizer, &gsl_cqpminimizer_data_type, m);
   return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, gsl_cqpminimizer_lm_eq(m));
 }
 static VALUE rb_cqpminimizer_lm_ineq(VALUE obj)
 {
   gsl_cqpminimizer *m;
-  Data_Get_Struct(obj, gsl_cqpminimizer, m);
+  TypedData_Get_Struct(obj, gsl_cqpminimizer, &gsl_cqpminimizer_data_type, m);
   return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, gsl_cqpminimizer_lm_ineq(m));
 }
 static VALUE rb_cqpminimizer_f(VALUE obj)
 {
   gsl_cqpminimizer *m;
-  Data_Get_Struct(obj, gsl_cqpminimizer, m);
+  TypedData_Get_Struct(obj, gsl_cqpminimizer, &gsl_cqpminimizer_data_type, m);
   return rb_float_new(gsl_cqpminimizer_f(m));
 }
 static VALUE rb_cqpminimizer_gap(VALUE obj)
 {
   gsl_cqpminimizer *m;
-  Data_Get_Struct(obj, gsl_cqpminimizer, m);
+  TypedData_Get_Struct(obj, gsl_cqpminimizer, &gsl_cqpminimizer_data_type, m);
   return rb_float_new(gsl_cqpminimizer_gap(m));
 }
 static VALUE rb_cqpminimizer_residuals_norm(VALUE obj)
 {
   gsl_cqpminimizer *m;
-  Data_Get_Struct(obj, gsl_cqpminimizer, m);
+  TypedData_Get_Struct(obj, gsl_cqpminimizer, &gsl_cqpminimizer_data_type, m);
   return rb_float_new(gsl_cqpminimizer_residuals_norm(m));
 }
 /*
 static VALUE rb_cqpminimizer_minimum(VALUE obj)
 {
   gsl_cqpminimizer *m;
-  Data_Get_Struct(obj, gsl_cqpminimizer, m);
+  TypedData_Get_Struct(obj, gsl_cqpminimizer, &gsl_cqpminimizer_data_type, m);
   return rb_float_new(gsl_cqpminimizer_minimum(m));
 }
 */
 static VALUE rb_cqpminimizer_test_convergence(VALUE obj, VALUE g, VALUE r)
 {
   gsl_cqpminimizer *m;
-  Data_Get_Struct(obj, gsl_cqpminimizer, m);
+  TypedData_Get_Struct(obj, gsl_cqpminimizer, &gsl_cqpminimizer_data_type, m);
   return INT2FIX(gsl_cqpminimizer_test_convergence(m, NUM2DBL(g), NUM2DBL(r)));
 }
 static VALUE rb_cqpminimizer_test_infeasibility(VALUE obj, VALUE e)
 {
   gsl_cqpminimizer *m;
-  Data_Get_Struct(obj, gsl_cqpminimizer, m);
+  TypedData_Get_Struct(obj, gsl_cqpminimizer, &gsl_cqpminimizer_data_type, m);
   return INT2FIX(gsl_cqp_minimizer_test_infeasibility(m, NUM2DBL(e)));
 }
 
@@ -127,42 +127,42 @@ static VALUE rb_cqp_data_alloc(VALUE klass)
 static VALUE rb_cqp_data_Q(VALUE obj)
 {
   gsl_cqp_data *d;
-  Data_Get_Struct(obj, gsl_cqp_data, d);
+  TypedData_Get_Struct(obj, gsl_cqp_data, &gsl_cqp_data_data_type, d);
   return TypedData_Wrap_Struct(cgsl_matrix_view, &gsl_matrix_view_data_type, d->Q);
 }
 
 static VALUE rb_cqp_data_q(VALUE obj)
 {
   gsl_cqp_data *d;
-  Data_Get_Struct(obj, gsl_cqp_data, d);
+  TypedData_Get_Struct(obj, gsl_cqp_data, &gsl_cqp_data_data_type, d);
   return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, d->q);
 }
 
 static VALUE rb_cqp_data_A(VALUE obj)
 {
   gsl_cqp_data *d;
-  Data_Get_Struct(obj, gsl_cqp_data, d);
+  TypedData_Get_Struct(obj, gsl_cqp_data, &gsl_cqp_data_data_type, d);
   return TypedData_Wrap_Struct(cgsl_matrix_view, &gsl_matrix_view_data_type, d->A);
 }
 
 static VALUE rb_cqp_data_b(VALUE obj)
 {
   gsl_cqp_data *d;
-  Data_Get_Struct(obj, gsl_cqp_data, d);
+  TypedData_Get_Struct(obj, gsl_cqp_data, &gsl_cqp_data_data_type, d);
   return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, d->b);
 }
 
 static VALUE rb_cqp_data_C(VALUE obj)
 {
   gsl_cqp_data *d;
-  Data_Get_Struct(obj, gsl_cqp_data, d);
+  TypedData_Get_Struct(obj, gsl_cqp_data, &gsl_cqp_data_data_type, d);
   return TypedData_Wrap_Struct(cgsl_matrix_view, &gsl_matrix_view_data_type, d->C);
 }
 
 static VALUE rb_cqp_data_d(VALUE obj)
 {
   gsl_cqp_data *d;
-  Data_Get_Struct(obj, gsl_cqp_data, d);
+  TypedData_Get_Struct(obj, gsl_cqp_data, &gsl_cqp_data_data_type, d);
   return TypedData_Wrap_Struct(cgsl_vector_view, &gsl_vector_view_data_type, d->d);
 }
 
@@ -170,7 +170,7 @@ static VALUE rb_cqp_data_set_Q(VALUE obj, VALUE mm)
 {
   gsl_cqp_data *d;
   gsl_matrix *m;
-  Data_Get_Struct(obj, gsl_cqp_data, d);
+  TypedData_Get_Struct(obj, gsl_cqp_data, &gsl_cqp_data_data_type, d);
   CHECK_MATRIX(mm);
   TypedData_Get_Struct(mm, gsl_matrix, &gsl_matrix_data_type, m);
   d->Q = m;
@@ -181,7 +181,7 @@ static VALUE rb_cqp_data_set_q(VALUE obj, VALUE vv)
 {
   gsl_cqp_data *d;
   gsl_vector *v;
-  Data_Get_Struct(obj, gsl_cqp_data, d);
+  TypedData_Get_Struct(obj, gsl_cqp_data, &gsl_cqp_data_data_type, d);
   CHECK_VECTOR(vv);
   TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
   d->q = v;
@@ -192,7 +192,7 @@ static VALUE rb_cqp_data_set_A(VALUE obj, VALUE mm)
 {
   gsl_cqp_data *d;
   gsl_matrix *m;
-  Data_Get_Struct(obj, gsl_cqp_data, d);
+  TypedData_Get_Struct(obj, gsl_cqp_data, &gsl_cqp_data_data_type, d);
   CHECK_MATRIX(mm);
   TypedData_Get_Struct(mm, gsl_matrix, &gsl_matrix_data_type, m);
   d->A = m;
@@ -203,7 +203,7 @@ static VALUE rb_cqp_data_set_b(VALUE obj, VALUE vv)
 {
   gsl_cqp_data *d;
   gsl_vector *v;
-  Data_Get_Struct(obj, gsl_cqp_data, d);
+  TypedData_Get_Struct(obj, gsl_cqp_data, &gsl_cqp_data_data_type, d);
   CHECK_VECTOR(vv);
   TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
   d->b = v;
@@ -214,7 +214,7 @@ static VALUE rb_cqp_data_set_C(VALUE obj, VALUE mm)
 {
   gsl_cqp_data *d;
   gsl_matrix *m;
-  Data_Get_Struct(obj, gsl_cqp_data, d);
+  TypedData_Get_Struct(obj, gsl_cqp_data, &gsl_cqp_data_data_type, d);
   CHECK_MATRIX(mm);
   TypedData_Get_Struct(mm, gsl_matrix, &gsl_matrix_data_type, m);
   d->C = m;
@@ -225,7 +225,7 @@ static VALUE rb_cqp_data_set_d(VALUE obj, VALUE vv)
 {
   gsl_cqp_data *d;
   gsl_vector *v;
-  Data_Get_Struct(obj, gsl_cqp_data, d);
+  TypedData_Get_Struct(obj, gsl_cqp_data, &gsl_cqp_data_data_type, d);
   CHECK_VECTOR(vv);
   TypedData_Get_Struct(vv, gsl_vector, &gsl_vector_data_type, v);
   d->d = v;

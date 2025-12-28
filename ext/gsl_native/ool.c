@@ -81,7 +81,7 @@ static VALUE rb_ool_conmin_minimizer_alloc(int argc, VALUE *argv, VALUE klass)
   VALUE obj;
   if (argc < 2) rb_raise(rb_eArgError, "Too few arguments (%d for >= 2)", argc);
   m = ool_conmin_minimizer_alloc(get_minimizer_type(argv[0]), FIX2INT(argv[1]));
-  obj = Data_Wrap_Struct(klass, 0, ool_conmin_minimizer_free, m);
+  obj = TypedData_Wrap_Struct(klass, &ool_conmin_minimizer_data_type, m);
   if (argc > 2) rb_ool_conmin_minimizer_set(argc-2, argv+2, obj);
   return obj;
 }
@@ -98,7 +98,7 @@ static VALUE rb_ool_conmin_minimizer_set(int argc, VALUE *argv, VALUE obj)
   ool_conmin_spg_parameters Ps;
   ool_conmin_gencan_parameters Pg;
   void *P;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   switch (argc) {
   case 3:
     if (CLASS_OF(argv[0]) != cool_conmin_function)
@@ -107,8 +107,8 @@ static VALUE rb_ool_conmin_minimizer_set(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eTypeError, "Wrong argument type 1 (OOL::Conmin::Constraint expected)");
     if (!VECTOR_P(argv[2]))
       rb_raise(rb_eTypeError, "Wrong argument type 2 (GSL::Vector expected)");
-    Data_Get_Struct(argv[0], ool_conmin_function, F);
-    Data_Get_Struct(argv[1], ool_conmin_constraint, C);
+    TypedData_Get_Struct(argv[0], ool_conmin_function, &ool_conmin_function_data_type, F);
+    TypedData_Get_Struct(argv[1], ool_conmin_constraint, &ool_conmin_constraint_data_type, C);
     TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, v);
     P = get_parameter(m->type, &Pp, &Ps, &Pg, Qnil);
     ool_conmin_minimizer_set(m, F, C, v, P);
@@ -122,8 +122,8 @@ static VALUE rb_ool_conmin_minimizer_set(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eTypeError, "Wrong argument type 2 (GSL::Vector expected)");
     if (!rb_obj_is_kind_of(argv[3], rb_cArray) && argv[3] != Qnil)
       rb_raise(rb_eTypeError, "Wrong argument type 3 (Array expected)");
-    Data_Get_Struct(argv[0], ool_conmin_function, F);
-    Data_Get_Struct(argv[1], ool_conmin_constraint, C);
+    TypedData_Get_Struct(argv[0], ool_conmin_function, &ool_conmin_function_data_type, F);
+    TypedData_Get_Struct(argv[1], ool_conmin_constraint, &ool_conmin_constraint_data_type, C);
     TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, v);
     P = get_parameter(m->type, &Pp, &Ps, &Pg, argv[3]);
     ool_conmin_minimizer_set(m, F, C, v, P);
@@ -274,7 +274,7 @@ static VALUE rb_ool_conmin_minimizer_parameters_get(VALUE obj)
   ool_conmin_gencan_parameters *Pg;
   void *P;
   VALUE ary;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   ool_conmin_parameters_get(m, P);
   if (m->type ==   ool_conmin_minimizer_pgrad) {
     Pp = (ool_conmin_pgrad_parameters*) P;
@@ -296,7 +296,7 @@ static VALUE rb_ool_conmin_minimizer_parameters_set(VALUE obj, VALUE params)
   ool_conmin_spg_parameters *Ps;
   ool_conmin_gencan_parameters *Pg;
   void *P;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   P = get_parameter(m->type, Pp, Ps, Pg, params);
   ool_conmin_parameters_set(m, P);
   return params;
@@ -305,86 +305,86 @@ static VALUE rb_ool_conmin_minimizer_parameters_set(VALUE obj, VALUE params)
 static VALUE rb_ool_conmin_minimizer_name(VALUE obj)
 {
   ool_conmin_minimizer *m;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   return rb_str_new2(ool_conmin_minimizer_name(m));
 }
 static VALUE rb_ool_conmin_minimizer_f(VALUE obj)
 {
   ool_conmin_minimizer *m;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   return rb_float_new(m->f);
 }
 static VALUE rb_ool_conmin_minimizer_x(VALUE obj)
 {
   ool_conmin_minimizer *m;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, m->x);
 }
 static VALUE rb_ool_conmin_minimizer_gradient(VALUE obj)
 {
   ool_conmin_minimizer *m;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, m->gradient);
 }
 static VALUE rb_ool_conmin_minimizer_minimum(VALUE obj)
 {
   ool_conmin_minimizer *m;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   return rb_float_new(ool_conmin_minimizer_minimum(m));
 }
 static VALUE rb_ool_conmin_minimizer_dx(VALUE obj)
 {
   ool_conmin_minimizer *m;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   return TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, m->dx);
 }
 static VALUE rb_ool_conmin_minimizer_size(VALUE obj)
 {
   ool_conmin_minimizer *m;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   return rb_float_new(ool_conmin_minimizer_size(m));
 }
 static VALUE rb_ool_conmin_minimizer_fcount(VALUE obj)
 {
   ool_conmin_minimizer *m;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   return INT2FIX((int) ool_conmin_minimizer_fcount(m));
 }
 static VALUE rb_ool_conmin_minimizer_gcount(VALUE obj)
 {
   ool_conmin_minimizer *m;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   return INT2FIX((int) ool_conmin_minimizer_gcount(m));
 }
 static VALUE rb_ool_conmin_minimizer_hcount(VALUE obj)
 {
   ool_conmin_minimizer *m;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   return INT2FIX((int) ool_conmin_minimizer_hcount(m));
 }
 static VALUE rb_ool_conmin_minimizer_is_optimal(VALUE obj)
 {
   ool_conmin_minimizer *m;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   return INT2FIX((int) ool_conmin_is_optimal(m));
 }
 static VALUE rb_ool_conmin_minimizer_is_optimal2(VALUE obj)
 {
   ool_conmin_minimizer *m;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   if (ool_conmin_is_optimal(m)) return Qtrue;
   else return Qfalse;
 }
 static VALUE rb_ool_conmin_minimizer_iterate(VALUE obj)
 {
   ool_conmin_minimizer *m;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   return INT2FIX((int) ool_conmin_minimizer_iterate(m));
 }
 static VALUE rb_ool_conmin_minimizer_restart(VALUE obj)
 {
   ool_conmin_minimizer *m;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   return INT2FIX((int) ool_conmin_minimizer_restart(m));
 }
 
@@ -395,7 +395,7 @@ static VALUE rb_ool_conmin_gencan_parameters_default(VALUE klass);
 static VALUE rb_ool_conmin_minimizer_parameters_default(VALUE obj)
 {
   ool_conmin_minimizer *m;
-  Data_Get_Struct(obj, ool_conmin_minimizer, m);
+  TypedData_Get_Struct(obj, ool_conmin_minimizer, &ool_conmin_minimizer_data_type, m);
   if (m->type == ool_conmin_minimizer_spg) {
     return rb_ool_conmin_spg_parameters_default(cool_conmin_spg);
   } else if (m->type == ool_conmin_minimizer_pgrad) {
@@ -455,7 +455,7 @@ static VALUE rb_ool_conmin_function_alloc(int argc, VALUE *argv, VALUE klass)
 static VALUE rb_ool_conmin_function_set(int argc, VALUE *argv, VALUE obj)
 {
   ool_conmin_function *F;
-  Data_Get_Struct(obj, ool_conmin_function, F);
+  TypedData_Get_Struct(obj, ool_conmin_function, &ool_conmin_function_data_type, F);
   switch (argc) {
   case 0:
     break;
@@ -489,7 +489,7 @@ static VALUE rb_ool_conmin_function_set_n(VALUE obj, VALUE nn)
 {
   ool_conmin_function *F = NULL;
   if (FIXNUM_P(nn)) {
-    Data_Get_Struct(obj, ool_conmin_function, F);
+    TypedData_Get_Struct(obj, ool_conmin_function, &ool_conmin_function_data_type, F);
     F->n = (size_t) FIX2INT(nn);
   } else {
     rb_raise(rb_eArgError, "Wrong argument type %s (Fixnum expected)",
@@ -501,7 +501,7 @@ static VALUE rb_ool_conmin_function_set_n(VALUE obj, VALUE nn)
 static VALUE rb_ool_conmin_function_n(VALUE obj)
 {
   ool_conmin_function *F = NULL;
-  Data_Get_Struct(obj, ool_conmin_function, F);
+  TypedData_Get_Struct(obj, ool_conmin_function, &ool_conmin_function_data_type, F);
   return INT2FIX((int) F->n);
 }
 static double rb_ool_conmin_function_f(const gsl_vector *x, void *p)
@@ -573,7 +573,7 @@ static void rb_ool_conmin_function_Hv(const gsl_vector *X, void *params,
 static VALUE rb_ool_conmin_function_set_functions(int argc, VALUE *argv, VALUE obj)
 {
   ool_conmin_function *F;
-  Data_Get_Struct(obj, ool_conmin_function, F);
+  TypedData_Get_Struct(obj, ool_conmin_function, &ool_conmin_function_data_type, F);
   set_functions(argc, argv, F);
   return obj;
 }
@@ -602,7 +602,7 @@ static VALUE rb_ool_conmin_function_set_f(VALUE obj, VALUE proc)
 {
   ool_conmin_function *F;
   VALUE ary;
-  Data_Get_Struct(obj, ool_conmin_function, F);
+  TypedData_Get_Struct(obj, ool_conmin_function, &ool_conmin_function_data_type, F);
   if (F->params == NULL) {
     ary = rb_ary_new2(5);
     F->params = (void *) ary;
@@ -617,7 +617,7 @@ static VALUE rb_ool_conmin_function_set_df(VALUE obj, VALUE proc)
 {
   ool_conmin_function *F;
   VALUE ary;
-  Data_Get_Struct(obj, ool_conmin_function, F);
+  TypedData_Get_Struct(obj, ool_conmin_function, &ool_conmin_function_data_type, F);
   if (F->params == NULL) {
     ary = rb_ary_new2(5);
     F->params = (void *) ary;
@@ -632,7 +632,7 @@ static VALUE rb_ool_conmin_function_set_fdf(VALUE obj, VALUE proc)
 {
   ool_conmin_function *F;
   VALUE ary;
-  Data_Get_Struct(obj, ool_conmin_function, F);
+  TypedData_Get_Struct(obj, ool_conmin_function, &ool_conmin_function_data_type, F);
   if (F->params == NULL) {
     ary = rb_ary_new2(5);
     F->params = (void *) ary;
@@ -647,7 +647,7 @@ static VALUE rb_ool_conmin_function_set_Hv(VALUE obj, VALUE proc)
 {
   ool_conmin_function *F;
   VALUE ary;
-  Data_Get_Struct(obj, ool_conmin_function, F);
+  TypedData_Get_Struct(obj, ool_conmin_function, &ool_conmin_function_data_type, F);
   if (F->params == NULL) {
     ary = rb_ary_new2(5);
     F->params = (void *) ary;
@@ -661,7 +661,7 @@ static VALUE rb_ool_conmin_function_set_Hv(VALUE obj, VALUE proc)
 static VALUE rb_ool_conmin_function_set_params(VALUE obj, VALUE p)
 {
   ool_conmin_function *F;
-  Data_Get_Struct(obj, ool_conmin_function, F);
+  TypedData_Get_Struct(obj, ool_conmin_function, &ool_conmin_function_data_type, F);
   set_params(F, p);
   return p;
 }
@@ -682,7 +682,7 @@ static void set_params(ool_conmin_function *F, VALUE p)
 static VALUE rb_ool_conmin_function_params(VALUE obj)
 {
   ool_conmin_function *F;
-  Data_Get_Struct(obj, ool_conmin_function, F);
+  TypedData_Get_Struct(obj, ool_conmin_function, &ool_conmin_function_data_type, F);
   return rb_ary_entry((VALUE) F->params, 4);
 }
 
@@ -707,7 +707,7 @@ static VALUE rb_ool_conmin_constraint_set_n(VALUE obj, VALUE n)
   ool_conmin_constraint *C;
   if (!FIXNUM_P(n)) rb_raise(rb_eArgError, "Wrong argument type %s (Fixnum expected)",
                              rb_class2name(CLASS_OF(n)));
-  Data_Get_Struct(obj, ool_conmin_constraint, C);
+  TypedData_Get_Struct(obj, ool_conmin_constraint, &ool_conmin_constraint_data_type, C);
   C->n = (size_t) FIX2INT(n);
   return n;
 }
@@ -717,7 +717,7 @@ static VALUE rb_ool_conmin_constraint_set_L(VALUE obj, VALUE vL)
   ool_conmin_constraint *C;
   gsl_vector *L;
   CHECK_VECTOR(vL);
-  Data_Get_Struct(obj, ool_conmin_constraint, C);
+  TypedData_Get_Struct(obj, ool_conmin_constraint, &ool_conmin_constraint_data_type, C);
   TypedData_Get_Struct(vL, gsl_vector, &gsl_vector_data_type, L);
   C->L = L;
   return vL;
@@ -728,7 +728,7 @@ static VALUE rb_ool_conmin_constraint_set_U(VALUE obj, VALUE vU)
   ool_conmin_constraint *C;
   gsl_vector *U;
   CHECK_VECTOR(vU);
-  Data_Get_Struct(obj, ool_conmin_constraint, C);
+  TypedData_Get_Struct(obj, ool_conmin_constraint, &ool_conmin_constraint_data_type, C);
   TypedData_Get_Struct(vU, gsl_vector, &gsl_vector_data_type, U);
   C->U = U;
   return vU;
@@ -744,7 +744,7 @@ static VALUE rb_ool_conmin_constraint_set_LU(VALUE obj, VALUE vL, VALUE vU)
 static VALUE rb_ool_conmin_constraint_set(int argc, VALUE *argv, VALUE obj)
 {
   ool_conmin_constraint *C;
-  Data_Get_Struct(obj, ool_conmin_constraint, C);
+  TypedData_Get_Struct(obj, ool_conmin_constraint, &ool_conmin_constraint_data_type, C);
   switch (argc) {
   case 0:
     break;

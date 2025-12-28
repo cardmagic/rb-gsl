@@ -271,6 +271,24 @@ class TypedDataMigrator
     'gsl_sf_result_e10' => 'gsl_sf_result_e10_data_type',
     # N-Tuple
     'gsl_ntuple' => 'gsl_ntuple_data_type',
+    # Graph
+    'gsl_graph' => 'gsl_graph_data_type',
+    # ODE Solver
+    'gsl_odeiv_solver' => 'gsl_odeiv_solver_data_type',
+    # Third-party: OOL
+    'ool_conmin_minimizer' => 'ool_conmin_minimizer_data_type',
+    'ool_conmin_function' => 'ool_conmin_function_data_type',
+    'ool_conmin_constraint' => 'ool_conmin_constraint_data_type',
+    # Third-party: CQP
+    'gsl_cqpminimizer' => 'gsl_cqpminimizer_data_type',
+    'gsl_cqp_data' => 'gsl_cqp_data_data_type',
+    # Third-party: Jacobi
+    'jac_quadrature' => 'jac_quadrature_data_type',
+    # Third-party: FSDF
+    'gsl_multimin_fsdfminimizer' => 'gsl_multimin_fsdfminimizer_data_type',
+    'gsl_multimin_function_fsdf' => 'gsl_multimin_function_fsdf_data_type',
+    # Third-party: NDLinear
+    'gsl_multifit_ndlinear_workspace' => 'gsl_multifit_ndlinear_workspace_data_type',
   }.freeze
 
   # Patterns that need manual handling - completely skip these
@@ -374,6 +392,18 @@ class TypedDataMigrator
     'gsl_cheb_free' => 'gsl_cheb_series_data_type',
     # NTuple
     'gsl_ntuple_close' => 'gsl_ntuple_data_type',
+    # Graph
+    'gsl_graph_free' => 'gsl_graph_data_type',
+    # ODE Solver
+    'rb_gsl_odeiv_solver_free' => 'gsl_odeiv_solver_data_type',
+    # Third-party: OOL
+    'ool_conmin_minimizer_free' => 'ool_conmin_minimizer_data_type',
+    # Third-party: CQP
+    'gsl_cqpminimizer_free' => 'gsl_cqpminimizer_data_type',
+    # Third-party: Jacobi
+    'jac_quadrature_free' => 'jac_quadrature_data_type',
+    # Third-party: FSDF
+    'gsl_multimin_fsdfminimizer_free' => 'gsl_multimin_fsdfminimizer_data_type',
     # Note: siman, mathieu, alf don't have types defined yet
   }.freeze
 

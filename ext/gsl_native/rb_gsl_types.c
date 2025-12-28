@@ -52,6 +52,15 @@
 #include "include/rb_gsl_function.h"
 #include "include/rb_gsl_array.h"
 #include "include/rb_gsl_interp.h"
+#include "include/rb_gsl_graph.h"
+
+/* Forward declarations for ODE solver types - defined in odeiv.c */
+typedef struct {
+  gsl_odeiv_step *s;
+  gsl_odeiv_control *c;
+  gsl_odeiv_evolve *e;
+  gsl_odeiv_system *sys;
+} gsl_odeiv_solver;
 
 /* ============================================================
  * Vector Types
@@ -1072,3 +1081,158 @@ const rb_data_type_t gsl_ntuple_data_type = {
     },
     .flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
+
+/* ============================================================
+ * Graph Types
+ * ============================================================ */
+
+/* Forward declaration for graph mark */
+extern void gsl_graph_mark(gsl_graph *g);
+
+const rb_data_type_t gsl_graph_data_type = {
+    .wrap_struct_name = "GSL::Graph",
+    .function = {
+        .dmark = (void (*)(void *))gsl_graph_mark,
+        .dfree = (void (*)(void *))gsl_graph_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+/* ============================================================
+ * ODE Solver Types
+ * ============================================================ */
+
+/* Forward declarations for odeiv_solver mark/free */
+extern void gsl_odeiv_solver_mark(gsl_odeiv_solver *gos);
+extern void rb_gsl_odeiv_solver_free(gsl_odeiv_solver *gos);
+
+const rb_data_type_t gsl_odeiv_solver_data_type = {
+    .wrap_struct_name = "GSL::Odeiv::Solver",
+    .function = {
+        .dmark = (void (*)(void *))gsl_odeiv_solver_mark,
+        .dfree = (void (*)(void *))rb_gsl_odeiv_solver_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+/* ============================================================
+ * Third-party Library Types (conditionally compiled)
+ * ============================================================ */
+
+#ifdef HAVE_OOL_OOL_VERSION_H
+#include <ool/ool_conmin.h>
+
+/* Forward declaration for ool_conmin_function mark */
+extern void rb_ool_conmin_function_mark(ool_conmin_function *F);
+
+const rb_data_type_t ool_conmin_minimizer_data_type = {
+    .wrap_struct_name = "GSL::Ool::Conmin::Minimizer",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))ool_conmin_minimizer_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+const rb_data_type_t ool_conmin_function_data_type = {
+    .wrap_struct_name = "GSL::Ool::Conmin::Function",
+    .function = {
+        .dmark = (void (*)(void *))rb_ool_conmin_function_mark,
+        .dfree = RUBY_DEFAULT_FREE,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+const rb_data_type_t ool_conmin_constraint_data_type = {
+    .wrap_struct_name = "GSL::Ool::Conmin::Constraint",
+    .function = {
+        .dmark = NULL,
+        .dfree = RUBY_DEFAULT_FREE,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+#endif /* HAVE_OOL_OOL_VERSION_H */
+
+#ifdef HAVE_GSL_GSL_CQP_H
+#include "gsl/gsl_cqp.h"
+
+const rb_data_type_t gsl_cqpminimizer_data_type = {
+    .wrap_struct_name = "GSL::Cqp::Minimizer",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))gsl_cqpminimizer_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+const rb_data_type_t gsl_cqp_data_data_type = {
+    .wrap_struct_name = "GSL::Cqp::Data",
+    .function = {
+        .dmark = NULL,
+        .dfree = NULL,  /* Managed by user */
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+#endif /* HAVE_GSL_GSL_CQP_H */
+
+#ifdef HAVE_JACOBI_H
+#include "jacobi.h"
+
+const rb_data_type_t jac_quadrature_data_type = {
+    .wrap_struct_name = "GSL::Jacobi::Quadrature",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))jac_quadrature_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+#endif /* HAVE_JACOBI_H */
+
+#ifdef HAVE_GSL_GSL_MULTIMIN_FSDF_H
+#include "gsl/gsl_multimin_fsdf.h"
+
+const rb_data_type_t gsl_multimin_fsdfminimizer_data_type = {
+    .wrap_struct_name = "GSL::MultiMin::FsdfMinimizer",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))gsl_multimin_fsdfminimizer_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+const rb_data_type_t gsl_multimin_function_fsdf_data_type = {
+    .wrap_struct_name = "GSL::MultiMin::Function_fsdf",
+    .function = {
+        .dmark = NULL,
+        .dfree = NULL,  /* Not owned by Ruby */
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+#endif /* HAVE_GSL_GSL_MULTIMIN_FSDF_H */
+
+#ifdef HAVE_NDLINEAR_GSL_MULTIFIT_NDLINEAR_H
+#include <ndlinear/gsl_multifit_ndlinear.h>
+
+/* Forward declaration for ndlinear mark */
+extern void multifit_ndlinear_mark(gsl_multifit_ndlinear_workspace *w);
+
+const rb_data_type_t gsl_multifit_ndlinear_workspace_data_type = {
+    .wrap_struct_name = "GSL::MultiFit::Ndlinear::Workspace",
+    .function = {
+        .dmark = (void (*)(void *))multifit_ndlinear_mark,
+        .dfree = (void (*)(void *))gsl_multifit_ndlinear_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+#endif /* HAVE_NDLINEAR_GSL_MULTIFIT_NDLINEAR_H */

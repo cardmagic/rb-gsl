@@ -180,7 +180,7 @@ static void gsl_graph_init(gsl_graph *g)
   g->O = Qfalse;
 }
 
-static void gsl_graph_mark(gsl_graph *g)
+void gsl_graph_mark(gsl_graph *g)
 {
   rb_gc_mark(g->xdata);
   rb_gc_mark(g->ydata);
@@ -242,7 +242,7 @@ static VALUE rb_gsl_graph_new(int argc, VALUE *argv, VALUE klass)
   gsl_graph *g = NULL;
   VALUE obj;
   g = gsl_graph_new();
-  obj = Data_Wrap_Struct(klass, gsl_graph_mark, gsl_graph_free, g);
+  obj = TypedData_Wrap_Struct(klass, &gsl_graph_data_type, g);
   switch (argc) {
   case 1:
     rb_gsl_graph_set_xdata(obj, argv[0]);
@@ -257,7 +257,7 @@ static VALUE rb_gsl_graph_new(int argc, VALUE *argv, VALUE klass)
 static VALUE rb_gsl_graph_init(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   gsl_graph_init(g);
   return obj;
 }
@@ -265,28 +265,28 @@ static VALUE rb_gsl_graph_init(VALUE obj)
 static VALUE rb_gsl_graph_xdata(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->xdata;
 }
 
 static VALUE rb_gsl_graph_ydata(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->ydata;
 }
 
 static VALUE rb_gsl_graph_xydata(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return rb_ary_new3(2, g->xdata, g->ydata);
 }
 
 static VALUE rb_gsl_graph_set_xdata(VALUE obj, VALUE xx)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   CHECK_VECTOR(xx);
   g->xdata = xx;
   return obj;
@@ -295,7 +295,7 @@ static VALUE rb_gsl_graph_set_xdata(VALUE obj, VALUE xx)
 static VALUE rb_gsl_graph_set_ydata(VALUE obj, VALUE yy)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   CHECK_VECTOR(yy);
   g->ydata = yy;
   return obj;
@@ -304,7 +304,7 @@ static VALUE rb_gsl_graph_set_ydata(VALUE obj, VALUE yy)
 static VALUE rb_gsl_graph_set_xydata(VALUE obj, VALUE xx, VALUE yy)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   CHECK_VECTOR(xx); CHECK_VECTOR(yy);
   g->xdata = xx;
   g->ydata = yy;
@@ -314,7 +314,7 @@ static VALUE rb_gsl_graph_set_xydata(VALUE obj, VALUE xx, VALUE yy)
 static VALUE rb_gsl_graph_set_T(VALUE obj, VALUE T)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   Check_Type(T, T_STRING);
   g->T = T;
   return T;
@@ -323,14 +323,14 @@ static VALUE rb_gsl_graph_set_T(VALUE obj, VALUE T)
 static VALUE rb_gsl_graph_T(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->T;
 }
 
 static VALUE rb_gsl_graph_set_E(VALUE obj, VALUE E)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   Check_Type(E, T_STRING);
   g->E = E;
   return E;
@@ -339,14 +339,14 @@ static VALUE rb_gsl_graph_set_E(VALUE obj, VALUE E)
 static VALUE rb_gsl_graph_E(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->E;
 }
 
 static VALUE rb_gsl_graph_set_f(VALUE obj, VALUE f)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->f = f;
   return f;
 }
@@ -354,14 +354,14 @@ static VALUE rb_gsl_graph_set_f(VALUE obj, VALUE f)
 static VALUE rb_gsl_graph_f(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->f;
 }
 
 static VALUE rb_gsl_graph_set_F(VALUE obj, VALUE F)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->F = F;
   return F;
 }
@@ -369,14 +369,14 @@ static VALUE rb_gsl_graph_set_F(VALUE obj, VALUE F)
 static VALUE rb_gsl_graph_F(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->F;
 }
 
 static VALUE rb_gsl_graph_set_g(VALUE obj, VALUE gg)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   Check_Type(gg, T_FIXNUM);
   g->g = gg;
   return gg;
@@ -385,14 +385,14 @@ static VALUE rb_gsl_graph_set_g(VALUE obj, VALUE gg)
 static VALUE rb_gsl_graph_g(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->g;
 }
 
 static VALUE rb_gsl_graph_set_h(VALUE obj, VALUE h)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->h = h;
   return h;
 }
@@ -400,14 +400,14 @@ static VALUE rb_gsl_graph_set_h(VALUE obj, VALUE h)
 static VALUE rb_gsl_graph_h(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->h;
 }
 
 static VALUE rb_gsl_graph_set_k(VALUE obj, VALUE k)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->k = k;
   return k;
 }
@@ -415,14 +415,14 @@ static VALUE rb_gsl_graph_set_k(VALUE obj, VALUE k)
 static VALUE rb_gsl_graph_k(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->k;
 }
 
 static VALUE rb_gsl_graph_set_K(VALUE obj, VALUE K)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->K = K;
   return K;
 }
@@ -430,14 +430,14 @@ static VALUE rb_gsl_graph_set_K(VALUE obj, VALUE K)
 static VALUE rb_gsl_graph_K(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->K;
 }
 
 static VALUE rb_gsl_graph_set_l(VALUE obj, VALUE l)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->l = l;
   return l;
 }
@@ -445,14 +445,14 @@ static VALUE rb_gsl_graph_set_l(VALUE obj, VALUE l)
 static VALUE rb_gsl_graph_l(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->l;
 }
 
 static VALUE rb_gsl_graph_set_L(VALUE obj, VALUE L)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->L = L;
   return L;
 }
@@ -460,14 +460,14 @@ static VALUE rb_gsl_graph_set_L(VALUE obj, VALUE L)
 static VALUE rb_gsl_graph_L(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->L;
 }
 
 static VALUE rb_gsl_graph_set_N(VALUE obj, VALUE N)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->N = N;
   return N;
 }
@@ -475,14 +475,14 @@ static VALUE rb_gsl_graph_set_N(VALUE obj, VALUE N)
 static VALUE rb_gsl_graph_N(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->N;
 }
 
 static VALUE rb_gsl_graph_set_r(VALUE obj, VALUE r)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->r = r;
   return r;
 }
@@ -490,14 +490,14 @@ static VALUE rb_gsl_graph_set_r(VALUE obj, VALUE r)
 static VALUE rb_gsl_graph_r(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->r;
 }
 
 static VALUE rb_gsl_graph_set_R(VALUE obj, VALUE R)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->R = R;
   return R;
 }
@@ -505,14 +505,14 @@ static VALUE rb_gsl_graph_set_R(VALUE obj, VALUE R)
 static VALUE rb_gsl_graph_R(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->R;
 }
 
 static VALUE rb_gsl_graph_set_s(VALUE obj, VALUE s)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->s = s;
   return s;
 }
@@ -520,14 +520,14 @@ static VALUE rb_gsl_graph_set_s(VALUE obj, VALUE s)
 static VALUE rb_gsl_graph_s(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->s;
 }
 
 static VALUE rb_gsl_graph_set_t(VALUE obj, VALUE t)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->t = t;
   return t;
 }
@@ -535,14 +535,14 @@ static VALUE rb_gsl_graph_set_t(VALUE obj, VALUE t)
 static VALUE rb_gsl_graph_t(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->t;
 }
 
 static VALUE rb_gsl_graph_set_u(VALUE obj, VALUE u)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->u = u;
   return u;
 }
@@ -550,14 +550,14 @@ static VALUE rb_gsl_graph_set_u(VALUE obj, VALUE u)
 static VALUE rb_gsl_graph_u(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->u;
 }
 
 static VALUE rb_gsl_graph_set_w(VALUE obj, VALUE w)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->w = w;
   return w;
 }
@@ -565,14 +565,14 @@ static VALUE rb_gsl_graph_set_w(VALUE obj, VALUE w)
 static VALUE rb_gsl_graph_w(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->w;
 }
 
 static VALUE rb_gsl_graph_set_x(VALUE obj, VALUE x)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->x = x;
   return x;
 }
@@ -580,14 +580,14 @@ static VALUE rb_gsl_graph_set_x(VALUE obj, VALUE x)
 static VALUE rb_gsl_graph_x(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->x;
 }
 
 static VALUE rb_gsl_graph_set_y(VALUE obj, VALUE y)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->y = y;
   return y;
 }
@@ -595,13 +595,13 @@ static VALUE rb_gsl_graph_set_y(VALUE obj, VALUE y)
 static VALUE rb_gsl_graph_y(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->y;
 }
 static VALUE rb_gsl_graph_set_X(VALUE obj, VALUE X)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   Check_Type(X, T_STRING);
   g->X = X;
   return X;
@@ -610,7 +610,7 @@ static VALUE rb_gsl_graph_set_X(VALUE obj, VALUE X)
 static VALUE rb_gsl_graph_set_Y(VALUE obj, VALUE Y)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   Check_Type(Y, T_STRING);
   g->Y = Y;
   return Y;
@@ -619,21 +619,21 @@ static VALUE rb_gsl_graph_set_Y(VALUE obj, VALUE Y)
 static VALUE rb_gsl_graph_X(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->X;
 }
 
 static VALUE rb_gsl_graph_Y(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->Y;
 }
 
 static VALUE rb_gsl_graph_set_bg(VALUE obj, VALUE bg)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->bg = bg;
   return bg;
 }
@@ -641,14 +641,14 @@ static VALUE rb_gsl_graph_set_bg(VALUE obj, VALUE bg)
 static VALUE rb_gsl_graph_bg(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->bg;
 }
 
 static VALUE rb_gsl_graph_set_bitmap_size(VALUE obj, VALUE bitmap_size)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->bitmap_size = bitmap_size;
   return bitmap_size;
 }
@@ -656,14 +656,14 @@ static VALUE rb_gsl_graph_set_bitmap_size(VALUE obj, VALUE bitmap_size)
 static VALUE rb_gsl_graph_bitmap_size(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->bitmap_size;
 }
 
 static VALUE rb_gsl_graph_set_frame(VALUE obj, VALUE frame)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->frame = frame;
   return frame;
 }
@@ -671,14 +671,14 @@ static VALUE rb_gsl_graph_set_frame(VALUE obj, VALUE frame)
 static VALUE rb_gsl_graph_frame(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->frame;
 }
 
 static VALUE rb_gsl_graph_set_frame_line_width(VALUE obj, VALUE frame_line_width)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->frame_line_width = frame_line_width;
   return frame_line_width;
 }
@@ -686,14 +686,14 @@ static VALUE rb_gsl_graph_set_frame_line_width(VALUE obj, VALUE frame_line_width
 static VALUE rb_gsl_graph_frame_line_width(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->frame_line_width;
 }
 
 static VALUE rb_gsl_graph_set_max_line_length(VALUE obj, VALUE max_line_length)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->max_line_length = max_line_length;
   return max_line_length;
 }
@@ -701,14 +701,14 @@ static VALUE rb_gsl_graph_set_max_line_length(VALUE obj, VALUE max_line_length)
 static VALUE rb_gsl_graph_max_line_length(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->max_line_length;
 }
 
 static VALUE rb_gsl_graph_set_page_size(VALUE obj, VALUE page_size)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->page_size = page_size;
   return page_size;
 }
@@ -716,14 +716,14 @@ static VALUE rb_gsl_graph_set_page_size(VALUE obj, VALUE page_size)
 static VALUE rb_gsl_graph_page_size(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->page_size;
 }
 
 static VALUE rb_gsl_graph_set_pen_colors(VALUE obj, VALUE pen_colors)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->pen_colors = pen_colors;
   return pen_colors;
 }
@@ -731,14 +731,14 @@ static VALUE rb_gsl_graph_set_pen_colors(VALUE obj, VALUE pen_colors)
 static VALUE rb_gsl_graph_pen_colors(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->pen_colors;
 }
 
 static VALUE rb_gsl_graph_set_rotation(VALUE obj, VALUE rotation)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->rotation = rotation;
   return rotation;
 }
@@ -746,14 +746,14 @@ static VALUE rb_gsl_graph_set_rotation(VALUE obj, VALUE rotation)
 static VALUE rb_gsl_graph_rotation(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->rotation;
 }
 
 static VALUE rb_gsl_graph_set_title_font_name(VALUE obj, VALUE title_font_name)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->title_font_name = title_font_name;
   return title_font_name;
 }
@@ -761,14 +761,14 @@ static VALUE rb_gsl_graph_set_title_font_name(VALUE obj, VALUE title_font_name)
 static VALUE rb_gsl_graph_title_font_name(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->title_font_name;
 }
 
 static VALUE rb_gsl_graph_set_title_font_size(VALUE obj, VALUE title_font_size)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->title_font_size = title_font_size;
   return title_font_size;
 }
@@ -776,14 +776,14 @@ static VALUE rb_gsl_graph_set_title_font_size(VALUE obj, VALUE title_font_size)
 static VALUE rb_gsl_graph_title_font_size(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->title_font_size;
 }
 
 static VALUE rb_gsl_graph_set_rotate_y_label(VALUE obj, VALUE rotate_y_label)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->rotate_y_label = rotate_y_label;
   return rotate_y_label;
 }
@@ -791,14 +791,14 @@ static VALUE rb_gsl_graph_set_rotate_y_label(VALUE obj, VALUE rotate_y_label)
 static VALUE rb_gsl_graph_rotate_y_label(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->rotate_y_label;
 }
 
 static VALUE rb_gsl_graph_set_I(VALUE obj, VALUE I)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->I = I;
   return I;
 }
@@ -806,14 +806,14 @@ static VALUE rb_gsl_graph_set_I(VALUE obj, VALUE I)
 static VALUE rb_gsl_graph_I(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->I;
 }
 
 static VALUE rb_gsl_graph_set_B(VALUE obj, VALUE B)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->B = B;
   return B;
 }
@@ -821,14 +821,14 @@ static VALUE rb_gsl_graph_set_B(VALUE obj, VALUE B)
 static VALUE rb_gsl_graph_B(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->B;
 }
 
 static VALUE rb_gsl_graph_set_m(VALUE obj, VALUE m)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->m = m;
   return m;
 }
@@ -836,14 +836,14 @@ static VALUE rb_gsl_graph_set_m(VALUE obj, VALUE m)
 static VALUE rb_gsl_graph_m(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->m;
 }
 
 static VALUE rb_gsl_graph_set_S(VALUE obj, VALUE S)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->S = S;
   return S;
 }
@@ -851,14 +851,14 @@ static VALUE rb_gsl_graph_set_S(VALUE obj, VALUE S)
 static VALUE rb_gsl_graph_S(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->S;
 }
 
 static VALUE rb_gsl_graph_set_W(VALUE obj, VALUE W)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->W = W;
   return W;
 }
@@ -866,14 +866,14 @@ static VALUE rb_gsl_graph_set_W(VALUE obj, VALUE W)
 static VALUE rb_gsl_graph_W(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->W;
 }
 
 static VALUE rb_gsl_graph_set_q(VALUE obj, VALUE q)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->q = q;
   return q;
 }
@@ -881,14 +881,14 @@ static VALUE rb_gsl_graph_set_q(VALUE obj, VALUE q)
 static VALUE rb_gsl_graph_q(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->q;
 }
 
 static VALUE rb_gsl_graph_set_C(VALUE obj, VALUE C)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->C = C;
   return C;
 }
@@ -896,14 +896,14 @@ static VALUE rb_gsl_graph_set_C(VALUE obj, VALUE C)
 static VALUE rb_gsl_graph_C(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->C;
 }
 
 static VALUE rb_gsl_graph_set_symbol_font_name(VALUE obj, VALUE symbol_font_name)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->symbol_font_name = symbol_font_name;
   return symbol_font_name;
 }
@@ -911,14 +911,14 @@ static VALUE rb_gsl_graph_set_symbol_font_name(VALUE obj, VALUE symbol_font_name
 static VALUE rb_gsl_graph_symbol_font_name(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->symbol_font_name;
 }
 
 static VALUE rb_gsl_graph_set_reposition(VALUE obj, VALUE r)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->reposition = r;
   return r;
 }
@@ -926,14 +926,14 @@ static VALUE rb_gsl_graph_set_reposition(VALUE obj, VALUE r)
 static VALUE rb_gsl_graph_reposition(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->reposition;
 }
 
 static VALUE rb_gsl_graph_set_blankout(VALUE obj, VALUE r)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->blankout = r;
   return r;
 }
@@ -941,14 +941,14 @@ static VALUE rb_gsl_graph_set_blankout(VALUE obj, VALUE r)
 static VALUE rb_gsl_graph_blankout(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->blankout;
 }
 
 static VALUE rb_gsl_graph_set_O(VALUE obj, VALUE O)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   g->O = O;
   return O;
 }
@@ -956,7 +956,7 @@ static VALUE rb_gsl_graph_set_O(VALUE obj, VALUE O)
 static VALUE rb_gsl_graph_O(VALUE obj)
 {
   gsl_graph *g = NULL;
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
   return g->O;
 }
 
@@ -1167,7 +1167,7 @@ static VALUE rb_gsl_graph_graph(int argc, VALUE *argv, VALUE obj)
   size_t i, size;
   FILE *fp;
   char command[1024];
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
 
   gsl_graph_set_command(g, command);
   switch (argc) {
@@ -1235,7 +1235,7 @@ static VALUE rb_gsl_graph_step(int argc, VALUE *argv, VALUE obj)
   size_t i, size;
   FILE *fp;
   char command[1024];
-  Data_Get_Struct(obj, gsl_graph, g);
+  TypedData_Get_Struct(obj, gsl_graph, &gsl_graph_data_type, g);
 
   gsl_graph_set_command(g, command);
   switch (argc) {

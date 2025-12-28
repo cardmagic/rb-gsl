@@ -150,6 +150,38 @@ extern const rb_data_type_t gsl_multimin_function_fdf_data_type;
 extern const rb_data_type_t rb_gsl_interp_data_type;
 extern const rb_data_type_t rb_gsl_spline_data_type;
 
+/* Graph Type */
+extern const rb_data_type_t gsl_graph_data_type;
+
+/* ODE Solver Types */
+extern const rb_data_type_t gsl_odeiv_solver_data_type;
+
+/* Third-party Library Types */
+#ifdef HAVE_OOL_OOL_VERSION_H
+extern const rb_data_type_t ool_conmin_minimizer_data_type;
+extern const rb_data_type_t ool_conmin_function_data_type;
+extern const rb_data_type_t ool_conmin_constraint_data_type;
+#endif
+
+#ifdef HAVE_GSL_GSL_CQP_H
+extern const rb_data_type_t gsl_cqpminimizer_data_type;
+extern const rb_data_type_t gsl_cqp_data_data_type;
+#endif
+
+#ifdef HAVE_JACOBI_H
+extern const rb_data_type_t jac_quadrature_data_type;
+#endif
+
+#ifdef HAVE_GSL_GSL_MULTIMIN_FSDF_H
+extern const rb_data_type_t gsl_multimin_fsdfminimizer_data_type;
+extern const rb_data_type_t gsl_multimin_function_fsdf_data_type;
+#endif
+
+/* N-dimensional Linear Fitting */
+#ifdef HAVE_NDLINEAR_GSL_MULTIFIT_NDLINEAR_H
+extern const rb_data_type_t gsl_multifit_ndlinear_workspace_data_type;
+#endif
+
 /* Special Function Result Types */
 extern const rb_data_type_t gsl_sf_result_data_type;
 extern const rb_data_type_t gsl_sf_result_e10_data_type;

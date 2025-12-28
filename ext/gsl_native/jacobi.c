@@ -228,34 +228,34 @@ static VALUE rb_jac_quadrature_alloc(VALUE klass, VALUE vQ)
 
   q = jac_quadrature_alloc(FIX2INT(vQ));
 
-  return Data_Wrap_Struct(klass, 0, jac_quadrature_free, q);
+  return TypedData_Wrap_Struct(klass, &jac_quadrature_data_type, q);
 }
 
 static VALUE rb_jac_quadrature_Q(VALUE obj)
 {
   jac_quadrature *q;
-  Data_Get_Struct(obj, jac_quadrature, q);
+  TypedData_Get_Struct(obj, jac_quadrature, &jac_quadrature_data_type, q);
   return INT2FIX(q->Q);
 }
 
 static VALUE rb_jac_quadrature_type(VALUE obj)
 {
   jac_quadrature *q;
-  Data_Get_Struct(obj, jac_quadrature, q);
+  TypedData_Get_Struct(obj, jac_quadrature, &jac_quadrature_data_type, q);
   return INT2FIX((int) q->type);
 }
 
 static VALUE rb_jac_quadrature_alpha(VALUE obj)
 {
   jac_quadrature *q;
-  Data_Get_Struct(obj, jac_quadrature, q);
+  TypedData_Get_Struct(obj, jac_quadrature, &jac_quadrature_data_type, q);
   return NUM2DBL(q->alpha);
 }
 
 static VALUE rb_jac_quadrature_beta(VALUE obj)
 {
   jac_quadrature *q;
-  Data_Get_Struct(obj, jac_quadrature, q);
+  TypedData_Get_Struct(obj, jac_quadrature, &jac_quadrature_data_type, q);
   return NUM2DBL(q->beta);
 }
 
@@ -263,7 +263,7 @@ static VALUE rb_jac_quadrature_x(VALUE obj)
 {
   jac_quadrature *q;
   gsl_vector_view *v;
-  Data_Get_Struct(obj, jac_quadrature, q);
+  TypedData_Get_Struct(obj, jac_quadrature, &jac_quadrature_data_type, q);
   v = gsl_vector_view_alloc();
   v->vector.data = q->x;
   v->vector.size = q->Q;
@@ -275,7 +275,7 @@ static VALUE rb_jac_quadrature_w(VALUE obj)
 {
   jac_quadrature *q;
   gsl_vector_view *v;
-  Data_Get_Struct(obj, jac_quadrature, q);
+  TypedData_Get_Struct(obj, jac_quadrature, &jac_quadrature_data_type, q);
   v = gsl_vector_view_alloc();
   v->vector.data = q->w;
   v->vector.size = q->Q;
@@ -287,7 +287,7 @@ static VALUE rb_jac_quadrature_D(VALUE obj)
 {
   jac_quadrature *q;
   gsl_vector_view *v;
-  Data_Get_Struct(obj, jac_quadrature, q);
+  TypedData_Get_Struct(obj, jac_quadrature, &jac_quadrature_data_type, q);
   v = gsl_vector_view_alloc();
   v->vector.data = q->D;
   v->vector.size = q->Q;
@@ -299,7 +299,7 @@ static VALUE rb_jac_quadrature_xp(VALUE obj)
 {
   jac_quadrature *q;
   gsl_vector_view *v;
-  Data_Get_Struct(obj, jac_quadrature, q);
+  TypedData_Get_Struct(obj, jac_quadrature, &jac_quadrature_data_type, q);
   v = gsl_vector_view_alloc();
   v->vector.data = q->w;
   v->vector.size = q->np;
@@ -313,7 +313,7 @@ static VALUE rb_jac_interpmat_alloc(int argc, VALUE *argv, VALUE obj)
   jac_quadrature *q;
   gsl_vector *xp;
   int np;
-  Data_Get_Struct(obj, jac_quadrature, q);
+  TypedData_Get_Struct(obj, jac_quadrature, &jac_quadrature_data_type, q);
   switch (argc) {
   case 1:
     CHECK_VECTOR(argv[0]);
@@ -335,7 +335,7 @@ static VALUE rb_jac_interpmat_alloc(int argc, VALUE *argv, VALUE obj)
 static VALUE rb_jac_interpmat_free(VALUE obj)
 {
   jac_quadrature *q;
-  Data_Get_Struct(obj, jac_quadrature, q);
+  TypedData_Get_Struct(obj, jac_quadrature, &jac_quadrature_data_type, q);
   jac_interpmat_free(q);
   return Qtrue;
 }
@@ -346,7 +346,7 @@ static VALUE rb_jac_quadrature_zwd(int argc, VALUE *argv, VALUE obj)
   gsl_vector *ws;
   int flag = 0, type, status;
   double a, b;
-  Data_Get_Struct(obj, jac_quadrature, q);
+  TypedData_Get_Struct(obj, jac_quadrature, &jac_quadrature_data_type, q);
   switch (argc) {
   case 3:
     type = FIX2INT(argv[0]);
@@ -374,7 +374,7 @@ static VALUE rb_jac_integrate(VALUE obj, VALUE ff)
   jac_quadrature *q;
   gsl_vector *f;
   CHECK_VECTOR(ff);
-  Data_Get_Struct(obj, jac_quadrature, q);
+  TypedData_Get_Struct(obj, jac_quadrature, &jac_quadrature_data_type, q);
   TypedData_Get_Struct(ff, gsl_vector, &gsl_vector_data_type, f);
   return rb_float_new(jac_integrate(q, f->data));
 }
@@ -401,7 +401,7 @@ static VALUE rb_jac_interpolate(int argc, VALUE *argv, VALUE obj)
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments (%d for 1 or 2)", argc);
   }
-  Data_Get_Struct(obj, jac_quadrature, q);
+  TypedData_Get_Struct(obj, jac_quadrature, &jac_quadrature_data_type, q);
   jac_interpolate(q, f->data, fout->data);
   return vfout;
 }
@@ -428,7 +428,7 @@ static VALUE rb_jac_differentiate(int argc, VALUE *argv, VALUE obj)
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments (%d for 1 or 2)", argc);
   }
-  Data_Get_Struct(obj, jac_quadrature, q);
+  TypedData_Get_Struct(obj, jac_quadrature, &jac_quadrature_data_type, q);
   jac_differentiate(q, f->data, fout->data);
   return vfout;
 }

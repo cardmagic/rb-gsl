@@ -140,11 +140,11 @@ static VALUE rb_gsl_multifit_ndlinear_design(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eTypeError, "Wrong argument type %s (GSL::MultiFit::Ndlinear::Workspace expected)",
                rb_class2name(CLASS_OF(argv[argc-1])));
     }
-    Data_Get_Struct(argv[argc-1], gsl_multifit_ndlinear_workspace, w);
+    TypedData_Get_Struct(argv[argc-1], gsl_multifit_ndlinear_workspace, &gsl_multifit_ndlinear_workspace_data_type, w);
     argc2 = argc-1;
     break;
   default:
-    Data_Get_Struct(obj, gsl_multifit_ndlinear_workspace, w);
+    TypedData_Get_Struct(obj, gsl_multifit_ndlinear_workspace, &gsl_multifit_ndlinear_workspace_data_type, w);
     argc2 = argc;
   }
   switch (argc2) {
@@ -187,11 +187,11 @@ static VALUE rb_gsl_multifit_ndlinear_est(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eTypeError, "Wrong argument type %s (GSL::MultiFit::Ndlinear::Workspace expected)",
                rb_class2name(CLASS_OF(argv[argc-1])));
     }
-    Data_Get_Struct(argv[argc-1], gsl_multifit_ndlinear_workspace, w);
+    TypedData_Get_Struct(argv[argc-1], gsl_multifit_ndlinear_workspace, &gsl_multifit_ndlinear_workspace_data_type, w);
     argc2 = argc-1;
     break;
   default:
-    Data_Get_Struct(obj, gsl_multifit_ndlinear_workspace, w);
+    TypedData_Get_Struct(obj, gsl_multifit_ndlinear_workspace, &gsl_multifit_ndlinear_workspace_data_type, w);
     argc2 = argc;
   }
   switch (argc2) {
@@ -225,11 +225,11 @@ static VALUE rb_gsl_multifit_ndlinear_calc(int argc, VALUE *argv, VALUE obj)
                "Wrong argument type %s (GSL::MultiFit::Ndlinear::Workspace expected)",
                rb_class2name(CLASS_OF(argv[argc-1])));
     }
-    Data_Get_Struct(argv[argc-1], gsl_multifit_ndlinear_workspace, w);
+    TypedData_Get_Struct(argv[argc-1], gsl_multifit_ndlinear_workspace, &gsl_multifit_ndlinear_workspace_data_type, w);
     argc2 = argc-1;
     break;
   default:
-    Data_Get_Struct(obj, gsl_multifit_ndlinear_workspace, w);
+    TypedData_Get_Struct(obj, gsl_multifit_ndlinear_workspace, &gsl_multifit_ndlinear_workspace_data_type, w);
     argc2 = argc;
   }
   switch (argc2) {
@@ -249,14 +249,14 @@ static VALUE rb_gsl_multifit_ndlinear_calc(int argc, VALUE *argv, VALUE obj)
 static VALUE rb_gsl_multifit_ndlinear_n_coeffs(VALUE obj)
 {
   gsl_multifit_ndlinear_workspace *w;
-  Data_Get_Struct(obj, gsl_multifit_ndlinear_workspace, w);
+  TypedData_Get_Struct(obj, gsl_multifit_ndlinear_workspace, &gsl_multifit_ndlinear_workspace_data_type, w);
   return INT2FIX(w->n_coeffs);
 }
 
 static VALUE rb_gsl_multifit_ndlinear_n_dim(VALUE obj)
 {
   gsl_multifit_ndlinear_workspace *w;
-  Data_Get_Struct(obj, gsl_multifit_ndlinear_workspace, w);
+  TypedData_Get_Struct(obj, gsl_multifit_ndlinear_workspace, &gsl_multifit_ndlinear_workspace_data_type, w);
   return INT2FIX(w->n_dim);
 }
 
@@ -264,7 +264,7 @@ static VALUE rb_gsl_multifit_ndlinear_N(VALUE obj)
 {
   gsl_multifit_ndlinear_workspace *w;
   VALUE ary;
-  Data_Get_Struct(obj, gsl_multifit_ndlinear_workspace, w);
+  TypedData_Get_Struct(obj, gsl_multifit_ndlinear_workspace, &gsl_multifit_ndlinear_workspace_data_type, w);
   ary = (VALUE) w->params;
   return rb_ary_entry(ary, INDEX_N);
 }

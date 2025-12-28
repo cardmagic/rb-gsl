@@ -661,8 +661,8 @@ static VALUE rb_gsl_odeiv_evolve_apply(VALUE obj, VALUE cc, VALUE ss, VALUE sss,
   return rb_ary_new3(3, rb_float_new(t), rb_float_new(h), INT2FIX(status));
 }
 
-static void rb_gsl_odeiv_solver_free(gsl_odeiv_solver *gde);
-static void gsl_odeiv_solver_mark(gsl_odeiv_solver *gos);
+void rb_gsl_odeiv_solver_free(gsl_odeiv_solver *gde);
+void gsl_odeiv_solver_mark(gsl_odeiv_solver *gos);
 static VALUE rb_gsl_odeiv_solver_new(int argc, VALUE *argv, VALUE klass)
 {
   gsl_odeiv_solver *gos = NULL;
@@ -698,11 +698,11 @@ static VALUE rb_gsl_odeiv_solver_new(int argc, VALUE *argv, VALUE klass)
   }
   gos->sys = make_sys(argc - 2, argv + 2);
   gos->e = make_evolve(dim);
-  return Data_Wrap_Struct(klass,  gsl_odeiv_solver_mark, rb_gsl_odeiv_solver_free, gos);
-  //  return Data_Wrap_Struct(klass,  0, rb_gsl_odeiv_solver_free, gos);
+  return TypedData_Wrap_Struct(klass, &gsl_odeiv_solver_data_type, gos);
+  //  return TypedData_Wrap_Struct(klass, &gsl_odeiv_solver_data_type, gos);
 }
 
-static void gsl_odeiv_solver_mark(gsl_odeiv_solver *gos)
+void gsl_odeiv_solver_mark(gsl_odeiv_solver *gos)
 {
   rb_gc_mark((VALUE) gos->sys->params);
 }
@@ -710,7 +710,7 @@ static void gsl_odeiv_solver_mark(gsl_odeiv_solver *gos)
 static VALUE rb_gsl_odeiv_solver_evolve(VALUE obj)
 {
   gsl_odeiv_solver *gos = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_solver, gos);
+  TypedData_Get_Struct(obj, gsl_odeiv_solver, &gsl_odeiv_solver_data_type, gos);
   return TypedData_Wrap_Struct(cgsl_odeiv_evolve, &gsl_odeiv_evolve_data_type, gos->e);
 }
 
@@ -719,7 +719,7 @@ static VALUE rb_gsl_odeiv_solver_set_evolve(VALUE obj, VALUE ee)
   gsl_odeiv_solver *gos = NULL;
   gsl_odeiv_evolve *e = NULL;
   CHECK_EVOLVE(ee);
-  Data_Get_Struct(obj, gsl_odeiv_solver, gos);
+  TypedData_Get_Struct(obj, gsl_odeiv_solver, &gsl_odeiv_solver_data_type, gos);
   TypedData_Get_Struct(ee, gsl_odeiv_evolve, &gsl_odeiv_evolve_data_type, e);
   gos->e = e;
   return obj;
@@ -728,7 +728,7 @@ static VALUE rb_gsl_odeiv_solver_set_evolve(VALUE obj, VALUE ee)
 static VALUE rb_gsl_odeiv_solver_step(VALUE obj)
 {
   gsl_odeiv_solver *gos = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_solver, gos);
+  TypedData_Get_Struct(obj, gsl_odeiv_solver, &gsl_odeiv_solver_data_type, gos);
   return TypedData_Wrap_Struct(cgsl_odeiv_step, &gsl_odeiv_step_data_type, gos->s);
 }
 
@@ -737,7 +737,7 @@ static VALUE rb_gsl_odeiv_solver_set_step(VALUE obj, VALUE ss)
   gsl_odeiv_solver *gos = NULL;
   gsl_odeiv_step *s = NULL;
   CHECK_STEP(ss);
-  Data_Get_Struct(obj, gsl_odeiv_solver, gos);
+  TypedData_Get_Struct(obj, gsl_odeiv_solver, &gsl_odeiv_solver_data_type, gos);
   TypedData_Get_Struct(ss, gsl_odeiv_step, &gsl_odeiv_step_data_type, s);
   gos->s = s;
   return obj;
@@ -746,7 +746,7 @@ static VALUE rb_gsl_odeiv_solver_set_step(VALUE obj, VALUE ss)
 static VALUE rb_gsl_odeiv_solver_control(VALUE obj)
 {
   gsl_odeiv_solver *gos = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_solver, gos);
+  TypedData_Get_Struct(obj, gsl_odeiv_solver, &gsl_odeiv_solver_data_type, gos);
   return TypedData_Wrap_Struct(cgsl_odeiv_control, &gsl_odeiv_control_data_type, gos->c);
 }
 
@@ -755,7 +755,7 @@ static VALUE rb_gsl_odeiv_solver_set_control(VALUE obj, VALUE cc)
   gsl_odeiv_solver *gos = NULL;
   gsl_odeiv_control *c = NULL;
   CHECK_CONTROL(cc);
-  Data_Get_Struct(obj, gsl_odeiv_solver, gos);
+  TypedData_Get_Struct(obj, gsl_odeiv_solver, &gsl_odeiv_solver_data_type, gos);
   TypedData_Get_Struct(cc, gsl_odeiv_control, &gsl_odeiv_control_data_type, c);
   gos->c = c;
   return obj;
@@ -764,7 +764,7 @@ static VALUE rb_gsl_odeiv_solver_set_control(VALUE obj, VALUE cc)
 static VALUE rb_gsl_odeiv_solver_sys(VALUE obj)
 {
   gsl_odeiv_solver *gos = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_solver, gos);
+  TypedData_Get_Struct(obj, gsl_odeiv_solver, &gsl_odeiv_solver_data_type, gos);
   return TypedData_Wrap_Struct(cgsl_odeiv_system, &gsl_odeiv_system_data_type, gos->sys);
 }
 
@@ -773,7 +773,7 @@ static VALUE rb_gsl_odeiv_solver_set_sys(VALUE obj, VALUE ss)
   gsl_odeiv_solver *gos = NULL;
   gsl_odeiv_system *sys = NULL;
   CHECK_SYSTEM(ss);
-  Data_Get_Struct(obj, gsl_odeiv_solver, gos);
+  TypedData_Get_Struct(obj, gsl_odeiv_solver, &gsl_odeiv_solver_data_type, gos);
   TypedData_Get_Struct(ss, gsl_odeiv_system, &gsl_odeiv_system_data_type, sys);
   gos->sys = sys;
   return obj;
@@ -788,7 +788,7 @@ static VALUE rb_gsl_odeiv_solver_apply(VALUE obj, VALUE tt, VALUE tt1, VALUE hh,
   int status;
   CHECK_VECTOR(yy);
   Need_Float(tt1);
-  Data_Get_Struct(obj, gsl_odeiv_solver, gos);
+  TypedData_Get_Struct(obj, gsl_odeiv_solver, &gsl_odeiv_solver_data_type, gos);
   TypedData_Get_Struct(yy, gsl_vector, &gsl_vector_data_type, y);
   /*  if (TYPE(tt) != T_FLOAT) rb_raise(rb_eTypeError, "argument 0 Float expected");
       if (TYPE(hh) != T_FLOAT) rb_raise(rb_eTypeError, "argument 2 Float expected");*/
@@ -802,7 +802,7 @@ static VALUE rb_gsl_odeiv_solver_apply(VALUE obj, VALUE tt, VALUE tt1, VALUE hh,
   return rb_ary_new3(3, rb_float_new(t), rb_float_new(h), INT2FIX(status));
 }
 
-static void rb_gsl_odeiv_solver_free(gsl_odeiv_solver *gos)
+void rb_gsl_odeiv_solver_free(gsl_odeiv_solver *gos)
 {
   free((gsl_odeiv_solver *) gos);
 }
@@ -810,7 +810,7 @@ static void rb_gsl_odeiv_solver_free(gsl_odeiv_solver *gos)
 static VALUE rb_gsl_odeiv_solver_reset(VALUE obj)
 {
   gsl_odeiv_solver *gos = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_solver, gos);
+  TypedData_Get_Struct(obj, gsl_odeiv_solver, &gsl_odeiv_solver_data_type, gos);
   gsl_odeiv_step_reset(gos->s);
   gsl_odeiv_evolve_reset(gos->e);
   return obj;
@@ -819,14 +819,14 @@ static VALUE rb_gsl_odeiv_solver_reset(VALUE obj)
 static VALUE rb_gsl_odeiv_solver_dim(VALUE obj)
 {
   gsl_odeiv_solver *gos = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_solver, gos);
+  TypedData_Get_Struct(obj, gsl_odeiv_solver, &gsl_odeiv_solver_data_type, gos);
   return INT2FIX(gos->sys->dimension);
 }
 
 static VALUE rb_gsl_odeiv_solver_set_params(int argc, VALUE *argv, VALUE obj)
 {
   gsl_odeiv_solver *gos = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_solver, gos);
+  TypedData_Get_Struct(obj, gsl_odeiv_solver, &gsl_odeiv_solver_data_type, gos);
   rb_gsl_odeiv_system_set_params(argc, argv,
                                  TypedData_Wrap_Struct(cgsl_odeiv_system, &gsl_odeiv_system_data_type, gos->sys));
   return obj;
@@ -836,7 +836,7 @@ static VALUE rb_gsl_odeiv_solver_params(VALUE obj)
 {
   VALUE ary;
   gsl_odeiv_solver *solver = NULL;
-  Data_Get_Struct(obj, gsl_odeiv_solver, solver);
+  TypedData_Get_Struct(obj, gsl_odeiv_solver, &gsl_odeiv_solver_data_type, solver);
   ary = (VALUE) solver->sys->params;
   return rb_ary_entry(ary, 3);
 }
