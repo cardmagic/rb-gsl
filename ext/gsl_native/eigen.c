@@ -53,8 +53,7 @@ static VALUE rb_gsl_eigen_symm_alloc(VALUE klass, VALUE nn)
   gsl_eigen_symm_workspace *w = NULL;
   CHECK_FIXNUM(nn);
   w = gsl_eigen_symm_alloc(FIX2INT(nn));
-  return Data_Wrap_Struct(cgsl_eigen_symm_workspace, 0,
-                          gsl_eigen_symm_free, w);
+  return TypedData_Wrap_Struct(cgsl_eigen_symm_workspace, &gsl_eigen_symm_workspace_data_type, w);
 }
 
 static VALUE rb_gsl_eigen_symmv_alloc(VALUE klass, VALUE nn)
@@ -62,7 +61,7 @@ static VALUE rb_gsl_eigen_symmv_alloc(VALUE klass, VALUE nn)
   gsl_eigen_symmv_workspace *w = NULL;
   CHECK_FIXNUM(nn);
   w = gsl_eigen_symmv_alloc(FIX2INT(nn));
-  return Data_Wrap_Struct(cgsl_eigen_symmv_workspace, 0, gsl_eigen_symmv_free, w);
+  return TypedData_Wrap_Struct(cgsl_eigen_symmv_workspace, &gsl_eigen_symmv_workspace_data_type, w);
 }
 
 static VALUE rb_gsl_eigen_herm_alloc(VALUE klass, VALUE nn)
@@ -70,8 +69,7 @@ static VALUE rb_gsl_eigen_herm_alloc(VALUE klass, VALUE nn)
   gsl_eigen_herm_workspace *w = NULL;
   CHECK_FIXNUM(nn);
   w = gsl_eigen_herm_alloc(FIX2INT(nn));
-  return Data_Wrap_Struct(cgsl_eigen_herm_workspace, 0,
-                          gsl_eigen_herm_free, w);
+  return TypedData_Wrap_Struct(cgsl_eigen_herm_workspace, &gsl_eigen_herm_workspace_data_type, w);
 }
 
 static VALUE rb_gsl_eigen_hermv_alloc(VALUE klass, VALUE nn)
@@ -79,8 +77,7 @@ static VALUE rb_gsl_eigen_hermv_alloc(VALUE klass, VALUE nn)
   gsl_eigen_hermv_workspace *w = NULL;
   CHECK_FIXNUM(nn);
   w = gsl_eigen_hermv_alloc(FIX2INT(nn));
-  return Data_Wrap_Struct(cgsl_eigen_hermv_workspace, 0,
-                          gsl_eigen_hermv_free, w);
+  return TypedData_Wrap_Struct(cgsl_eigen_hermv_workspace, &gsl_eigen_hermv_workspace_data_type, w);
 }
 
 #ifdef HAVE_NARRAY_H
@@ -108,7 +105,7 @@ static VALUE rb_gsl_eigen_symm_narray(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eTypeError,
                "argv[1]:  wrong argument type %s (Eigen::Symm::Workspace expected",
                rb_class2name(CLASS_OF(argv[1])));
-    Data_Get_Struct(argv[1], gsl_eigen_symm_workspace, w);
+    TypedData_Get_Struct(argv[1], gsl_eigen_symm_workspace, &gsl_eigen_symm_workspace_data_type, w);
     flagw = 0;
     break;
   case 1:
@@ -165,7 +162,7 @@ static VALUE rb_gsl_eigen_symm_nmatrix(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eTypeError,
                "argv[1]:  wrong argument type %s (Eigen::Symm::Workspace expected",
                rb_class2name(CLASS_OF(argv[1])));
-    Data_Get_Struct(argv[1], gsl_eigen_symm_workspace, w);
+    TypedData_Get_Struct(argv[1], gsl_eigen_symm_workspace, &gsl_eigen_symm_workspace_data_type, w);
     flagw = 0;
     break;
   case 1:
@@ -207,12 +204,12 @@ static VALUE rb_gsl_eigen_symm(int argc, VALUE *argv, VALUE obj)
       if (NM_IsNMatrix(argv[0])) return rb_gsl_eigen_symm_nmatrix(argc, argv, obj);
 #endif
       CHECK_MATRIX(argv[0]);
-      Data_Get_Struct(argv[0], gsl_matrix, Atmp);
+      TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, Atmp);
       if (CLASS_OF(argv[1]) != cgsl_eigen_symm_workspace)
         rb_raise(rb_eTypeError,
                  "argv[1]: wrong argument type %s (Eigen::Symm::Workspace expected)",
                  rb_class2name(CLASS_OF(argv[1])));
-      Data_Get_Struct(argv[1], gsl_eigen_symm_workspace, w);
+      TypedData_Get_Struct(argv[1], gsl_eigen_symm_workspace, &gsl_eigen_symm_workspace_data_type, w);
       break;
     case 1:
 #ifdef HAVE_NARRAY_H
@@ -223,7 +220,7 @@ static VALUE rb_gsl_eigen_symm(int argc, VALUE *argv, VALUE obj)
       if (NM_IsNMatrix(argv[0])) return rb_gsl_eigen_symm_nmatrix(argc, argv, obj);
 #endif
       CHECK_MATRIX(argv[0]);
-      Data_Get_Struct(argv[0], gsl_matrix, Atmp);
+      TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, Atmp);
       w = gsl_eigen_symm_alloc(Atmp->size1);
       flagw = 1;
       break;
@@ -234,14 +231,14 @@ static VALUE rb_gsl_eigen_symm(int argc, VALUE *argv, VALUE obj)
     break;
   default:
     CHECK_MATRIX(obj);
-    Data_Get_Struct(obj, gsl_matrix, Atmp);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, Atmp);
     switch (argc) {
     case 1:
       if (CLASS_OF(argv[0]) != cgsl_eigen_symm_workspace)
         rb_raise(rb_eTypeError,
                  "argv[0]:  wrong argument type %s (Eigen::Symm::Workspace expected",
                  rb_class2name(CLASS_OF(argv[0])));
-      Data_Get_Struct(argv[0], gsl_eigen_symm_workspace, w);
+      TypedData_Get_Struct(argv[0], gsl_eigen_symm_workspace, &gsl_eigen_symm_workspace_data_type, w);
       break;
     case 0:
       w = gsl_eigen_symm_alloc(Atmp->size1);
@@ -257,7 +254,7 @@ static VALUE rb_gsl_eigen_symm(int argc, VALUE *argv, VALUE obj)
   /*  gsl_sort_vector(v);*/
   gsl_matrix_free(A);
   if (flagw == 1) gsl_eigen_symm_free(w);
-  return Data_Wrap_Struct(cgsl_eigen_values, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(cgsl_eigen_values, &gsl_vector_data_type, v);
 }
 
 #ifdef HAVE_NARRAY_H
@@ -286,7 +283,7 @@ static VALUE rb_gsl_eigen_symmv_narray(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eTypeError,
                "argv[1]:  wrong argument type %s (Eigen::Symm::Workspace expected",
                rb_class2name(CLASS_OF(argv[1])));
-    Data_Get_Struct(argv[1], gsl_eigen_symmv_workspace, w);
+    TypedData_Get_Struct(argv[1], gsl_eigen_symmv_workspace, &gsl_eigen_symmv_workspace_data_type, w);
     flagw = 0;
     break;
   case 1:
@@ -347,7 +344,7 @@ static VALUE rb_gsl_eigen_symmv_nmatrix(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eTypeError,
                "argv[1]:  wrong argument type %s (Eigen::Symm::Workspace expected",
                rb_class2name(CLASS_OF(argv[1])));
-    Data_Get_Struct(argv[1], gsl_eigen_symmv_workspace, w);
+    TypedData_Get_Struct(argv[1], gsl_eigen_symmv_workspace, &gsl_eigen_symmv_workspace_data_type, w);
     flagw = 0;
     break;
   case 1:
@@ -403,12 +400,12 @@ static VALUE rb_gsl_eigen_symmv(int argc, VALUE *argv, VALUE obj)
       if (NM_IsNMatrix(argv[0])) return rb_gsl_eigen_symmv_nmatrix(argc, argv, obj);
 #endif
       CHECK_MATRIX(argv[0]);
-      Data_Get_Struct(argv[0], gsl_matrix, Atmp);
+      TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, Atmp);
       if (CLASS_OF(argv[1]) != cgsl_eigen_symmv_workspace)
         rb_raise(rb_eTypeError,
                  "argv[1]: wrong argument type %s (Eigen::Symmv::Workspace expected)",
                  rb_class2name(CLASS_OF(argv[1])));
-      Data_Get_Struct(argv[1], gsl_eigen_symmv_workspace, w);
+      TypedData_Get_Struct(argv[1], gsl_eigen_symmv_workspace, &gsl_eigen_symmv_workspace_data_type, w);
       break;
     case 1:
 #ifdef HAVE_NARRAY_H
@@ -419,7 +416,7 @@ static VALUE rb_gsl_eigen_symmv(int argc, VALUE *argv, VALUE obj)
       if (NM_IsNMatrix(argv[0])) return rb_gsl_eigen_symmv_nmatrix(argc, argv, obj);
 #endif
       CHECK_MATRIX(argv[0]);
-      Data_Get_Struct(argv[0], gsl_matrix, Atmp);
+      TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, Atmp);
       w = gsl_eigen_symmv_alloc(Atmp->size1);
       flagw = 1;
       break;
@@ -429,14 +426,14 @@ static VALUE rb_gsl_eigen_symmv(int argc, VALUE *argv, VALUE obj)
     break;
   default:
     CHECK_MATRIX(obj);
-    Data_Get_Struct(obj, gsl_matrix, Atmp);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, Atmp);
     switch (argc) {
     case 1:
       if (CLASS_OF(argv[0]) != cgsl_eigen_symmv_workspace)
         rb_raise(rb_eTypeError,
                  "argv[0]: wrong argument type %s (Eigen::Symmv::Workspace expected)",
                  rb_class2name(CLASS_OF(argv[0])));
-      Data_Get_Struct(argv[0], gsl_eigen_symmv_workspace, w);
+      TypedData_Get_Struct(argv[0], gsl_eigen_symmv_workspace, &gsl_eigen_symmv_workspace_data_type, w);
       break;
     case 0:
       w = gsl_eigen_symmv_alloc(Atmp->size1);
@@ -454,8 +451,8 @@ static VALUE rb_gsl_eigen_symmv(int argc, VALUE *argv, VALUE obj)
   /*  gsl_eigen_symmv_sort(v, em, GSL_EIGEN_SORT_VAL_DESC);*/
   gsl_matrix_free(A);
   if (flagw == 1) gsl_eigen_symmv_free(w);
-  vval = Data_Wrap_Struct(cgsl_eigen_values, 0, gsl_vector_free, v);
-  vvec = Data_Wrap_Struct(cgsl_eigen_vectors, 0, gsl_matrix_free, em);
+  vval = TypedData_Wrap_Struct(cgsl_eigen_values, &gsl_vector_data_type, v);
+  vvec = TypedData_Wrap_Struct(cgsl_eigen_vectors, &gsl_matrix_data_type, em);
   return rb_ary_new3(2, vval, vvec);
 }
 
@@ -473,16 +470,16 @@ static VALUE rb_gsl_eigen_herm(int argc, VALUE *argv, VALUE obj)
     switch (argc) {
     case 2:
       CHECK_MATRIX_COMPLEX(argv[0]);
-      Data_Get_Struct(argv[0], gsl_matrix_complex, Atmp);
+      TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, Atmp);
       if (CLASS_OF(argv[1]) != cgsl_eigen_herm_workspace)
         rb_raise(rb_eTypeError,
                  "argv[1]: wrong argument type %s (Eigen::Herm::Workspace expected)",
                  rb_class2name(CLASS_OF(argv[1])));
-      Data_Get_Struct(argv[1], gsl_eigen_herm_workspace, w);
+      TypedData_Get_Struct(argv[1], gsl_eigen_herm_workspace, &gsl_eigen_herm_workspace_data_type, w);
       break;
     case 1:
       CHECK_MATRIX_COMPLEX(argv[0]);
-      Data_Get_Struct(argv[0], gsl_matrix_complex, Atmp);
+      TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, Atmp);
       w = gsl_eigen_herm_alloc(Atmp->size1);
       flagw = 1;
       break;
@@ -492,14 +489,14 @@ static VALUE rb_gsl_eigen_herm(int argc, VALUE *argv, VALUE obj)
     break;
   default:
     CHECK_MATRIX_COMPLEX(obj);
-    Data_Get_Struct(obj, gsl_matrix_complex, Atmp);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, Atmp);
     switch (argc) {
     case 1:
       if (CLASS_OF(argv[0]) != cgsl_eigen_herm_workspace)
         rb_raise(rb_eTypeError,
                  "argv[0]: wrong argument type %s (Eigen::Herm::Workspace expected)",
                  rb_class2name(CLASS_OF(argv[0])));
-      Data_Get_Struct(argv[0], gsl_eigen_herm_workspace, w);
+      TypedData_Get_Struct(argv[0], gsl_eigen_herm_workspace, &gsl_eigen_herm_workspace_data_type, w);
       break;
     case 0:
       w = gsl_eigen_herm_alloc(Atmp->size1);
@@ -515,7 +512,7 @@ static VALUE rb_gsl_eigen_herm(int argc, VALUE *argv, VALUE obj)
   /*  gsl_sort_vector(v);*/
   gsl_matrix_complex_free(A);
   if (flagw == 1) gsl_eigen_herm_free(w);
-  return Data_Wrap_Struct(cgsl_eigen_values, 0, gsl_vector_free, v);
+  return TypedData_Wrap_Struct(cgsl_eigen_values, &gsl_vector_data_type, v);
 }
 
 static VALUE rb_gsl_eigen_hermv(int argc, VALUE *argv, VALUE obj)
@@ -532,16 +529,16 @@ static VALUE rb_gsl_eigen_hermv(int argc, VALUE *argv, VALUE obj)
     switch (argc) {
     case 2:
       CHECK_MATRIX_COMPLEX(argv[0]);
-      Data_Get_Struct(argv[0], gsl_matrix_complex, Atmp);
+      TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, Atmp);
       if (CLASS_OF(argv[1]) != cgsl_eigen_hermv_workspace)
         rb_raise(rb_eTypeError,
                  "argv[1]: wrong argument type %s (Eigen::Hermv::Workspace expected)",
                  rb_class2name(CLASS_OF(argv[1])));
-      Data_Get_Struct(argv[1], gsl_eigen_hermv_workspace, w);
+      TypedData_Get_Struct(argv[1], gsl_eigen_hermv_workspace, &gsl_eigen_hermv_workspace_data_type, w);
       break;
     case 1:
       CHECK_MATRIX_COMPLEX(argv[0]);
-      Data_Get_Struct(argv[0], gsl_matrix_complex, Atmp);
+      TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, Atmp);
       w = gsl_eigen_hermv_alloc(Atmp->size1);
       flagw = 1;
       break;
@@ -551,14 +548,14 @@ static VALUE rb_gsl_eigen_hermv(int argc, VALUE *argv, VALUE obj)
     break;
   default:
     CHECK_MATRIX_COMPLEX(obj);
-    Data_Get_Struct(obj, gsl_matrix_complex, Atmp);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, Atmp);
     switch (argc) {
     case 1:
       if (CLASS_OF(argv[0]) != cgsl_eigen_hermv_workspace)
         rb_raise(rb_eTypeError,
                  "argv[0]: wrong argument type %s (Eigen::Hermv::Workspace expected)",
                  rb_class2name(CLASS_OF(argv[0])));
-      Data_Get_Struct(argv[0], gsl_eigen_hermv_workspace, w);
+      TypedData_Get_Struct(argv[0], gsl_eigen_hermv_workspace, &gsl_eigen_hermv_workspace_data_type, w);
       break;
     case 0:
       w = gsl_eigen_hermv_alloc(Atmp->size1);
@@ -575,8 +572,8 @@ static VALUE rb_gsl_eigen_hermv(int argc, VALUE *argv, VALUE obj)
   /*  gsl_eigen_hermv_sort(v, em, GSL_EIGEN_SORT_VAL_DESC);*/
   gsl_matrix_complex_free(A);
   if (flagw == 1) gsl_eigen_hermv_free(w);
-  vval = Data_Wrap_Struct(cgsl_eigen_values, 0, gsl_vector_free, v);
-  vvec = Data_Wrap_Struct(cgsl_eigen_herm_vectors, 0, gsl_matrix_complex_free, em);
+  vval = TypedData_Wrap_Struct(cgsl_eigen_values, &gsl_vector_data_type, v);
+  vvec = TypedData_Wrap_Struct(cgsl_eigen_herm_vectors, &gsl_matrix_complex_data_type, em);
   return rb_ary_new3(2, vval, vvec);
 }
 
@@ -587,7 +584,7 @@ static VALUE rb_gsl_eigen_vectors_unpack(VALUE obj)
   size_t i, j;
   double val;
   VALUE ary, tmp;
-  Data_Get_Struct(obj, gsl_matrix, m);
+  TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
   ary = rb_ary_new2(m->size1);
   for (i = 0; i < m->size1; i++) {
     v = gsl_vector_alloc(m->size2);
@@ -595,7 +592,7 @@ static VALUE rb_gsl_eigen_vectors_unpack(VALUE obj)
       val = gsl_matrix_get(m, j, i);
       gsl_vector_set(v, j, val);
     }
-    tmp = Data_Wrap_Struct(cgsl_eigen_vector, 0, gsl_vector_free, v);
+    tmp = TypedData_Wrap_Struct(cgsl_eigen_vector, &gsl_vector_data_type, v);
     rb_ary_store(ary, i, tmp);
   }
   return ary;
@@ -608,7 +605,7 @@ static VALUE rb_gsl_eigen_vectors_complex_unpack(VALUE obj)
   size_t i, j;
   gsl_complex z;
   VALUE ary, tmp;
-  Data_Get_Struct(obj, gsl_matrix_complex, m);
+  TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
   ary = rb_ary_new2(m->size1);
   for (i = 0; i < m->size1; i++) {
     v = gsl_vector_complex_alloc(m->size2);
@@ -616,7 +613,7 @@ static VALUE rb_gsl_eigen_vectors_complex_unpack(VALUE obj)
       z = gsl_matrix_complex_get(m, j, i);
       gsl_vector_complex_set(v, j, z);
     }
-    tmp = Data_Wrap_Struct(cgsl_eigen_vector_complex, 0, gsl_vector_complex_free, v);
+    tmp = TypedData_Wrap_Struct(cgsl_eigen_vector_complex, &gsl_vector_complex_data_type, v);
     rb_ary_store(ary, i, tmp);
   }
   return ary;
@@ -656,13 +653,13 @@ static VALUE rb_gsl_eigen_real_sort(int argc, VALUE *argv, VALUE obj,
       v = NULL;
     } else {
       CHECK_VECTOR(argv[0]);
-      Data_Get_Struct(argv[0], gsl_vector, v);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
     }
     if (argv[1] == Qnil) {
       m = NULL;
     } else {
       CHECK_MATRIX(argv[1]);
-      Data_Get_Struct(argv[1], gsl_matrix, m);
+      TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, m);
     }
     break;
   default:
@@ -689,13 +686,13 @@ static VALUE rb_gsl_eigen_complex_sort(int argc, VALUE *argv, VALUE obj,
       v = NULL;
     } else {
       CHECK_VECTOR(argv[0]);
-      Data_Get_Struct(argv[0], gsl_vector, v);
+      TypedData_Get_Struct(argv[0], gsl_vector, &gsl_vector_data_type, v);
     }
     if (argv[1] == Qnil) {
       m = NULL;
     } else {
       CHECK_MATRIX_COMPLEX(argv[1]);
-      Data_Get_Struct(argv[1], gsl_matrix_complex, m);
+      TypedData_Get_Struct(argv[1], gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     }
     break;
   default:
@@ -726,11 +723,11 @@ static VALUE rb_gsl_eigen_francis_T(int argc, VALUE *argv, VALUE obj)
   gsl_eigen_francis_workspace *w = NULL;
   int istart = 0;
   if (CLASS_OF(obj) == cgsl_eigen_francis_workspace) {
-    Data_Get_Struct(obj, gsl_eigen_francis_workspace, w);
+    TypedData_Get_Struct(obj, gsl_eigen_francis_workspace, &gsl_eigen_francis_workspace_data_type, w);
     istart = 0;
   } else {
     if (argc != 1) rb_raise(rb_eArgError, "too few arguments (%d for 1)\n", argc);
-    Data_Get_Struct(argv[0], gsl_eigen_francis_workspace, w);
+    TypedData_Get_Struct(argv[0], gsl_eigen_francis_workspace, &gsl_eigen_francis_workspace_data_type, w);
     istart = 1;
   }
   gsl_eigen_francis_T(FIX2INT(argv[istart]), w);
@@ -763,7 +760,7 @@ static VALUE rb_gsl_eigen_francis_narray(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eTypeError,
                "argv[1]:  wrong argument type %s (Eigen::Symm::Workspace expected",
                rb_class2name(CLASS_OF(argv[1])));
-    Data_Get_Struct(argv[1], gsl_eigen_francis_workspace, w);
+    TypedData_Get_Struct(argv[1], gsl_eigen_francis_workspace, &gsl_eigen_francis_workspace_data_type, w);
     flagw = 0;
     break;
   case 1:
@@ -810,12 +807,12 @@ static VALUE rb_gsl_eigen_francis(int argc, VALUE *argv, VALUE obj)
 #endif
 
   if (MATRIX_P(obj)) {
-    Data_Get_Struct(obj, gsl_matrix, m);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
     argv2 = argv;
     istart = 0;
   } else {
     if (argc < 1) rb_raise(rb_eArgError, "Wrong number of arguments.\n");
-    Data_Get_Struct(argv[0], gsl_matrix, m);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, m);
     istart = 1;
     argv2 = argv + 1;
   }
@@ -828,13 +825,13 @@ static VALUE rb_gsl_eigen_francis(int argc, VALUE *argv, VALUE obj)
     break;
   case 1:
     if (CLASS_OF(argv2[0]) == cgsl_vector_complex) {
-      Data_Get_Struct(argv2[0], gsl_vector_complex, v);
+      TypedData_Get_Struct(argv2[0], gsl_vector_complex, &gsl_vector_complex_data_type, v);
       w = gsl_eigen_francis_alloc();
       wflag = 1;
     } else if (CLASS_OF(argv2[0]) == cgsl_eigen_francis_workspace) {
       v = gsl_vector_complex_alloc(m->size1);
       vflag = 1;
-      Data_Get_Struct(argv2[0], gsl_eigen_francis_workspace, w);
+      TypedData_Get_Struct(argv2[0], gsl_eigen_francis_workspace, &gsl_eigen_francis_workspace_data_type, w);
     } else {
       rb_raise(rb_eArgError, "Wrong argument type.\n");
     }
@@ -844,8 +841,8 @@ static VALUE rb_gsl_eigen_francis(int argc, VALUE *argv, VALUE obj)
     if (CLASS_OF(argv2[1]) != cgsl_eigen_francis_workspace) {
       rb_raise(rb_eArgError, "argv[1] must be a GSL::Eigen::francis::Workspace.\n");
     }
-    Data_Get_Struct(argv2[0], gsl_vector_complex, v);
-    Data_Get_Struct(argv2[1], gsl_eigen_francis_workspace, w);
+    TypedData_Get_Struct(argv2[0], gsl_vector_complex, &gsl_vector_complex_data_type, v);
+    TypedData_Get_Struct(argv2[1], gsl_eigen_francis_workspace, &gsl_eigen_francis_workspace_data_type, w);
     break;
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments (%d for 0-2).\n", argc);
@@ -855,7 +852,7 @@ static VALUE rb_gsl_eigen_francis(int argc, VALUE *argv, VALUE obj)
   gsl_matrix_free(mtmp);
   if (wflag == 1) gsl_eigen_francis_free(w);
   if (vflag == 1)
-    return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, v);
+    return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, v);
   else
     return argv2[0];
 }
@@ -870,12 +867,12 @@ static VALUE rb_gsl_eigen_francis_Z(int argc, VALUE *argv, VALUE obj)
   VALUE *argv2, vv, ZZ;
 
   if (MATRIX_P(obj)) {
-    Data_Get_Struct(obj, gsl_matrix, m);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
     argv2 = argv;
     istart = 0;
   } else {
     if (argc < 1) rb_raise(rb_eArgError, "Wrong number of arguments.\n");
-    Data_Get_Struct(argv[0], gsl_matrix, m);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, m);
     istart = 1;
     argv2 = argv + 1;
   }
@@ -892,7 +889,7 @@ static VALUE rb_gsl_eigen_francis_Z(int argc, VALUE *argv, VALUE obj)
       v = gsl_vector_complex_alloc(m->size1);
       Z = gsl_matrix_alloc(m->size1, m->size2);
       vflag = 1;
-      Data_Get_Struct(argv2[0], gsl_eigen_francis_workspace, w);
+      TypedData_Get_Struct(argv2[0], gsl_eigen_francis_workspace, &gsl_eigen_francis_workspace_data_type, w);
     } else {
       rb_raise(rb_eArgError, "Wrong argument type.\n");
     }
@@ -903,9 +900,9 @@ static VALUE rb_gsl_eigen_francis_Z(int argc, VALUE *argv, VALUE obj)
     if (CLASS_OF(argv2[2]) != cgsl_eigen_francis_workspace) {
       rb_raise(rb_eArgError, "argv[1] must be a GSL::Eigen::francis::Workspace.\n");
     }
-    Data_Get_Struct(argv2[0], gsl_vector_complex, v);
-    Data_Get_Struct(argv2[1], gsl_matrix, Z);
-    Data_Get_Struct(argv2[2], gsl_eigen_francis_workspace, w);
+    TypedData_Get_Struct(argv2[0], gsl_vector_complex, &gsl_vector_complex_data_type, v);
+    TypedData_Get_Struct(argv2[1], gsl_matrix, &gsl_matrix_data_type, Z);
+    TypedData_Get_Struct(argv2[2], gsl_eigen_francis_workspace, &gsl_eigen_francis_workspace_data_type, w);
     break;
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments (%d for 0-2).\n", argc);
@@ -916,8 +913,8 @@ static VALUE rb_gsl_eigen_francis_Z(int argc, VALUE *argv, VALUE obj)
 
   if (wflag == 1) gsl_eigen_francis_free(w);
   if (vflag == 1) {
-    vv = Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, v);
-    ZZ = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Z);
+    vv = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, v);
+    ZZ = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Z);
   } else {
     vv = argv2[0];
     ZZ = argv2[1];
@@ -932,7 +929,7 @@ static VALUE rb_gsl_eigen_nonsymm_alloc(VALUE klass, VALUE nn)
   gsl_eigen_nonsymm_workspace *w = NULL;
   n = (size_t) FIX2UINT(nn);
   w = gsl_eigen_nonsymm_alloc(n);
-  return Data_Wrap_Struct(cgsl_eigen_nonsymm_workspace, 0, gsl_eigen_nonsymm_free, w);
+  return TypedData_Wrap_Struct(cgsl_eigen_nonsymm_workspace, &gsl_eigen_nonsymm_workspace_data_type, w);
 }
 
 static VALUE rb_gsl_eigen_nonsymm_params(int argc, VALUE *argv, VALUE obj)
@@ -940,11 +937,11 @@ static VALUE rb_gsl_eigen_nonsymm_params(int argc, VALUE *argv, VALUE obj)
   gsl_eigen_nonsymm_workspace *w = NULL;
   int istart = 0;
   if (CLASS_OF(obj) == cgsl_eigen_nonsymm_workspace) {
-    Data_Get_Struct(obj, gsl_eigen_nonsymm_workspace, w);
+    TypedData_Get_Struct(obj, gsl_eigen_nonsymm_workspace, &gsl_eigen_nonsymm_workspace_data_type, w);
     istart = 0;
   } else {
     if (argc != 3) rb_raise(rb_eArgError, "too few arguments (%d for 3)\n", argc);
-    Data_Get_Struct(argv[2], gsl_eigen_nonsymm_workspace, w);
+    TypedData_Get_Struct(argv[2], gsl_eigen_nonsymm_workspace, &gsl_eigen_nonsymm_workspace_data_type, w);
     istart = 1;
   }
   switch (argc - istart) {
@@ -982,7 +979,7 @@ static VALUE rb_gsl_eigen_nonsymm_narray(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eTypeError,
                "argv[1]:  wrong argument type %s (Eigen::Symm::Workspace expected",
                rb_class2name(CLASS_OF(argv[1])));
-    Data_Get_Struct(argv[1], gsl_eigen_nonsymm_workspace, w);
+    TypedData_Get_Struct(argv[1], gsl_eigen_nonsymm_workspace, &gsl_eigen_nonsymm_workspace_data_type, w);
     flagw = 0;
     break;
   case 1:
@@ -1029,12 +1026,12 @@ static VALUE rb_gsl_eigen_nonsymm(int argc, VALUE *argv, VALUE obj)
 #endif
 
   if (MATRIX_P(obj)) {
-    Data_Get_Struct(obj, gsl_matrix, m);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
     argv2 = argv;
     istart = 0;
   } else {
     if (argc < 1) rb_raise(rb_eArgError, "Wrong number of arguments.\n");
-    Data_Get_Struct(argv[0], gsl_matrix, m);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, m);
     istart = 1;
     argv2 = argv + 1;
   }
@@ -1047,13 +1044,13 @@ static VALUE rb_gsl_eigen_nonsymm(int argc, VALUE *argv, VALUE obj)
     break;
   case 1:
     if (CLASS_OF(argv2[0]) == cgsl_vector_complex) {
-      Data_Get_Struct(argv2[0], gsl_vector_complex, v);
+      TypedData_Get_Struct(argv2[0], gsl_vector_complex, &gsl_vector_complex_data_type, v);
       w = gsl_eigen_nonsymm_alloc(m->size1);
       wflag = 1;
     } else if (CLASS_OF(argv2[0]) == cgsl_eigen_nonsymm_workspace) {
       v = gsl_vector_complex_alloc(m->size1);
       vflag = 1;
-      Data_Get_Struct(argv2[0], gsl_eigen_nonsymm_workspace, w);
+      TypedData_Get_Struct(argv2[0], gsl_eigen_nonsymm_workspace, &gsl_eigen_nonsymm_workspace_data_type, w);
     } else {
       rb_raise(rb_eArgError, "Wrong argument type.\n");
     }
@@ -1063,8 +1060,8 @@ static VALUE rb_gsl_eigen_nonsymm(int argc, VALUE *argv, VALUE obj)
     if (CLASS_OF(argv2[1]) != cgsl_eigen_nonsymm_workspace) {
       rb_raise(rb_eArgError, "argv[1] must be a GSL::Eigen::Nonsymm::Workspace.\n");
     }
-    Data_Get_Struct(argv2[0], gsl_vector_complex, v);
-    Data_Get_Struct(argv2[1], gsl_eigen_nonsymm_workspace, w);
+    TypedData_Get_Struct(argv2[0], gsl_vector_complex, &gsl_vector_complex_data_type, v);
+    TypedData_Get_Struct(argv2[1], gsl_eigen_nonsymm_workspace, &gsl_eigen_nonsymm_workspace_data_type, w);
     break;
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments (%d for 0-2).\n", argc);
@@ -1074,7 +1071,7 @@ static VALUE rb_gsl_eigen_nonsymm(int argc, VALUE *argv, VALUE obj)
 //  gsl_matrix_free(mtmp);
   if (wflag == 1) gsl_eigen_nonsymm_free(w);
   if (vflag == 1)
-    return Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, v);
+    return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, v);
   else
     return argv2[0];
 }
@@ -1089,12 +1086,12 @@ static VALUE rb_gsl_eigen_nonsymm_Z(int argc, VALUE *argv, VALUE obj)
   VALUE *argv2, vv, ZZ;
 
   if (MATRIX_P(obj)) {
-    Data_Get_Struct(obj, gsl_matrix, m);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
     argv2 = argv;
     istart = 0;
   } else {
     if (argc < 1) rb_raise(rb_eArgError, "Wrong number of arguments.\n");
-    Data_Get_Struct(argv[0], gsl_matrix, m);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, m);
     istart = 1;
     argv2 = argv + 1;
   }
@@ -1111,7 +1108,7 @@ static VALUE rb_gsl_eigen_nonsymm_Z(int argc, VALUE *argv, VALUE obj)
       v = gsl_vector_complex_alloc(m->size1);
       Z = gsl_matrix_alloc(m->size1, m->size2);
       vflag = 1;
-      Data_Get_Struct(argv2[0], gsl_eigen_nonsymm_workspace, w);
+      TypedData_Get_Struct(argv2[0], gsl_eigen_nonsymm_workspace, &gsl_eigen_nonsymm_workspace_data_type, w);
     } else {
       rb_raise(rb_eArgError, "Wrong argument type.\n");
     }
@@ -1122,9 +1119,9 @@ static VALUE rb_gsl_eigen_nonsymm_Z(int argc, VALUE *argv, VALUE obj)
     if (CLASS_OF(argv2[2]) != cgsl_eigen_nonsymm_workspace) {
       rb_raise(rb_eArgError, "argv[1] must be a GSL::Eigen::Nonsymm::Workspace.\n");
     }
-    Data_Get_Struct(argv2[0], gsl_vector_complex, v);
-    Data_Get_Struct(argv2[1], gsl_matrix, Z);
-    Data_Get_Struct(argv2[2], gsl_eigen_nonsymm_workspace, w);
+    TypedData_Get_Struct(argv2[0], gsl_vector_complex, &gsl_vector_complex_data_type, v);
+    TypedData_Get_Struct(argv2[1], gsl_matrix, &gsl_matrix_data_type, Z);
+    TypedData_Get_Struct(argv2[2], gsl_eigen_nonsymm_workspace, &gsl_eigen_nonsymm_workspace_data_type, w);
     break;
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments (%d for 0-2).\n", argc);
@@ -1135,8 +1132,8 @@ static VALUE rb_gsl_eigen_nonsymm_Z(int argc, VALUE *argv, VALUE obj)
 
   if (wflag == 1) gsl_eigen_nonsymm_free(w);
   if (vflag == 1) {
-    vv = Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, v);
-    ZZ = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Z);
+    vv = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, v);
+    ZZ = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Z);
   } else {
     vv = argv2[0];
     ZZ = argv2[1];
@@ -1150,7 +1147,7 @@ static VALUE rb_gsl_eigen_nonsymmv_alloc(VALUE klass, VALUE nn)
   gsl_eigen_nonsymmv_workspace *w = NULL;
   n = (size_t) FIX2UINT(nn);
   w = gsl_eigen_nonsymmv_alloc(n);
-  return Data_Wrap_Struct(cgsl_eigen_nonsymmv_workspace, 0, gsl_eigen_nonsymmv_free, w);
+  return TypedData_Wrap_Struct(cgsl_eigen_nonsymmv_workspace, &gsl_eigen_nonsymmv_workspace_data_type, w);
 }
 
 #ifdef HAVE_NARRAY_H
@@ -1179,7 +1176,7 @@ static VALUE rb_gsl_eigen_nonsymmv_narray(int argc, VALUE *argv, VALUE obj)
       rb_raise(rb_eTypeError,
                "argv[1]:  wrong argument type %s (Eigen::Symm::Workspace expected",
                rb_class2name(CLASS_OF(argv[1])));
-    Data_Get_Struct(argv[1], gsl_eigen_nonsymmv_workspace, w);
+    TypedData_Get_Struct(argv[1], gsl_eigen_nonsymmv_workspace, &gsl_eigen_nonsymmv_workspace_data_type, w);
     flagw = 0;
     break;
   case 1:
@@ -1229,12 +1226,12 @@ static VALUE rb_gsl_eigen_nonsymmv(int argc, VALUE *argv, VALUE obj)
 #endif
 
   if (MATRIX_P(obj)) {
-    Data_Get_Struct(obj, gsl_matrix, m);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
     argv2 = argv;
     istart = 0;
   } else {
     if (argc < 1) rb_raise(rb_eArgError, "Wrong number of arguments.\n");
-    Data_Get_Struct(argv[0], gsl_matrix, m);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, m);
     istart = 1;
     argv2 = argv + 1;
   }
@@ -1251,7 +1248,7 @@ static VALUE rb_gsl_eigen_nonsymmv(int argc, VALUE *argv, VALUE obj)
       v = gsl_vector_complex_alloc(m->size1);
       evec = gsl_matrix_complex_alloc(m->size1, m->size2);
       vflag = 1;
-      Data_Get_Struct(argv2[0], gsl_eigen_nonsymmv_workspace, w);
+      TypedData_Get_Struct(argv2[0], gsl_eigen_nonsymmv_workspace, &gsl_eigen_nonsymmv_workspace_data_type, w);
     } else {
       rb_raise(rb_eArgError, "Wrong argument type.\n");
     }
@@ -1268,9 +1265,9 @@ static VALUE rb_gsl_eigen_nonsymmv(int argc, VALUE *argv, VALUE obj)
     if (CLASS_OF(argv2[2]) != cgsl_eigen_nonsymmv_workspace) {
       rb_raise(rb_eArgError, "argv[1] must be a GSL::Eigen::Nonsymm::Workspace.\n");
     }
-    Data_Get_Struct(argv2[0], gsl_vector_complex, v);
-    Data_Get_Struct(argv2[1], gsl_matrix_complex, evec);
-    Data_Get_Struct(argv2[2], gsl_eigen_nonsymmv_workspace, w);
+    TypedData_Get_Struct(argv2[0], gsl_vector_complex, &gsl_vector_complex_data_type, v);
+    TypedData_Get_Struct(argv2[1], gsl_matrix_complex, &gsl_matrix_complex_data_type, evec);
+    TypedData_Get_Struct(argv2[2], gsl_eigen_nonsymmv_workspace, &gsl_eigen_nonsymmv_workspace_data_type, w);
     break;
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments (%d for 0-3).\n", argc);
@@ -1282,8 +1279,8 @@ static VALUE rb_gsl_eigen_nonsymmv(int argc, VALUE *argv, VALUE obj)
   if (wflag == 1) gsl_eigen_nonsymmv_free(w);
   if (vflag == 1) {
     return rb_ary_new3(2,
-                       Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, v),
-                       Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, evec));
+                       TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, v),
+                       TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, evec));
   }  else {
     return rb_ary_new3(2, argv2[0], argv2[1]);
   }
@@ -1300,12 +1297,12 @@ static VALUE rb_gsl_eigen_nonsymmv_Z(int argc, VALUE *argv, VALUE obj)
   VALUE *argv2;
 
   if (MATRIX_P(obj)) {
-    Data_Get_Struct(obj, gsl_matrix, m);
+    TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, m);
     argv2 = argv;
     istart = 0;
   } else {
     if (argc < 1) rb_raise(rb_eArgError, "Wrong number of arguments.\n");
-    Data_Get_Struct(argv[0], gsl_matrix, m);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, m);
     istart = 1;
     argv2 = argv + 1;
   }
@@ -1323,7 +1320,7 @@ static VALUE rb_gsl_eigen_nonsymmv_Z(int argc, VALUE *argv, VALUE obj)
       v = gsl_vector_complex_alloc(m->size1);
       evec = gsl_matrix_complex_alloc(m->size1, m->size2);
       vflag = 1;
-      Data_Get_Struct(argv2[0], gsl_eigen_nonsymmv_workspace, w);
+      TypedData_Get_Struct(argv2[0], gsl_eigen_nonsymmv_workspace, &gsl_eigen_nonsymmv_workspace_data_type, w);
     } else {
       rb_raise(rb_eArgError, "Wrong argument type.\n");
     }
@@ -1342,10 +1339,10 @@ static VALUE rb_gsl_eigen_nonsymmv_Z(int argc, VALUE *argv, VALUE obj)
     if (CLASS_OF(argv2[3]) != cgsl_eigen_nonsymm_workspace) {
       rb_raise(rb_eArgError, "argv[1] must be a GSL::Eigen::Nonsymm::Workspace.\n");
     }
-    Data_Get_Struct(argv2[0], gsl_vector_complex, v);
-    Data_Get_Struct(argv2[1], gsl_matrix_complex, evec);
-    Data_Get_Struct(argv2[1], gsl_matrix, Z);
-    Data_Get_Struct(argv2[3], gsl_eigen_nonsymmv_workspace, w);
+    TypedData_Get_Struct(argv2[0], gsl_vector_complex, &gsl_vector_complex_data_type, v);
+    TypedData_Get_Struct(argv2[1], gsl_matrix_complex, &gsl_matrix_complex_data_type, evec);
+    TypedData_Get_Struct(argv2[1], gsl_matrix, &gsl_matrix_data_type, Z);
+    TypedData_Get_Struct(argv2[3], gsl_eigen_nonsymmv_workspace, &gsl_eigen_nonsymmv_workspace_data_type, w);
     break;
   default:
     rb_raise(rb_eArgError, "Wrong number of arguments (%d for 0-3).\n", argc);
@@ -1357,9 +1354,9 @@ static VALUE rb_gsl_eigen_nonsymmv_Z(int argc, VALUE *argv, VALUE obj)
   if (wflag == 1) gsl_eigen_nonsymmv_free(w);
   if (vflag == 1) {
     return rb_ary_new3(3,
-                       Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, v),
-                       Data_Wrap_Struct(cgsl_matrix_complex, 0, gsl_matrix_complex_free, evec),
-                       Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Z));
+                       TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, v),
+                       TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, evec),
+                       TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Z));
   }  else {
     return rb_ary_new3(2, argv2[0], argv2[1], argv2[2]);
   }
@@ -1382,13 +1379,13 @@ static VALUE rb_gsl_eigen_complex_sort2(int argc, VALUE *argv, VALUE obj,
       v = NULL;
     } else {
       CHECK_VECTOR_COMPLEX(argv[0]);
-      Data_Get_Struct(argv[0], gsl_vector_complex, v);
+      TypedData_Get_Struct(argv[0], gsl_vector_complex, &gsl_vector_complex_data_type, v);
     }
     if (argv[1] == Qnil) {
       m = NULL;
     } else {
       CHECK_MATRIX_COMPLEX(argv[1]);
-      Data_Get_Struct(argv[1], gsl_matrix_complex, m);
+      TypedData_Get_Struct(argv[1], gsl_matrix_complex, &gsl_matrix_complex_data_type, m);
     }
     break;
   default:
@@ -1408,28 +1405,28 @@ static VALUE rb_gsl_eigen_gensymm_alloc(VALUE klass, VALUE nn)
   gsl_eigen_gensymm_workspace *w = NULL;
   CHECK_FIXNUM(nn);
   w = gsl_eigen_gensymm_alloc(FIX2INT(nn));
-  return Data_Wrap_Struct(cgensymm, 0, gsl_eigen_gensymm_free, w);
+  return TypedData_Wrap_Struct(cgensymm, &gsl_eigen_gensymm_workspace_data_type, w);
 }
 static VALUE rb_gsl_eigen_gensymmv_alloc(VALUE klass, VALUE nn)
 {
   gsl_eigen_gensymmv_workspace *w = NULL;
   CHECK_FIXNUM(nn);
   w = gsl_eigen_gensymmv_alloc(FIX2INT(nn));
-  return Data_Wrap_Struct(cgensymmv, 0, gsl_eigen_gensymmv_free, w);
+  return TypedData_Wrap_Struct(cgensymmv, &gsl_eigen_gensymmv_workspace_data_type, w);
 }
 static VALUE rb_gsl_eigen_genherm_alloc(VALUE klass, VALUE nn)
 {
   gsl_eigen_genherm_workspace *w = NULL;
   CHECK_FIXNUM(nn);
   w = gsl_eigen_genherm_alloc(FIX2INT(nn));
-  return Data_Wrap_Struct(cgenherm, 0, gsl_eigen_genherm_free, w);
+  return TypedData_Wrap_Struct(cgenherm, &gsl_eigen_genherm_workspace_data_type, w);
 }
 static VALUE rb_gsl_eigen_genhermv_alloc(VALUE klass, VALUE nn)
 {
   gsl_eigen_genhermv_workspace *w = NULL;
   CHECK_FIXNUM(nn);
   w = gsl_eigen_genhermv_alloc(FIX2INT(nn));
-  return Data_Wrap_Struct(cgenhermv, 0, gsl_eigen_genhermv_free, w);
+  return TypedData_Wrap_Struct(cgenhermv, &gsl_eigen_genhermv_workspace_data_type, w);
 }
 
 static int check_argv_gensymm(int argc, VALUE *argv, VALUE obj, gsl_matrix **A, gsl_matrix **B,
@@ -1438,10 +1435,10 @@ static int check_argv_gensymm(int argc, VALUE *argv, VALUE obj, gsl_matrix **A, 
   int argc2 = argc;
   int flag = 0;
   if (CLASS_OF(obj) == cgensymm) {
-    Data_Get_Struct(obj, gsl_eigen_gensymm_workspace, *w);
+    TypedData_Get_Struct(obj, gsl_eigen_gensymm_workspace, &gsl_eigen_gensymm_workspace_data_type, *w);
   } else {
     if (rb_obj_is_kind_of(argv[argc-1], cgensymm)) {
-      Data_Get_Struct(argv[argc-1], gsl_eigen_gensymm_workspace, *w);
+      TypedData_Get_Struct(argv[argc-1], gsl_eigen_gensymm_workspace, &gsl_eigen_gensymm_workspace_data_type, *w);
       argc2 = argc-1;
     } else {
       /* workspace is not given */
@@ -1450,19 +1447,19 @@ static int check_argv_gensymm(int argc, VALUE *argv, VALUE obj, gsl_matrix **A, 
   switch (argc2) {
   case 2:
     CHECK_MATRIX(argv[0]); CHECK_MATRIX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, *A);
-    Data_Get_Struct(argv[1], gsl_matrix, *B);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, *A);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, *B);
     break;
   case 3:
     if (rb_obj_is_kind_of(argv[2], cgensymm)) {
-      Data_Get_Struct(argv[2], gsl_eigen_gensymm_workspace, *w);
+      TypedData_Get_Struct(argv[2], gsl_eigen_gensymm_workspace, &gsl_eigen_gensymm_workspace_data_type, *w);
     } else {
       CHECK_VECTOR(argv[2]);
-      Data_Get_Struct(argv[2], gsl_vector, *eval);
+      TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, *eval);
     }
     CHECK_MATRIX(argv[0]); CHECK_MATRIX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, *A);
-    Data_Get_Struct(argv[1], gsl_matrix, *B);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, *A);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, *B);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2 or 3)", argc);
@@ -1484,10 +1481,10 @@ static int check_argv_gensymmv(int argc, VALUE *argv, VALUE obj, gsl_matrix **A,
   int argc2 = argc;
   int flag = 0;
   if (CLASS_OF(obj) == cgensymmv) {
-    Data_Get_Struct(obj, gsl_eigen_gensymmv_workspace, *w);
+    TypedData_Get_Struct(obj, gsl_eigen_gensymmv_workspace, &gsl_eigen_gensymmv_workspace_data_type, *w);
   } else {
     if (rb_obj_is_kind_of(argv[argc-1], cgensymmv)) {
-      Data_Get_Struct(argv[argc-1], gsl_eigen_gensymmv_workspace, *w);
+      TypedData_Get_Struct(argv[argc-1], gsl_eigen_gensymmv_workspace, &gsl_eigen_gensymmv_workspace_data_type, *w);
       argc2 = argc-1;
     } else {
 
@@ -1497,36 +1494,36 @@ static int check_argv_gensymmv(int argc, VALUE *argv, VALUE obj, gsl_matrix **A,
   switch (argc2) {
   case 2:
     CHECK_MATRIX(argv[0]); CHECK_MATRIX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, *A);
-    Data_Get_Struct(argv[1], gsl_matrix, *B);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, *A);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, *B);
     break;
   case 3:
     if (rb_obj_is_kind_of(argv[2], cgensymmv)) {
-      Data_Get_Struct(argv[2], gsl_eigen_gensymmv_workspace, *w);
+      TypedData_Get_Struct(argv[2], gsl_eigen_gensymmv_workspace, &gsl_eigen_gensymmv_workspace_data_type, *w);
     } else {
       rb_raise(rb_eTypeError, "Wrong argument type %s (GSL::Eigen::Gensymmv::Workspace expected)",
                rb_class2name(CLASS_OF(argv[2])));
     }
     CHECK_MATRIX(argv[0]); CHECK_MATRIX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, *A);
-    Data_Get_Struct(argv[1], gsl_matrix, *B);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, *A);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, *B);
 
     break;
   case 5:
     if (rb_obj_is_kind_of(argv[4], cgensymmv)) {
-      Data_Get_Struct(argv[4], gsl_eigen_gensymmv_workspace, *w);
+      TypedData_Get_Struct(argv[4], gsl_eigen_gensymmv_workspace, &gsl_eigen_gensymmv_workspace_data_type, *w);
     } else {
       rb_raise(rb_eTypeError, "Wrong argument type %s (GSL::Eigen::Gensymmv::Workspace expected)",
                rb_class2name(CLASS_OF(argv[4])));
     }
     CHECK_VECTOR(argv[2]);
-    Data_Get_Struct(argv[2], gsl_vector, *eval);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, *eval);
     CHECK_MATRIX(argv[3]);
-    Data_Get_Struct(argv[3], gsl_matrix, *evec);
+    TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, *evec);
 
     CHECK_MATRIX(argv[0]); CHECK_MATRIX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, *A);
-    Data_Get_Struct(argv[1], gsl_matrix, *B);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, *A);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, *B);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2, 3 or 5)", argc);
@@ -1549,10 +1546,10 @@ static int check_argv_genherm(int argc, VALUE *argv, VALUE obj, gsl_matrix_compl
   int argc2 = argc;
   int flag = 0;
   if (CLASS_OF(obj) == cgenherm) {
-    Data_Get_Struct(obj, gsl_eigen_genherm_workspace, *w);
+    TypedData_Get_Struct(obj, gsl_eigen_genherm_workspace, &gsl_eigen_genherm_workspace_data_type, *w);
   } else {
     if (rb_obj_is_kind_of(argv[argc-1], cgenherm)) {
-      Data_Get_Struct(argv[argc-1], gsl_eigen_genherm_workspace, *w);
+      TypedData_Get_Struct(argv[argc-1], gsl_eigen_genherm_workspace, &gsl_eigen_genherm_workspace_data_type, *w);
       argc2 = argc-1;
     } else {
       /* workspace is not given */
@@ -1561,19 +1558,19 @@ static int check_argv_genherm(int argc, VALUE *argv, VALUE obj, gsl_matrix_compl
   switch (argc2) {
   case 2:
     CHECK_MATRIX_COMPLEX(argv[0]); CHECK_MATRIX_COMPLEX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, *A);
-    Data_Get_Struct(argv[1], gsl_matrix_complex, *B);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, *A);
+    TypedData_Get_Struct(argv[1], gsl_matrix_complex, &gsl_matrix_complex_data_type, *B);
     break;
   case 3:
     if (rb_obj_is_kind_of(argv[2], cgenherm)) {
-      Data_Get_Struct(argv[2], gsl_eigen_genherm_workspace, *w);
+      TypedData_Get_Struct(argv[2], gsl_eigen_genherm_workspace, &gsl_eigen_genherm_workspace_data_type, *w);
     } else {
       CHECK_VECTOR(argv[2]);
-      Data_Get_Struct(argv[2], gsl_vector, *eval);
+      TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, *eval);
     }
     CHECK_MATRIX_COMPLEX(argv[0]); CHECK_MATRIX_COMPLEX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, *A);
-    Data_Get_Struct(argv[1], gsl_matrix_complex, *B);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, *A);
+    TypedData_Get_Struct(argv[1], gsl_matrix_complex, &gsl_matrix_complex_data_type, *B);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2 or 3)", argc);
@@ -1594,10 +1591,10 @@ static int check_argv_genhermv(int argc, VALUE *argv, VALUE obj, gsl_matrix_comp
   int argc2 = argc;
   int flag = 0;
   if (CLASS_OF(obj) == cgenhermv) {
-    Data_Get_Struct(obj, gsl_eigen_genhermv_workspace, *w);
+    TypedData_Get_Struct(obj, gsl_eigen_genhermv_workspace, &gsl_eigen_genhermv_workspace_data_type, *w);
   } else {
     if (rb_obj_is_kind_of(argv[argc-1], cgenhermv)) {
-      Data_Get_Struct(argv[argc-1], gsl_eigen_genhermv_workspace, *w);
+      TypedData_Get_Struct(argv[argc-1], gsl_eigen_genhermv_workspace, &gsl_eigen_genhermv_workspace_data_type, *w);
       argc2 = argc-1;
     } else {
 
@@ -1607,36 +1604,36 @@ static int check_argv_genhermv(int argc, VALUE *argv, VALUE obj, gsl_matrix_comp
   switch (argc2) {
   case 2:
     CHECK_MATRIX_COMPLEX(argv[0]); CHECK_MATRIX_COMPLEX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, *A);
-    Data_Get_Struct(argv[1], gsl_matrix_complex, *B);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, *A);
+    TypedData_Get_Struct(argv[1], gsl_matrix_complex, &gsl_matrix_complex_data_type, *B);
     break;
   case 3:
     if (rb_obj_is_kind_of(argv[2], cgenhermv)) {
-      Data_Get_Struct(argv[2], gsl_eigen_genhermv_workspace, *w);
+      TypedData_Get_Struct(argv[2], gsl_eigen_genhermv_workspace, &gsl_eigen_genhermv_workspace_data_type, *w);
     } else {
       rb_raise(rb_eTypeError, "Wrong argument type %s (GSL::Eigen::Genhermv::Workspace expected)",
                rb_class2name(CLASS_OF(argv[2])));
     }
     CHECK_MATRIX_COMPLEX(argv[0]); CHECK_MATRIX_COMPLEX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, *A);
-    Data_Get_Struct(argv[1], gsl_matrix_complex, *B);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, *A);
+    TypedData_Get_Struct(argv[1], gsl_matrix_complex, &gsl_matrix_complex_data_type, *B);
 
     break;
   case 5:
     if (rb_obj_is_kind_of(argv[4], cgenhermv)) {
-      Data_Get_Struct(argv[4], gsl_eigen_genhermv_workspace, *w);
+      TypedData_Get_Struct(argv[4], gsl_eigen_genhermv_workspace, &gsl_eigen_genhermv_workspace_data_type, *w);
     } else {
       rb_raise(rb_eTypeError, "Wrong argument type %s (GSL::Eigen::Genhermv::Workspace expected)",
                rb_class2name(CLASS_OF(argv[4])));
     }
     CHECK_VECTOR(argv[2]);
-    Data_Get_Struct(argv[2], gsl_vector, *eval);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, *eval);
     CHECK_MATRIX_COMPLEX(argv[3]);
-    Data_Get_Struct(argv[3], gsl_matrix_complex, *evec);
+    TypedData_Get_Struct(argv[3], gsl_matrix_complex, &gsl_matrix_complex_data_type, *evec);
 
     CHECK_MATRIX_COMPLEX(argv[0]); CHECK_MATRIX_COMPLEX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, *A);
-    Data_Get_Struct(argv[1], gsl_matrix_complex, *B);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, *A);
+    TypedData_Get_Struct(argv[1], gsl_matrix_complex, &gsl_matrix_complex_data_type, *B);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2, 3 or 5)", argc);
@@ -1671,14 +1668,14 @@ static VALUE rb_gsl_eigen_gensymm(int argc, VALUE *argv, VALUE obj)
     veval = argv[2];
     break;
   case 1:
-    veval = Data_Wrap_Struct(cgsl_eigen_values, 0, gsl_vector_free, eval);
+    veval = TypedData_Wrap_Struct(cgsl_eigen_values, &gsl_vector_data_type, eval);
     break;
   case 2:
     veval = argv[2];
     gsl_eigen_gensymm_free(w);
     break;
   case 3:
-    veval = Data_Wrap_Struct(cgsl_eigen_values, 0, gsl_vector_free, eval);
+    veval = TypedData_Wrap_Struct(cgsl_eigen_values, &gsl_vector_data_type, eval);
     gsl_eigen_gensymm_free(w);
     break;
   }
@@ -1708,8 +1705,8 @@ static VALUE rb_gsl_eigen_gensymmv(int argc, VALUE *argv, VALUE obj)
     vevec = argv[3];
     break;
   case 1:
-    veval = Data_Wrap_Struct(cgsl_eigen_values, 0, gsl_vector_free, eval);
-    vevec = Data_Wrap_Struct(cgsl_eigen_vectors, 0, gsl_matrix_free, evec);
+    veval = TypedData_Wrap_Struct(cgsl_eigen_values, &gsl_vector_data_type, eval);
+    vevec = TypedData_Wrap_Struct(cgsl_eigen_vectors, &gsl_matrix_data_type, evec);
     break;
   case 2:
     veval = argv[2];
@@ -1717,8 +1714,8 @@ static VALUE rb_gsl_eigen_gensymmv(int argc, VALUE *argv, VALUE obj)
     gsl_eigen_gensymmv_free(w);
     break;
   case 3:
-    veval = Data_Wrap_Struct(cgsl_eigen_values, 0, gsl_vector_free, eval);
-    vevec = Data_Wrap_Struct(cgsl_eigen_vectors, 0, gsl_matrix_free, evec);
+    veval = TypedData_Wrap_Struct(cgsl_eigen_values, &gsl_vector_data_type, eval);
+    vevec = TypedData_Wrap_Struct(cgsl_eigen_vectors, &gsl_matrix_data_type, evec);
     gsl_eigen_gensymmv_free(w);
     break;
   }
@@ -1745,14 +1742,14 @@ static VALUE rb_gsl_eigen_genherm(int argc, VALUE *argv, VALUE obj)
     veval = argv[2];
     break;
   case 1:
-    veval = Data_Wrap_Struct(cgsl_eigen_values, 0, gsl_vector_free, eval);
+    veval = TypedData_Wrap_Struct(cgsl_eigen_values, &gsl_vector_data_type, eval);
     break;
   case 2:
     veval = argv[2];
     gsl_eigen_genherm_free(w);
     break;
   case 3:
-    veval = Data_Wrap_Struct(cgsl_eigen_values, 0, gsl_vector_free, eval);
+    veval = TypedData_Wrap_Struct(cgsl_eigen_values, &gsl_vector_data_type, eval);
     gsl_eigen_genherm_free(w);
     break;
   }
@@ -1782,8 +1779,8 @@ static VALUE rb_gsl_eigen_genhermv(int argc, VALUE *argv, VALUE obj)
     vevec = argv[3];
     break;
   case 1:
-    veval = Data_Wrap_Struct(cgsl_eigen_values, 0, gsl_vector_free, eval);
-    vevec = Data_Wrap_Struct(cgsl_eigen_herm_vectors, 0, gsl_matrix_complex_free, evec);
+    veval = TypedData_Wrap_Struct(cgsl_eigen_values, &gsl_vector_data_type, eval);
+    vevec = TypedData_Wrap_Struct(cgsl_eigen_herm_vectors, &gsl_matrix_complex_data_type, evec);
     break;
   case 2:
     veval = argv[2];
@@ -1791,8 +1788,8 @@ static VALUE rb_gsl_eigen_genhermv(int argc, VALUE *argv, VALUE obj)
     gsl_eigen_genhermv_free(w);
     break;
   case 3:
-    veval = Data_Wrap_Struct(cgsl_eigen_values, 0, gsl_vector_free, eval);
-    vevec = Data_Wrap_Struct(cgsl_eigen_herm_vectors, 0, gsl_matrix_complex_free, evec);
+    veval = TypedData_Wrap_Struct(cgsl_eigen_values, &gsl_vector_data_type, eval);
+    vevec = TypedData_Wrap_Struct(cgsl_eigen_herm_vectors, &gsl_matrix_complex_data_type, evec);
     gsl_eigen_genhermv_free(w);
     break;
   }
@@ -1813,14 +1810,14 @@ static VALUE rb_gsl_eigen_gen_alloc(VALUE klass, VALUE n)
 {
   gsl_eigen_gen_workspace *w;
   w = gsl_eigen_gen_alloc(FIX2INT(n));
-  return Data_Wrap_Struct(cgenw, 0, gsl_eigen_gen_free, w);
+  return TypedData_Wrap_Struct(cgenw, &gsl_eigen_gen_workspace_data_type, w);
 }
 
 static VALUE rb_gsl_eigen_genv_alloc(VALUE klass, VALUE n)
 {
   gsl_eigen_genv_workspace *w;
   w = gsl_eigen_genv_alloc(FIX2INT(n));
-  return Data_Wrap_Struct(cgenvw, 0, gsl_eigen_genv_free, w);
+  return TypedData_Wrap_Struct(cgenvw, &gsl_eigen_genv_workspace_data_type, w);
 }
 
 static VALUE rb_gsl_eigen_gen_params(int argc, VALUE *argv, VALUE obj)
@@ -1828,14 +1825,14 @@ static VALUE rb_gsl_eigen_gen_params(int argc, VALUE *argv, VALUE obj)
   gsl_eigen_gen_workspace *w = NULL;
   int istart = 0;
   if (CLASS_OF(obj) == cgenw) {
-    Data_Get_Struct(obj, gsl_eigen_gen_workspace, w);
+    TypedData_Get_Struct(obj, gsl_eigen_gen_workspace, &gsl_eigen_gen_workspace_data_type, w);
     istart = 0;
   } else {
     if (argc != 4) rb_raise(rb_eArgError, "too few arguments (%d for 3)\n", argc);
     if (CLASS_OF(argv[3]) != cgenw)
       rb_raise(rb_eTypeError, "Wrong argument type %s (GSL::Eigen::Gen::Workspace expected)",
                rb_class2name(CLASS_OF(argv[3])));
-    Data_Get_Struct(argv[3], gsl_eigen_gen_workspace, w);
+    TypedData_Get_Struct(argv[3], gsl_eigen_gen_workspace, &gsl_eigen_gen_workspace_data_type, w);
     istart = 1;
   }
   switch (argc - istart) {
@@ -1854,10 +1851,10 @@ static int check_argv_gen(int argc, VALUE *argv, VALUE obj, gsl_matrix **A, gsl_
   int argc2 = argc;
   int flag = 0;
   if (CLASS_OF(obj) == cgenw) {
-    Data_Get_Struct(obj, gsl_eigen_gen_workspace, *w);
+    TypedData_Get_Struct(obj, gsl_eigen_gen_workspace, &gsl_eigen_gen_workspace_data_type, *w);
   } else {
     if (rb_obj_is_kind_of(argv[argc-1], cgenw)) {
-      Data_Get_Struct(argv[argc-1], gsl_eigen_gen_workspace, *w);
+      TypedData_Get_Struct(argv[argc-1], gsl_eigen_gen_workspace, &gsl_eigen_gen_workspace_data_type, *w);
       argc2 = argc-1;
     } else {
 
@@ -1867,35 +1864,35 @@ static int check_argv_gen(int argc, VALUE *argv, VALUE obj, gsl_matrix **A, gsl_
   switch (argc2) {
   case 2:
     CHECK_MATRIX(argv[0]); CHECK_MATRIX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, *A);
-    Data_Get_Struct(argv[1], gsl_matrix, *B);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, *A);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, *B);
     break;
   case 3:
     if (rb_obj_is_kind_of(argv[2], cgenw)) {
-      Data_Get_Struct(argv[2], gsl_eigen_gen_workspace, *w);
+      TypedData_Get_Struct(argv[2], gsl_eigen_gen_workspace, &gsl_eigen_gen_workspace_data_type, *w);
     } else {
       rb_raise(rb_eTypeError, "Wrong argument type %s (GSL::Eigen::Gen::Workspace expected)",
                rb_class2name(CLASS_OF(argv[2])));
     }
     CHECK_MATRIX(argv[0]); CHECK_MATRIX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, *A);
-    Data_Get_Struct(argv[1], gsl_matrix, *B);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, *A);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, *B);
     break;
   case 5:
     if (rb_obj_is_kind_of(argv[4], cgenw)) {
-      Data_Get_Struct(argv[4], gsl_eigen_gen_workspace, *w);
+      TypedData_Get_Struct(argv[4], gsl_eigen_gen_workspace, &gsl_eigen_gen_workspace_data_type, *w);
     } else {
       rb_raise(rb_eTypeError, "Wrong argument type %s (GSL::Eigen::Gen::Workspace expected)",
                rb_class2name(CLASS_OF(argv[4])));
     }
     CHECK_VECTOR_COMPLEX(argv[2]);
-    Data_Get_Struct(argv[2], gsl_vector_complex, *alpha);
+    TypedData_Get_Struct(argv[2], gsl_vector_complex, &gsl_vector_complex_data_type, *alpha);
     CHECK_VECTOR(argv[3]);
-    Data_Get_Struct(argv[3], gsl_vector, *beta);
+    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, *beta);
 
     CHECK_MATRIX(argv[0]); CHECK_MATRIX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, *A);
-    Data_Get_Struct(argv[1], gsl_matrix, *B);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, *A);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, *B);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2, 3 or 5)", argc);
@@ -1934,8 +1931,8 @@ static VALUE rb_gsl_eigen_gen(int argc, VALUE *argv, VALUE obj)
     vbeta = argv[3];
     break;
   case 1:
-    valpha = Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, alpha);
-    vbeta = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, beta);
+    valpha = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, alpha);
+    vbeta = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, beta);
     break;
   case 2:
     valpha = argv[2];
@@ -1943,8 +1940,8 @@ static VALUE rb_gsl_eigen_gen(int argc, VALUE *argv, VALUE obj)
     gsl_eigen_gen_free(w);
     break;
   case 3:
-    valpha = Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, alpha);
-    vbeta = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, beta);
+    valpha = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, alpha);
+    vbeta = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, beta);
     gsl_eigen_gen_free(w);
     break;
   }
@@ -1978,8 +1975,8 @@ static VALUE rb_gsl_eigen_gen_QZ(int argc, VALUE *argv, VALUE obj)
     vbeta = argv[3];
     break;
   case 1:
-    valpha = Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, alpha);
-    vbeta = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, beta);
+    valpha = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, alpha);
+    vbeta = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, beta);
     break;
   case 2:
     valpha = argv[2];
@@ -1987,13 +1984,13 @@ static VALUE rb_gsl_eigen_gen_QZ(int argc, VALUE *argv, VALUE obj)
     gsl_eigen_gen_free(w);
     break;
   case 3:
-    valpha = Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, alpha);
-    vbeta = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, beta);
+    valpha = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, alpha);
+    vbeta = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, beta);
     gsl_eigen_gen_free(w);
     break;
   }
-  vQ = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Q);
-  vZ = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Z);
+  vQ = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Q);
+  vZ = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Z);
   return rb_ary_new3(4, valpha, vbeta, vQ, vZ);
 }
 
@@ -2003,10 +2000,10 @@ static int check_argv_genv(int argc, VALUE *argv, VALUE obj, gsl_matrix **A, gsl
   int argc2 = argc;
   int flag = 0;
   if (CLASS_OF(obj) == cgenvw) {
-    Data_Get_Struct(obj, gsl_eigen_genv_workspace, *w);
+    TypedData_Get_Struct(obj, gsl_eigen_genv_workspace, &gsl_eigen_genv_workspace_data_type, *w);
   } else {
     if (rb_obj_is_kind_of(argv[argc-1], cgenvw)) {
-      Data_Get_Struct(argv[argc-1], gsl_eigen_genv_workspace, *w);
+      TypedData_Get_Struct(argv[argc-1], gsl_eigen_genv_workspace, &gsl_eigen_genv_workspace_data_type, *w);
       argc2 = argc-1;
     } else {
 
@@ -2016,37 +2013,37 @@ static int check_argv_genv(int argc, VALUE *argv, VALUE obj, gsl_matrix **A, gsl
   switch (argc2) {
   case 2:
     CHECK_MATRIX(argv[0]); CHECK_MATRIX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, *A);
-    Data_Get_Struct(argv[1], gsl_matrix, *B);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, *A);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, *B);
     break;
   case 3:
     if (rb_obj_is_kind_of(argv[2], cgenvw)) {
-      Data_Get_Struct(argv[2], gsl_eigen_genv_workspace, *w);
+      TypedData_Get_Struct(argv[2], gsl_eigen_genv_workspace, &gsl_eigen_genv_workspace_data_type, *w);
     } else {
       rb_raise(rb_eTypeError, "Wrong argument type %s (GSL::Eigenv::Gen::Workspace expected)",
                rb_class2name(CLASS_OF(argv[2])));
     }
     CHECK_MATRIX(argv[0]); CHECK_MATRIX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, *A);
-    Data_Get_Struct(argv[1], gsl_matrix, *B);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, *A);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, *B);
     break;
   case 6:
     if (rb_obj_is_kind_of(argv[4], cgenvw)) {
-      Data_Get_Struct(argv[4], gsl_eigen_genv_workspace, *w);
+      TypedData_Get_Struct(argv[4], gsl_eigen_genv_workspace, &gsl_eigen_genv_workspace_data_type, *w);
     } else {
       rb_raise(rb_eTypeError, "Wrong argument type %s (GSL::Eigenv::Gen::Workspace expected)",
                rb_class2name(CLASS_OF(argv[4])));
     }
     CHECK_VECTOR_COMPLEX(argv[2]);
-    Data_Get_Struct(argv[2], gsl_vector_complex, *alpha);
+    TypedData_Get_Struct(argv[2], gsl_vector_complex, &gsl_vector_complex_data_type, *alpha);
     CHECK_VECTOR(argv[3]);
-    Data_Get_Struct(argv[3], gsl_vector, *beta);
+    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, *beta);
     CHECK_MATRIX_COMPLEX(argv[3]);
-    Data_Get_Struct(argv[4], gsl_matrix_complex, *evec);
+    TypedData_Get_Struct(argv[4], gsl_matrix_complex, &gsl_matrix_complex_data_type, *evec);
 
     CHECK_MATRIX(argv[0]); CHECK_MATRIX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix, *A);
-    Data_Get_Struct(argv[1], gsl_matrix, *B);
+    TypedData_Get_Struct(argv[0], gsl_matrix, &gsl_matrix_data_type, *A);
+    TypedData_Get_Struct(argv[1], gsl_matrix, &gsl_matrix_data_type, *B);
     break;
   default:
     rb_raise(rb_eArgError, "wrong number of arguments (%d for 2, 3 or 6)", argc);
@@ -2089,9 +2086,9 @@ static VALUE rb_gsl_eigen_genv(int argc, VALUE *argv, VALUE obj)
     vevec = argv[4];
     break;
   case 1:
-    valpha = Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, alpha);
-    vbeta = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, beta);
-    vevec = Data_Wrap_Struct(cgsl_eigen_herm_vectors, 0, gsl_matrix_complex_free, evec);
+    valpha = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, alpha);
+    vbeta = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, beta);
+    vevec = TypedData_Wrap_Struct(cgsl_eigen_herm_vectors, &gsl_matrix_complex_data_type, evec);
     break;
   case 2:
     valpha = argv[2];
@@ -2100,9 +2097,9 @@ static VALUE rb_gsl_eigen_genv(int argc, VALUE *argv, VALUE obj)
     gsl_eigen_genv_free(w);
     break;
   case 3:
-    valpha = Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, alpha);
-    vbeta = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, beta);
-    vevec = Data_Wrap_Struct(cgsl_eigen_herm_vectors, 0, gsl_matrix_complex_free, evec);
+    valpha = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, alpha);
+    vbeta = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, beta);
+    vevec = TypedData_Wrap_Struct(cgsl_eigen_herm_vectors, &gsl_matrix_complex_data_type, evec);
     gsl_eigen_genv_free(w);
     break;
   }
@@ -2139,9 +2136,9 @@ static VALUE rb_gsl_eigen_genv_QZ(int argc, VALUE *argv, VALUE obj)
     vevec = argv[4];
     break;
   case 1:
-    valpha = Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, alpha);
-    vbeta = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, beta);
-    vevec = Data_Wrap_Struct(cgsl_eigen_herm_vectors, 0, gsl_matrix_complex_free, evec);
+    valpha = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, alpha);
+    vbeta = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, beta);
+    vevec = TypedData_Wrap_Struct(cgsl_eigen_herm_vectors, &gsl_matrix_complex_data_type, evec);
     break;
   case 2:
     valpha = argv[2];
@@ -2150,14 +2147,14 @@ static VALUE rb_gsl_eigen_genv_QZ(int argc, VALUE *argv, VALUE obj)
     gsl_eigen_genv_free(w);
     break;
   case 3:
-    valpha = Data_Wrap_Struct(cgsl_vector_complex, 0, gsl_vector_complex_free, alpha);
-    vbeta = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, beta);
-    vevec = Data_Wrap_Struct(cgsl_eigen_herm_vectors, 0, gsl_matrix_complex_free, evec);
+    valpha = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, alpha);
+    vbeta = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, beta);
+    vevec = TypedData_Wrap_Struct(cgsl_eigen_herm_vectors, &gsl_matrix_complex_data_type, evec);
     gsl_eigen_genv_free(w);
     break;
   }
-  vQ = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Q);
-  vZ = Data_Wrap_Struct(cgsl_matrix, 0, gsl_matrix_free, Z);
+  vQ = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Q);
+  vZ = TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Z);
   return rb_ary_new3(5, valpha, vbeta, vevec, vQ, vZ);
 }
 
@@ -2178,19 +2175,19 @@ static VALUE rb_gsl_eigen_genv_sort(int argc, VALUE *argv, VALUE obj)
       alpha = NULL;
     } else {
       CHECK_VECTOR_COMPLEX(argv[0]);
-      Data_Get_Struct(argv[0], gsl_vector_complex, alpha);
+      TypedData_Get_Struct(argv[0], gsl_vector_complex, &gsl_vector_complex_data_type, alpha);
     }
     if (argv[1] == Qnil) {
       beta = NULL;
     } else {
       CHECK_VECTOR(argv[1]);
-      Data_Get_Struct(argv[1], gsl_vector, beta);
+      TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, beta);
     }
     if (argv[2] == Qnil) {
       evec = NULL;
     } else {
       CHECK_MATRIX_COMPLEX(argv[2]);
-      Data_Get_Struct(argv[2], gsl_matrix_complex, evec);
+      TypedData_Get_Struct(argv[2], gsl_matrix_complex, &gsl_matrix_complex_data_type, evec);
     }
     break;
   default:

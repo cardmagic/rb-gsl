@@ -590,6 +590,16 @@ const rb_data_type_t gsl_eigen_genv_workspace_data_type = {
     .flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
 
+const rb_data_type_t gsl_eigen_francis_workspace_data_type = {
+    .wrap_struct_name = "GSL::Eigen::Francis::Workspace",
+    .function = {
+        .dmark = NULL,
+        .dfree = (void (*)(void *))gsl_eigen_francis_free,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
 /* ============================================================
  * Integration Types
  * ============================================================ */

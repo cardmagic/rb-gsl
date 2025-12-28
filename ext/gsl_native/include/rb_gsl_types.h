@@ -86,6 +86,7 @@ extern const rb_data_type_t gsl_eigen_genherm_workspace_data_type;
 extern const rb_data_type_t gsl_eigen_genhermv_workspace_data_type;
 extern const rb_data_type_t gsl_eigen_gen_workspace_data_type;
 extern const rb_data_type_t gsl_eigen_genv_workspace_data_type;
+extern const rb_data_type_t gsl_eigen_francis_workspace_data_type;
 
 /* Integration Types */
 extern const rb_data_type_t gsl_integration_workspace_data_type;
