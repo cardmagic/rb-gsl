@@ -832,4 +832,1087 @@ class VectorTest < GSL::TestCase
     refute v.isnull?
   end
 
+  # Additional tests for improved coverage
+
+  # Test inner_product / dot
+  def test_inner_product
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v2 = GSL::Vector.alloc(4.0, 5.0, 6.0)
+    # 1*4 + 2*5 + 3*6 = 4 + 10 + 18 = 32
+    assert_in_delta 32.0, v1.inner_product(v2), 1e-10
+  end
+
+  def test_inner_product_int
+    v1 = GSL::Vector::Int.alloc(1, 2, 3)
+    v2 = GSL::Vector::Int.alloc(4, 5, 6)
+    assert_equal 32, v1.inner_product(v2)
+  end
+
+  # Test matrix_view - reshape vector to matrix
+  def test_matrix_view
+    v = GSL::Vector.indgen(6)  # [0, 1, 2, 3, 4, 5]
+    m = v.matrix_view(2, 3)
+    assert_kind_of GSL::Matrix::View, m
+    assert_equal 2, m.size1
+    assert_equal 3, m.size2
+    assert_in_delta 0.0, m[0, 0], 1e-10
+    assert_in_delta 1.0, m[0, 1], 1e-10
+    assert_in_delta 2.0, m[0, 2], 1e-10
+    assert_in_delta 3.0, m[1, 0], 1e-10
+  end
+
+  # Test to_m_diagonal
+  def test_to_m_diagonal
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    m = v.to_m_diagonal
+    assert_kind_of GSL::Matrix, m
+    assert_equal 3, m.size1
+    assert_equal 3, m.size2
+    assert_in_delta 1.0, m[0, 0], 1e-10
+    assert_in_delta 0.0, m[0, 1], 1e-10
+    assert_in_delta 2.0, m[1, 1], 1e-10
+    assert_in_delta 3.0, m[2, 2], 1e-10
+  end
+
+  # Test to_m_circulant
+  def test_to_m_circulant
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    m = v.to_m_circulant
+    assert_kind_of GSL::Matrix, m
+    assert_equal 3, m.size1
+    assert_equal 3, m.size2
+    # First row is [3, 1, 2] (circulant matrix)
+    assert_in_delta 3.0, m[0, 0], 1e-10
+    assert_in_delta 1.0, m[0, 1], 1e-10
+    assert_in_delta 2.0, m[0, 2], 1e-10
+  end
+
+  # Test sort methods
+  def test_sort
+    v = GSL::Vector.alloc(3.0, 1.0, 4.0, 1.5, 2.0)
+    sorted = v.sort
+    assert_equal [1.0, 1.5, 2.0, 3.0, 4.0], sorted.to_a
+  end
+
+  def test_sort_bang
+    v = GSL::Vector.alloc(3.0, 1.0, 4.0, 1.5, 2.0)
+    v.sort!
+    assert_equal [1.0, 1.5, 2.0, 3.0, 4.0], v.to_a
+  end
+
+  def test_sort_index
+    v = GSL::Vector.alloc(3.0, 1.0, 4.0, 1.5, 2.0)
+    indices = v.sort_index
+    assert_kind_of GSL::Permutation, indices
+    # Index 1 has min (1.0), index 3 has 1.5, index 4 has 2.0, etc.
+    assert_equal 1, indices[0]  # 1.0 is at index 1
+  end
+
+  def test_sort_smallest
+    v = GSL::Vector.alloc(3.0, 1.0, 4.0, 1.5, 2.0)
+    smallest = v.sort_smallest(3)
+    assert_equal 3, smallest.size
+    assert_equal [1.0, 1.5, 2.0], smallest.to_a
+  end
+
+  def test_sort_largest
+    v = GSL::Vector.alloc(3.0, 1.0, 4.0, 1.5, 2.0)
+    largest = v.sort_largest(3)
+    assert_equal 3, largest.size
+    assert_equal [4.0, 3.0, 2.0], largest.to_a
+  end
+
+  def test_sort_smallest_index
+    v = GSL::Vector.alloc(3.0, 1.0, 4.0, 1.5, 2.0)
+    indices = v.sort_smallest_index(2)
+    assert_equal 2, indices.size
+    # Smallest values are at indices 1 and 3
+    assert_includes indices.to_a, 1
+  end
+
+  def test_sort_largest_index
+    v = GSL::Vector.alloc(3.0, 1.0, 4.0, 1.5, 2.0)
+    indices = v.sort_largest_index(2)
+    assert_equal 2, indices.size
+    # Largest values are at indices 2 and 0
+    assert_includes indices.to_a, 2
+  end
+
+  # Test diff
+  def test_diff
+    v = GSL::Vector.alloc(1.0, 3.0, 6.0, 10.0)
+    d = v.diff
+    assert_equal [2.0, 3.0, 4.0], d.to_a
+  end
+
+  def test_diff_with_n
+    v = GSL::Vector.alloc(1.0, 3.0, 6.0, 10.0, 15.0)
+    d = v.diff(2)  # second difference
+    assert_equal 3, d.size
+  end
+
+  # Test isnan, isinf, finite
+  def test_isnan
+    v = GSL::Vector.alloc(1.0, Float::NAN, 3.0)
+    result = v.isnan
+    assert_kind_of GSL::Vector::Int, result
+    assert_equal 0, result[0]
+    assert_equal 1, result[1]
+    assert_equal 0, result[2]
+  end
+
+  def test_isnan_predicate
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    # isnan? returns an array-like result, not a boolean
+    result1 = v1.isnan?
+    assert_kind_of Array, result1
+    assert_equal [false, false, false], result1
+
+    v2 = GSL::Vector.alloc(1.0, Float::NAN, 3.0)
+    result2 = v2.isnan?
+    assert_kind_of Array, result2
+    assert_equal [false, true, false], result2
+  end
+
+  def test_isinf
+    v = GSL::Vector.alloc(1.0, Float::INFINITY, 3.0)
+    result = v.isinf
+    assert_kind_of GSL::Vector::Int, result
+    assert_equal 0, result[0]
+    assert_equal 1, result[1]
+    assert_equal 0, result[2]
+  end
+
+  def test_isinf_predicate
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    # isinf? returns an array-like result, not a boolean
+    result1 = v1.isinf?
+    assert_kind_of Array, result1
+    assert_equal [false, false, false], result1
+
+    v2 = GSL::Vector.alloc(1.0, Float::INFINITY, 3.0)
+    result2 = v2.isinf?
+    assert_kind_of Array, result2
+    assert_equal [false, true, false], result2
+  end
+
+  def test_finite
+    v = GSL::Vector.alloc(1.0, Float::NAN, Float::INFINITY)
+    result = v.finite
+    assert_kind_of GSL::Vector::Int, result
+    assert_equal 1, result[0]
+    assert_equal 0, result[1]
+    assert_equal 0, result[2]
+  end
+
+  def test_finite_predicate
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    # finite? returns an array-like result
+    result1 = v1.finite?
+    assert_kind_of Array, result1
+    assert_equal [true, true, true], result1
+
+    v2 = GSL::Vector.alloc(1.0, Float::NAN, 3.0)
+    result2 = v2.finite?
+    assert_kind_of Array, result2
+    assert_equal [true, false, true], result2
+  end
+
+  # Test delete_at - modifies original, returns deleted element
+  def test_delete_at
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0, 5.0)
+    result = v.delete_at(2)
+    assert_in_delta 3.0, result, 1e-10  # Returns deleted element
+    assert_equal [1.0, 2.0, 4.0, 5.0], v.to_a  # Original is modified
+  end
+
+  # Test delete_if
+  def test_delete_if
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0, 5.0)
+    result = v.delete_if { |x| x > 3.0 }
+    assert_equal [1.0, 2.0, 3.0], result.to_a
+  end
+
+  # Test delete - returns deleted value
+  def test_delete_value
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 2.0, 5.0)
+    result = v.delete(2.0)
+    assert_in_delta 2.0, result, 1e-10  # Returns deleted value
+    # Check original is modified
+    assert_equal [1.0, 3.0, 5.0], v.to_a
+  end
+
+  # Test concat
+  def test_concat
+    v1 = GSL::Vector.alloc(1.0, 2.0)
+    v2 = GSL::Vector.alloc(3.0, 4.0)
+    result = v1.concat(v2)
+    assert_equal [1.0, 2.0, 3.0, 4.0], result.to_a
+  end
+
+  # Test first and last
+  def test_first
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0, 5.0)
+    assert_in_delta 1.0, v.first, 1e-10
+  end
+
+  def test_last
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0, 5.0)
+    assert_in_delta 5.0, v.last, 1e-10
+  end
+
+  # Test cumsum and cumprod
+  def test_cumsum
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0)
+    result = v.cumsum
+    assert_equal [1.0, 3.0, 6.0, 10.0], result.to_a
+  end
+
+  def test_cumprod
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0)
+    result = v.cumprod
+    assert_equal [1.0, 2.0, 6.0, 24.0], result.to_a
+  end
+
+  # Helper to convert Block::Byte to array
+  def block_to_array(block)
+    arr = []
+    block.each { |x| arr << x }
+    arr
+  end
+
+  # Test comparison operators
+  def test_eq
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v2 = GSL::Vector.alloc(1.0, 5.0, 3.0)
+    result = v1.eq(v2)
+    assert_equal [1, 0, 1], block_to_array(result)
+  end
+
+  def test_ne
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v2 = GSL::Vector.alloc(1.0, 5.0, 3.0)
+    result = v1.ne(v2)
+    assert_equal [0, 1, 0], block_to_array(result)
+  end
+
+  def test_gt
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v2 = GSL::Vector.alloc(0.0, 2.0, 5.0)
+    result = v1.gt(v2)
+    assert_equal [1, 0, 0], block_to_array(result)
+  end
+
+  def test_ge
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v2 = GSL::Vector.alloc(0.0, 2.0, 5.0)
+    result = v1.ge(v2)
+    assert_equal [1, 1, 0], block_to_array(result)
+  end
+
+  def test_lt
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v2 = GSL::Vector.alloc(0.0, 2.0, 5.0)
+    result = v1.lt(v2)
+    assert_equal [0, 0, 1], block_to_array(result)
+  end
+
+  def test_le
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v2 = GSL::Vector.alloc(0.0, 2.0, 5.0)
+    result = v1.le(v2)
+    assert_equal [0, 1, 1], block_to_array(result)
+  end
+
+  def test_vector_and
+    v1 = GSL::Vector.alloc(0.0, 1.0, 2.0)
+    v2 = GSL::Vector.alloc(1.0, 0.0, 3.0)
+    result = v1.and(v2)
+    assert_equal [0, 0, 1], block_to_array(result)
+  end
+
+  def test_vector_or
+    v1 = GSL::Vector.alloc(0.0, 1.0, 0.0)
+    v2 = GSL::Vector.alloc(1.0, 0.0, 0.0)
+    result = v1.or(v2)
+    assert_equal [1, 1, 0], block_to_array(result)
+  end
+
+  def test_vector_xor
+    v1 = GSL::Vector.alloc(0.0, 1.0, 1.0)
+    v2 = GSL::Vector.alloc(1.0, 0.0, 1.0)
+    result = v1.xor(v2)
+    assert_equal [1, 1, 0], block_to_array(result)
+  end
+
+  def test_vector_not
+    v = GSL::Vector.alloc(0.0, 1.0, 2.0)
+    result = v.not
+    assert_equal [1, 0, 0], block_to_array(result)
+  end
+
+  # Test any, none, all
+  def test_any
+    v1 = GSL::Vector.alloc(0.0, 0.0, 0.0)
+    assert_equal 0, v1.any
+    refute v1.any?
+
+    v2 = GSL::Vector.alloc(0.0, 1.0, 0.0)
+    assert_equal 1, v2.any
+    assert v2.any?
+  end
+
+  # The 'none' method may not exist, only 'none?'
+  def test_none
+    v1 = GSL::Vector.alloc(0.0, 0.0, 0.0)
+    assert v1.none?
+
+    v2 = GSL::Vector.alloc(0.0, 1.0, 0.0)
+    refute v2.none?
+  end
+
+  # The 'all' method may not exist, only 'all?'
+  def test_all
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    assert v1.all?
+
+    v2 = GSL::Vector.alloc(0.0, 1.0, 2.0)
+    refute v2.all?
+  end
+
+  # Test where
+  def test_where
+    v = GSL::Vector.alloc(0.0, 1.0, 0.0, 2.0, 0.0)
+    indices = v.where
+    # Returns indices where values are non-zero
+    assert_includes indices.to_a, 1
+    assert_includes indices.to_a, 3
+  end
+
+  def test_where2
+    v = GSL::Vector.alloc(0.0, 1.0, 0.0, 2.0, 0.0)
+    nonzero, zero = v.where2
+    # nonzero contains indices of non-zero values
+    # zero contains indices of zero values
+    assert_equal 2, nonzero.size
+    assert_equal 3, zero.size
+  end
+
+  # Test zip
+  def test_zip
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v2 = GSL::Vector.alloc(4.0, 5.0, 6.0)
+    result = v1.zip(v2)
+    assert_kind_of Array, result
+    assert_equal 3, result.size
+  end
+
+  # Test join
+  def test_join
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    result = v.join(", ")
+    assert_kind_of String, result
+    assert_match(/1/, result)
+    assert_match(/2/, result)
+    assert_match(/3/, result)
+  end
+
+  def test_join_default
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    result = v.join
+    assert_kind_of String, result
+  end
+
+  # Test inplace operations
+  def test_add_inplace
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v2 = GSL::Vector.alloc(10.0, 20.0, 30.0)
+    v1.add!(v2)
+    assert_equal [11.0, 22.0, 33.0], v1.to_a
+  end
+
+  def test_sub_inplace
+    v1 = GSL::Vector.alloc(10.0, 20.0, 30.0)
+    v2 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v1.sub!(v2)
+    assert_equal [9.0, 18.0, 27.0], v1.to_a
+  end
+
+  def test_mul_inplace
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v2 = GSL::Vector.alloc(2.0, 3.0, 4.0)
+    v1.mul!(v2)
+    assert_equal [2.0, 6.0, 12.0], v1.to_a
+  end
+
+  def test_div_inplace
+    v1 = GSL::Vector.alloc(10.0, 20.0, 30.0)
+    v2 = GSL::Vector.alloc(2.0, 4.0, 5.0)
+    v1.div!(v2)
+    assert_equal [5.0, 5.0, 6.0], v1.to_a
+  end
+
+  # Test subvector_with_stride
+  def test_subvector_with_stride
+    v = GSL::Vector.indgen(10)  # [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    # Every other element starting from 0
+    sv = v.subvector_with_stride(2)
+    assert_equal [0.0, 2.0, 4.0, 6.0, 8.0], sv.to_a
+  end
+
+  def test_subvector_with_stride_offset
+    v = GSL::Vector.indgen(10)
+    # Every other element starting from index 1
+    sv = v.subvector_with_stride(1, 2)
+    assert_equal [1.0, 3.0, 5.0, 7.0, 9.0], sv.to_a
+  end
+
+  def test_subvector_with_stride_offset_length
+    v = GSL::Vector.indgen(10)
+    # 3 elements, starting at index 2, stride 2
+    sv = v.subvector_with_stride(2, 2, 3)
+    assert_equal [2.0, 4.0, 6.0], sv.to_a
+  end
+
+  # Test to_s and inspect
+  def test_to_s
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    s = v.to_s
+    assert_kind_of String, s
+    assert_match(/\[/, s)
+    assert_match(/\]/, s)
+  end
+
+  def test_to_s_empty
+    v = GSL::Vector.alloc(0)
+    s = v.to_s
+    assert_equal "[ ]", s
+  end
+
+  def test_inspect
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    s = v.inspect
+    assert_kind_of String, s
+    assert_match(/GSL::Vector/, s)
+  end
+
+  # Test print
+  def test_print
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    # print returns nil
+    assert_nil v.print
+  end
+
+  # Test block
+  def test_block
+    v = GSL::Vector.alloc(5)
+    b = v.block
+    assert_kind_of GSL::Block, b
+  end
+
+  # Test to_m
+  def test_to_m
+    v = GSL::Vector.indgen(6)
+    m = v.to_m(2, 3)
+    assert_kind_of GSL::Matrix, m
+    assert_equal 2, m.size1
+    assert_equal 3, m.size2
+  end
+
+  # Test histogram
+  def test_histogram
+    v = GSL::Vector.alloc(0.5, 1.5, 2.5, 3.5, 4.5)
+    h = v.histogram(5)
+    assert_kind_of GSL::Histogram, h
+    assert_equal 5, h.bins
+  end
+
+  # Test indgen_bang
+  def test_indgen_bang
+    v = GSL::Vector.alloc(5)
+    v.indgen!
+    assert_equal [0.0, 1.0, 2.0, 3.0, 4.0], v.to_a
+  end
+
+  def test_indgen_bang_with_start
+    v = GSL::Vector.alloc(5)
+    v.indgen!(10)
+    assert_equal [10.0, 11.0, 12.0, 13.0, 14.0], v.to_a
+  end
+
+  def test_indgen_bang_with_start_and_step
+    v = GSL::Vector.alloc(5)
+    v.indgen!(0, 2)
+    assert_equal [0.0, 2.0, 4.0, 6.0, 8.0], v.to_a
+  end
+
+  # Test trans! (in-place transpose)
+  def test_trans_bang
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v.trans!
+    assert_kind_of GSL::Vector::Col, v
+  end
+
+  # Test Vector::Col
+  def test_vector_col
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    col = v.col
+    assert_kind_of GSL::Vector::Col, col
+  end
+
+  def test_vector_col_to_s
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    col = v.col
+    s = col.to_s
+    assert_kind_of String, s
+    # Column vectors have newlines in their representation
+    assert_match(/\n/, s)
+  end
+
+  # Test reverse (non-destructive)
+  def test_reverse_nondestructive
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    r = v.reverse
+    assert_equal [3.0, 2.0, 1.0], r.to_a
+    # Original unchanged
+    assert_equal [1.0, 2.0, 3.0], v.to_a
+  end
+
+  # Test with permutation for get
+  def test_get_with_permutation
+    v = GSL::Vector.alloc(10.0, 20.0, 30.0, 40.0, 50.0)
+    p = GSL::Permutation.alloc(3)
+    p[0] = 4
+    p[1] = 2
+    p[2] = 0
+    result = v[p]
+    assert_equal [50.0, 30.0, 10.0], result.to_a
+  end
+
+  # Test set with subvector from array
+  def test_set_subvector_from_array
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0, 5.0)
+    v.set(1, 3, [10.0, 20.0, 30.0])
+    assert_equal [1.0, 10.0, 20.0, 30.0, 5.0], v.to_a
+  end
+
+  # Test set with subvector from range
+  def test_set_subvector_from_range
+    v = GSL::Vector.alloc(5)
+    v.set(0, 5, 1..5)
+    assert_equal [1.0, 2.0, 3.0, 4.0, 5.0], v.to_a
+  end
+
+  # Test alloc with single float value
+  def test_alloc_with_float
+    v = GSL::Vector.alloc(3.14)
+    assert_equal 1, v.size
+    assert_in_delta 3.14, v[0], 1e-10
+  end
+
+  # Test Int sort
+  def test_int_sort
+    v = GSL::Vector::Int.alloc(3, 1, 4, 1, 5)
+    sorted = v.sort
+    assert_equal [1, 1, 3, 4, 5], sorted.to_a
+  end
+
+  def test_int_sort_bang
+    v = GSL::Vector::Int.alloc(3, 1, 4, 1, 5)
+    v.sort!
+    assert_equal [1, 1, 3, 4, 5], v.to_a
+  end
+
+  # Test Int abs
+  def test_int_abs
+    v = GSL::Vector::Int.alloc(-1, 2, -3)
+    result = v.abs
+    assert_equal [1, 2, 3], result.to_a
+  end
+
+  # Test Int sgn
+  def test_int_sgn
+    v = GSL::Vector::Int.alloc(-2, 0, 3)
+    result = v.sgn
+    assert_equal [-1, 0, 1], result.to_a
+  end
+
+  # Test add_constant!
+  def test_add_constant_bang
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v.add_constant!(5.0)
+    assert_equal [6.0, 7.0, 8.0], v.to_a
+  end
+
+  # Test equal? with epsilon
+  def test_equal_with_epsilon
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v2 = GSL::Vector.alloc(1.0001, 2.0001, 3.0001)
+    refute v1.equal?(v2, 1e-5)
+    assert v1.equal?(v2, 1e-3)
+  end
+
+  # Test equal? with scalar
+  def test_equal_with_scalar
+    v = GSL::Vector.alloc(5.0, 5.0, 5.0)
+    assert v.equal?(5.0)
+    refute v.equal?(6.0)
+  end
+
+  # Test collect!
+  def test_collect_bang
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v.collect! { |x| x * x }
+    assert_equal [1.0, 4.0, 9.0], v.to_a
+  end
+
+  # Test Int collect!
+  def test_int_collect_bang
+    v = GSL::Vector::Int.alloc(1, 2, 3)
+    v.collect! { |x| x * 2 }
+    assert_equal [2, 4, 6], v.to_a
+  end
+
+  # Test Int collect
+  def test_int_collect
+    v = GSL::Vector::Int.alloc(1, 2, 3)
+    result = v.collect { |x| x * 2 }
+    assert_equal [2, 4, 6], result.to_a
+    # Original unchanged
+    assert_equal [1, 2, 3], v.to_a
+  end
+
+  # Test view from subvector
+  def test_view_size
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0, 5.0)
+    view = v.subvector(1, 3)
+    assert_equal 3, view.size
+  end
+
+  def test_view_stride
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0, 5.0)
+    view = v.subvector(0, 2, 2)  # offset=0, stride=2, length=2
+    assert_equal 2, view.stride
+  end
+
+  # Test clone from view
+  def test_clone_from_view
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0, 5.0)
+    view = v.subvector(1, 3)
+    cloned = view.clone
+    assert_equal [2.0, 3.0, 4.0], cloned.to_a
+    # Cloned is a regular vector, not a view
+    assert_kind_of GSL::Vector, cloned
+  end
+
+  # Test Int view
+  def test_int_view
+    v = GSL::Vector::Int.indgen(5)
+    view = v.subvector(1, 3)
+    assert_kind_of GSL::Vector::Int::View, view
+    assert_equal [1, 2, 3], view.to_a
+  end
+
+  # Test Int memcpy
+  def test_int_memcpy
+    src = GSL::Vector::Int.alloc(1, 2, 3)
+    dest = GSL::Vector::Int.alloc(3)
+    GSL::Vector::Int.memcpy(dest, src)
+    assert_equal [1, 2, 3], dest.to_a
+  end
+
+  # Test Int swap
+  def test_int_swap
+    v = GSL::Vector::Int.alloc(1, 2, 3)
+    w = GSL::Vector::Int.alloc(4, 5, 6)
+    GSL::Vector::Int.swap(v, w)
+    assert_equal [4, 5, 6], v.to_a
+    assert_equal [1, 2, 3], w.to_a
+  end
+
+  # Test Vector::Int::Col
+  def test_int_col
+    v = GSL::Vector::Int.alloc(1, 2, 3)
+    col = v.col
+    assert_kind_of GSL::Vector::Int::Col, col
+  end
+
+  def test_int_trans
+    v = GSL::Vector::Int.alloc(1, 2, 3)
+    col = v.trans
+    assert_kind_of GSL::Vector::Int::Col, col
+  end
+
+  def test_int_trans_bang
+    v = GSL::Vector::Int.alloc(1, 2, 3)
+    v.trans!
+    assert_kind_of GSL::Vector::Int::Col, v
+  end
+
+  # Test Int comparison operations
+  def test_int_eq
+    v1 = GSL::Vector::Int.alloc(1, 2, 3)
+    v2 = GSL::Vector::Int.alloc(1, 5, 3)
+    result = v1.eq(v2)
+    # Int comparison returns GSL::Block::Byte, convert to array manually
+    arr = []
+    result.each { |x| arr << x }
+    assert_equal [1, 0, 1], arr
+  end
+
+  def test_int_gt
+    v1 = GSL::Vector::Int.alloc(1, 2, 3)
+    v2 = GSL::Vector::Int.alloc(0, 2, 5)
+    result = v1.gt(v2)
+    # Int comparison returns GSL::Block::Byte, convert to array manually
+    arr = []
+    result.each { |x| arr << x }
+    assert_equal [1, 0, 0], arr
+  end
+
+  # Test Int any/all/none
+  def test_int_any
+    v1 = GSL::Vector::Int.alloc(0, 0, 0)
+    refute v1.any?
+
+    v2 = GSL::Vector::Int.alloc(0, 1, 0)
+    assert v2.any?
+  end
+
+  def test_int_all
+    v1 = GSL::Vector::Int.alloc(1, 2, 3)
+    assert v1.all?
+
+    v2 = GSL::Vector::Int.alloc(0, 1, 2)
+    refute v2.all?
+  end
+
+  def test_int_none
+    v1 = GSL::Vector::Int.alloc(0, 0, 0)
+    assert v1.none?
+
+    v2 = GSL::Vector::Int.alloc(0, 1, 0)
+    refute v2.none?
+  end
+
+  # Test Int where
+  def test_int_where
+    v = GSL::Vector::Int.alloc(0, 1, 0, 2, 0)
+    indices = v.where
+    assert_includes indices.to_a, 1
+    assert_includes indices.to_a, 3
+  end
+
+  # Test Int cumsum/cumprod
+  def test_int_cumsum
+    v = GSL::Vector::Int.alloc(1, 2, 3, 4)
+    result = v.cumsum
+    assert_equal [1, 3, 6, 10], result.to_a
+  end
+
+  def test_int_cumprod
+    v = GSL::Vector::Int.alloc(1, 2, 3, 4)
+    result = v.cumprod
+    assert_equal [1, 2, 6, 24], result.to_a
+  end
+
+  # Test Int inner_product via singleton
+  def test_inner_product_singleton
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v2 = GSL::Vector.alloc(4.0, 5.0, 6.0)
+    result = GSL::Vector.inner_product(v1, v2)
+    assert_in_delta 32.0, result, 1e-10
+  end
+
+  # ========== Block tests ==========
+
+  def test_block_alloc
+    b = GSL::Block.alloc(5)
+    assert_kind_of GSL::Block, b
+    assert_equal 5, b.size
+  end
+
+  def test_block_calloc
+    b = GSL::Block.calloc(5)
+    assert_kind_of GSL::Block, b
+    assert_equal 5, b.size
+    # calloc initializes to zero
+    5.times { |i| assert_in_delta 0.0, b[i], 1e-10 }
+  end
+
+  def test_block_get_set
+    b = GSL::Block.alloc(5)
+    b[0] = 1.0
+    b[1] = 2.0
+    b[2] = 3.0
+    assert_in_delta 1.0, b[0], 1e-10
+    assert_in_delta 2.0, b[1], 1e-10
+    assert_in_delta 3.0, b[2], 1e-10
+  end
+
+  def test_block_to_s
+    b = GSL::Block.alloc(3)
+    b[0] = 1.0
+    b[1] = 2.0
+    b[2] = 3.0
+    s = b.to_s
+    assert_kind_of String, s
+  end
+
+  def test_block_inspect
+    b = GSL::Block.alloc(3)
+    s = b.inspect
+    assert_kind_of String, s
+    assert_match(/Block/, s)
+  end
+
+  def test_block_size
+    b = GSL::Block.alloc(7)
+    assert_equal 7, b.size
+  end
+
+  def test_block_each
+    b = GSL::Block.alloc(3)
+    b[0] = 1.0
+    b[1] = 2.0
+    b[2] = 3.0
+    values = []
+    b.each { |x| values << x }
+    assert_equal 3, values.size
+    assert_in_delta 1.0, values[0], 1e-10
+    assert_in_delta 2.0, values[1], 1e-10
+    assert_in_delta 3.0, values[2], 1e-10
+  end
+
+  def test_block_collect
+    b = GSL::Block.alloc(3)
+    b[0] = 1.0
+    b[1] = 2.0
+    b[2] = 3.0
+    result = b.collect { |x| x * 2 }
+    assert_kind_of GSL::Block, result
+    assert_in_delta 2.0, result[0], 1e-10
+    assert_in_delta 4.0, result[1], 1e-10
+    assert_in_delta 6.0, result[2], 1e-10
+  end
+
+  def test_block_get_with_range
+    b = GSL::Block.alloc(5)
+    5.times { |i| b[i] = i.to_f }
+    result = b[1..3]
+    assert_kind_of GSL::Block, result
+    assert_equal 3, result.size
+  end
+
+  def test_block_get_with_array
+    b = GSL::Block.alloc(5)
+    5.times { |i| b[i] = i.to_f * 10 }
+    result = b[[0, 2, 4]]
+    assert_kind_of GSL::Block, result
+    assert_equal 3, result.size
+    assert_in_delta 0.0, result[0], 1e-10
+    assert_in_delta 20.0, result[1], 1e-10
+    assert_in_delta 40.0, result[2], 1e-10
+  end
+
+  def test_block_fwrite_fread
+    b = GSL::Block.alloc(3)
+    b[0] = 1.5
+    b[1] = 2.5
+    b[2] = 3.5
+    filename = "/tmp/test_block_#{$$}.bin"
+    begin
+      File.open(filename, 'wb') { |f| b.fwrite(f) }
+      b2 = GSL::Block.alloc(3)
+      File.open(filename, 'rb') { |f| b2.fread(f) }
+      3.times { |i| assert_in_delta b[i], b2[i], 1e-10 }
+    ensure
+      File.delete(filename) if File.exist?(filename)
+    end
+  end
+
+  def test_block_fprintf_fscanf
+    b = GSL::Block.alloc(3)
+    b[0] = 1.5
+    b[1] = 2.5
+    b[2] = 3.5
+    filename = "/tmp/test_block_#{$$}.txt"
+    begin
+      File.open(filename, 'w') { |f| b.fprintf(f, "%.1f") }
+      b2 = GSL::Block.alloc(3)
+      File.open(filename, 'r') { |f| b2.fscanf(f) }
+      3.times { |i| assert_in_delta b[i], b2[i], 0.1 }
+    ensure
+      File.delete(filename) if File.exist?(filename)
+    end
+  end
+
+  def test_block_comparison_eq
+    b1 = GSL::Block.alloc(3)
+    b2 = GSL::Block.alloc(3)
+    3.times { |i|
+      b1[i] = i.to_f
+      b2[i] = i.to_f
+    }
+    b2[1] = 10.0  # Make one different
+    result = b1.eq(b2)
+    arr = block_to_array(result)
+    assert_equal [1, 0, 1], arr
+  end
+
+  def test_block_comparison_ne
+    b1 = GSL::Block.alloc(3)
+    b2 = GSL::Block.alloc(3)
+    3.times { |i|
+      b1[i] = i.to_f
+      b2[i] = i.to_f
+    }
+    b2[1] = 10.0
+    result = b1.ne(b2)
+    arr = block_to_array(result)
+    assert_equal [0, 1, 0], arr
+  end
+
+  def test_block_comparison_gt
+    b1 = GSL::Block.alloc(3)
+    b2 = GSL::Block.alloc(3)
+    b1[0] = 5.0; b2[0] = 3.0  # gt
+    b1[1] = 3.0; b2[1] = 3.0  # eq
+    b1[2] = 1.0; b2[2] = 3.0  # lt
+    result = b1.gt(b2)
+    arr = block_to_array(result)
+    assert_equal [1, 0, 0], arr
+  end
+
+  def test_block_comparison_ge
+    b1 = GSL::Block.alloc(3)
+    b2 = GSL::Block.alloc(3)
+    b1[0] = 5.0; b2[0] = 3.0
+    b1[1] = 3.0; b2[1] = 3.0
+    b1[2] = 1.0; b2[2] = 3.0
+    result = b1.ge(b2)
+    arr = block_to_array(result)
+    assert_equal [1, 1, 0], arr
+  end
+
+  def test_block_comparison_lt
+    b1 = GSL::Block.alloc(3)
+    b2 = GSL::Block.alloc(3)
+    b1[0] = 5.0; b2[0] = 3.0
+    b1[1] = 3.0; b2[1] = 3.0
+    b1[2] = 1.0; b2[2] = 3.0
+    result = b1.lt(b2)
+    arr = block_to_array(result)
+    assert_equal [0, 0, 1], arr
+  end
+
+  def test_block_comparison_le
+    b1 = GSL::Block.alloc(3)
+    b2 = GSL::Block.alloc(3)
+    b1[0] = 5.0; b2[0] = 3.0
+    b1[1] = 3.0; b2[1] = 3.0
+    b1[2] = 1.0; b2[2] = 3.0
+    result = b1.le(b2)
+    arr = block_to_array(result)
+    assert_equal [0, 1, 1], arr
+  end
+
+  def test_block_and
+    b1 = GSL::Block.alloc(3)
+    b2 = GSL::Block.alloc(3)
+    b1[0] = 0.0; b2[0] = 1.0
+    b1[1] = 1.0; b2[1] = 0.0
+    b1[2] = 1.0; b2[2] = 1.0
+    result = b1.and(b2)
+    arr = block_to_array(result)
+    assert_equal [0, 0, 1], arr
+  end
+
+  def test_block_or
+    b1 = GSL::Block.alloc(3)
+    b2 = GSL::Block.alloc(3)
+    b1[0] = 0.0; b2[0] = 0.0
+    b1[1] = 1.0; b2[1] = 0.0
+    b1[2] = 0.0; b2[2] = 1.0
+    result = b1.or(b2)
+    arr = block_to_array(result)
+    assert_equal [0, 1, 1], arr
+  end
+
+  def test_block_xor
+    b1 = GSL::Block.alloc(3)
+    b2 = GSL::Block.alloc(3)
+    b1[0] = 0.0; b2[0] = 1.0
+    b1[1] = 1.0; b2[1] = 0.0
+    b1[2] = 1.0; b2[2] = 1.0
+    result = b1.xor(b2)
+    arr = block_to_array(result)
+    assert_equal [1, 1, 0], arr
+  end
+
+  def test_block_not
+    b = GSL::Block.alloc(3)
+    b[0] = 0.0
+    b[1] = 1.0
+    b[2] = 2.0
+    result = b.not
+    arr = block_to_array(result)
+    assert_equal [1, 0, 0], arr
+  end
+
+  def test_block_any
+    b1 = GSL::Block.alloc(3)
+    b1[0] = 0.0; b1[1] = 0.0; b1[2] = 0.0
+    refute b1.any?
+
+    b2 = GSL::Block.alloc(3)
+    b2[0] = 0.0; b2[1] = 1.0; b2[2] = 0.0
+    assert b2.any?
+  end
+
+  def test_block_all
+    b1 = GSL::Block.alloc(3)
+    b1[0] = 1.0; b1[1] = 2.0; b1[2] = 3.0
+    assert b1.all?
+
+    b2 = GSL::Block.alloc(3)
+    b2[0] = 0.0; b2[1] = 1.0; b2[2] = 2.0
+    refute b2.all?
+  end
+
+  def test_block_none
+    b1 = GSL::Block.alloc(3)
+    b1[0] = 0.0; b1[1] = 0.0; b1[2] = 0.0
+    assert b1.none?
+
+    b2 = GSL::Block.alloc(3)
+    b2[0] = 0.0; b2[1] = 1.0; b2[2] = 0.0
+    refute b2.none?
+  end
+
+  def test_block_where
+    b = GSL::Block.alloc(5)
+    b[0] = 0.0
+    b[1] = 1.0
+    b[2] = 0.0
+    b[3] = 2.0
+    b[4] = 0.0
+    indices = b.where
+    # Indices where non-zero
+    assert_includes indices.to_a, 1
+    assert_includes indices.to_a, 3
+  end
+
+  def test_block_where2
+    b = GSL::Block.alloc(5)
+    b[0] = 0.0
+    b[1] = 1.0
+    b[2] = 0.0
+    b[3] = 2.0
+    b[4] = 0.0
+    nonzero, zero = b.where2
+    assert_equal 2, nonzero.size
+    assert_equal 3, zero.size
+  end
+
 end
