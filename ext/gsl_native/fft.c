@@ -939,8 +939,8 @@ static VALUE rb_gsl_fft_halfcomplex_amp_phase(VALUE obj)
     gsl_vector_set(amp, i/2+1, sqrt(re*re + im*im));
     gsl_vector_set(phase, i/2+1, atan2(im, re));
   }
-  vamp = Data_Wrap_Struct(VECTOR_ROW_COL(obj), 0, gsl_vector_free, amp);
-  vphase = Data_Wrap_Struct(VECTOR_ROW_COL(obj), 0, gsl_vector_free, phase);
+  vamp = TypedData_Wrap_Struct(VECTOR_ROW_COL(obj), &gsl_vector_data_type, amp);
+  vphase = TypedData_Wrap_Struct(VECTOR_ROW_COL(obj), &gsl_vector_data_type, phase);
   return rb_ary_new3(2, vamp, vphase);
 }
 

@@ -119,7 +119,7 @@ static double rb_gsl_monte_function_f(double *x, size_t dim, void *p)
   vtmp.data = x;
   vtmp.size = dim;
   vtmp.stride = 1;
-  vx = Data_Wrap_Struct(cgsl_vector, 0, NULL, &vtmp);
+  vx = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, &vtmp);
   ary = (VALUE) p;
   proc = rb_ary_entry(ary, 0);
   params = rb_ary_entry(ary, 1);

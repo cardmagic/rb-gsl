@@ -165,8 +165,32 @@ class TypedDataMigrator
     'gsl_ntuple_select_fn' => 'cgsl_ntuple_select_fn',
   }.freeze
 
-  # Patterns that need manual handling
-  SKIP_PATTERNS = /^(GSL_TYPE|QUALIFIED_VIEW|CONCAT|FUNCTION|VECTOR_.*ROW_COL|VEC_ROW_COL)\(|^CLASS_OF|^klass$|^argv\[/
+  # Patterns that need manual handling - completely skip these
+  SKIP_PATTERNS = /^(GSL_TYPE|QUALIFIED_VIEW|CONCAT|FUNCTION)\(|^CLASS_OF|^klass$|^argv\[/
+
+  # Runtime class patterns that can be handled with known data types
+  # Maps the macro/class pattern to its data type
+  RUNTIME_CLASS_TO_TYPE = {
+    # Vector types
+    'VECTOR_ROW_COL(obj)' => 'gsl_vector_data_type',
+    'VECTOR_ROW_COL(argv[0])' => 'gsl_vector_data_type',
+    'VEC_ROW_COL(obj)' => 'gsl_vector_data_type',
+    'VEC_ROW_COL(argv[0])' => 'gsl_vector_data_type',
+    # Vector int types
+    'VECTOR_INT_ROW_COL(obj)' => 'gsl_vector_int_data_type',
+    'VECTOR_INT_ROW_COL(argv[0])' => 'gsl_vector_int_data_type',
+    # Vector complex types
+    'VECTOR_COMPLEX_ROW_COL(obj)' => 'gsl_vector_complex_data_type',
+    'VECTOR_COMPLEX_ROW_COL(argv[0])' => 'gsl_vector_complex_data_type',
+    # Matrix types
+    'MATRIX_ROW_COL(obj)' => 'gsl_matrix_data_type',
+    'MATRIX_ROW_COL(argv[0])' => 'gsl_matrix_data_type',
+    'MATRIX_INT_ROW_COL(obj)' => 'gsl_matrix_int_data_type',
+    'MATRIX_COMPLEX_ROW_COL(obj)' => 'gsl_matrix_complex_data_type',
+  }.freeze
+
+  # Pattern to detect runtime class macros that we don't have a mapping for
+  RUNTIME_CLASS_MACRO_PATTERN = /^(VECTOR|MATRIX|VEC).*ROW_COL\(/
 
   # Runtime class patterns
   RUNTIME_PATTERNS = {
@@ -339,37 +363,109 @@ class TypedDataMigrator
     original = content.dup
     changes = []
 
-    # Replace Data_Wrap_Struct
-    content.gsub!(/Data_Wrap_Struct\s*\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^)]+)\)/) do |match|
-      cls = $1.strip
-      mark = $2.strip
-      free = $3.strip
-      ptr = $4.strip
+    # Helper to match balanced parentheses for a single argument
+    # Returns the argument and the position after it
+    def extract_arg(str, start_pos)
+      depth = 0
+      pos = start_pos
+      arg_start = pos
 
-      if type = @class_to_type[cls]
-        new_code = "TypedData_Wrap_Struct(#{cls}, &#{type}, #{ptr})"
-        changes << { type: :wrap, old: match, new: new_code }
-        new_code
-      else
-        match
+      # Skip leading whitespace
+      while pos < str.length && str[pos] =~ /\s/
+        pos += 1
+        arg_start = pos
       end
+
+      while pos < str.length
+        char = str[pos]
+        case char
+        when '('
+          depth += 1
+        when ')'
+          if depth == 0
+            return [str[arg_start...pos].strip, pos]
+          end
+          depth -= 1
+        when ','
+          if depth == 0
+            return [str[arg_start...pos].strip, pos + 1]
+          end
+        end
+        pos += 1
+      end
+      [str[arg_start...pos].strip, pos]
     end
 
-    # Replace Data_Get_Struct
-    content.gsub!(/Data_Get_Struct\s*\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^)]+)\)/) do |match|
-      obj = $1.strip
-      ctype = $2.strip
-      ptr = $3.strip
+    # Replace Data_Wrap_Struct - use line-by-line to avoid cross-line issues
+    new_lines = []
+    content.each_line do |line|
+      # Skip lines that already have TypedData
+      if line.include?('TypedData_Wrap_Struct') || line.include?('TypedData_Get_Struct')
+        new_lines << line
+        next
+      end
 
-      if class_var = STRUCT_TO_CLASS[ctype]
-        if type = @class_to_type[class_var]
-          new_code = "TypedData_Get_Struct(#{obj}, #{ctype}, &#{type}, #{ptr})"
-          changes << { type: :get, old: match, new: new_code }
-          next new_code
+      # Process Data_Wrap_Struct
+      if line =~ /Data_Wrap_Struct\s*\(/
+        line = line.gsub(/Data_Wrap_Struct\s*\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^);]+)\s*\)/) do |match|
+          cls = $1.strip
+          mark = $2.strip
+          free = $3.strip
+          ptr = $4.strip
+
+          # Skip if already looks like TypedData format
+          if mark.include?('&') || mark.include?('data_type')
+            match
+          # Skip complete skip patterns
+          elsif cls =~ SKIP_PATTERNS
+            match
+          # Handle runtime class macros with known types
+          elsif runtime_type = RUNTIME_CLASS_TO_TYPE[cls]
+            new_code = "TypedData_Wrap_Struct(#{cls}, &#{runtime_type}, #{ptr})"
+            changes << { type: :wrap, old: match.strip, new: new_code }
+            new_code
+          # Skip unknown runtime class macros (we don't have a mapping for them)
+          elsif cls =~ RUNTIME_CLASS_MACRO_PATTERN
+            match
+          # Handle static class mappings
+          elsif type = @class_to_type[cls]
+            new_code = "TypedData_Wrap_Struct(#{cls}, &#{type}, #{ptr})"
+            changes << { type: :wrap, old: match.strip, new: new_code }
+            new_code
+          else
+            match
+          end
         end
       end
-      match
+
+      # Process Data_Get_Struct
+      if line =~ /Data_Get_Struct\s*\(/
+        line = line.gsub(/Data_Get_Struct\s*\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^);]+)\s*\)/) do |match|
+          obj = $1.strip
+          ctype = $2.strip
+          ptr = $3.strip
+
+          # Skip if ptr already contains a type reference (already migrated)
+          if ptr.include?('&') || ptr.include?('data_type')
+            match
+          elsif class_var = STRUCT_TO_CLASS[ctype]
+            if type = @class_to_type[class_var]
+              new_code = "TypedData_Get_Struct(#{obj}, #{ctype}, &#{type}, #{ptr})"
+              changes << { type: :get, old: match.strip, new: new_code }
+              new_code
+            else
+              match
+            end
+          else
+            match
+          end
+        end
+      end
+
+      new_lines << line
     end
+
+    content = new_lines.join
 
     puts "File: #{filename}"
     puts "Changes: #{changes.size}"
@@ -378,8 +474,8 @@ class TypedDataMigrator
       puts "\nPreview (first 5):"
       changes.first(5).each_with_index do |c, i|
         puts "  #{i + 1}. [#{c[:type]}]"
-        puts "     - #{c[:old][0, 60]}..."
-        puts "     + #{c[:new][0, 60]}..."
+        puts "     - #{c[:old][0, 70]}#{c[:old].length > 70 ? '...' : ''}"
+        puts "     + #{c[:new][0, 70]}#{c[:new].length > 70 ? '...' : ''}"
       end
 
       if apply
@@ -417,8 +513,9 @@ class TypedDataMigrator
       content = File.read(file)
       basename = File.basename(file)
 
-      wrap_count = content.scan(/Data_Wrap_Struct/).size
-      get_count = content.scan(/Data_Get_Struct/).size
+      # Count only non-TypedData versions
+      wrap_count = content.scan(/(?<!Typed)Data_Wrap_Struct/).size
+      get_count = content.scan(/(?<!Typed)Data_Get_Struct/).size
 
       if wrap_count > 0 || get_count > 0
         files_with_legacy << [basename, wrap_count, get_count]

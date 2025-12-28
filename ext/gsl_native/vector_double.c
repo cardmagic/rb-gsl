@@ -172,7 +172,7 @@ static VALUE rb_gsl_vector_arithmetics(int flag, VALUE obj, VALUE bb)
     if (!VECTOR_VIEW_P(obj))
       return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_vector_free, vnew);
     else
-      return Data_Wrap_Struct(VECTOR_ROW_COL(obj), 0, gsl_vector_free, vnew);
+      return TypedData_Wrap_Struct(VECTOR_ROW_COL(obj), &gsl_vector_data_type, vnew);
     break;
   default:
     if (VECTOR_INT_P(bb)) bb = rb_gsl_vector_int_to_f(bb);
@@ -199,7 +199,7 @@ static VALUE rb_gsl_vector_arithmetics(int flag, VALUE obj, VALUE bb)
       if (!VECTOR_VIEW_P(obj))
         return Data_Wrap_Struct(CLASS_OF(obj), 0, gsl_vector_free, vnew);
       else
-        return Data_Wrap_Struct(VECTOR_ROW_COL(obj), 0, gsl_vector_free, vnew);
+        return TypedData_Wrap_Struct(VECTOR_ROW_COL(obj), &gsl_vector_data_type, vnew);
     } else if (VECTOR_COMPLEX_P(bb)) {
       TypedData_Get_Struct(bb, gsl_vector_complex, &gsl_vector_complex_data_type, cb);
       cvnew = vector_to_complex(v);
@@ -401,7 +401,7 @@ static VALUE rb_gsl_vector_coerce(VALUE obj, VALUE other)
     vnew = gsl_vector_alloc(v->size);
     if (vnew == NULL) rb_raise(rb_eNoMemError, "gsl_vector_alloc failed");
     gsl_vector_set_all(vnew, NUM2DBL(other));
-    vv = Data_Wrap_Struct(VECTOR_ROW_COL(obj), 0, gsl_vector_free, vnew);
+    vv = TypedData_Wrap_Struct(VECTOR_ROW_COL(obj), &gsl_vector_data_type, vnew);
     return rb_ary_new3(2, vv, obj);
     break;
   default:
@@ -860,7 +860,7 @@ static VALUE rb_gsl_vector_normalize(int argc, VALUE *argv, VALUE obj)
   sd = gsl_stats_sd(vnew->data, vnew->stride, vnew->size);
   gsl_vector_scale(vnew, sqrt(nrm)/sd);*/
   gsl_vector_scale(vnew, nrm/gsl_blas_dnrm2(v));
-  return Data_Wrap_Struct(VECTOR_ROW_COL(obj), 0, gsl_vector_free, vnew);
+  return TypedData_Wrap_Struct(VECTOR_ROW_COL(obj), &gsl_vector_data_type, vnew);
 }
 
 static VALUE rb_gsl_vector_normalize_bang(int argc, VALUE *argv, VALUE obj)
@@ -964,7 +964,7 @@ static VALUE rb_gsl_vector_decimate(VALUE obj, VALUE nn)
     gsl_vector_set(vnew, i, gsl_stats_mean(vv.vector.data, vv.vector.stride,
                                            vv.vector.size));
   }
-  return Data_Wrap_Struct(VECTOR_ROW_COL(obj), 0, gsl_vector_free, vnew);
+  return TypedData_Wrap_Struct(VECTOR_ROW_COL(obj), &gsl_vector_data_type, vnew);
 }
 
 static VALUE rb_gsl_vector_xxx(VALUE obj, double (*f)(double))
@@ -1273,8 +1273,8 @@ static VALUE rb_gsl_vector_amp_phase(VALUE obj)
     gsl_vector_set(amp, i/2+1, sqrt(re*re + im*im));
     gsl_vector_set(phase, i/2+1, atan2(im, re));
   }
-  vamp = Data_Wrap_Struct(VECTOR_ROW_COL(obj), 0, gsl_vector_free, amp);
-  vphase = Data_Wrap_Struct(VECTOR_ROW_COL(obj), 0, gsl_vector_free, phase);
+  vamp = TypedData_Wrap_Struct(VECTOR_ROW_COL(obj), &gsl_vector_data_type, amp);
+  vphase = TypedData_Wrap_Struct(VECTOR_ROW_COL(obj), &gsl_vector_data_type, phase);
   return rb_ary_new3(2, vamp, vphase);
 }
 

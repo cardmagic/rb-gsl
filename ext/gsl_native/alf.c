@@ -10,7 +10,7 @@ static VALUE rb_alf_alloc(VALUE klass, VALUE lmax)
 {
   alf_workspace *w = NULL;
   w = alf_alloc(FIX2INT(lmax));
-  return Data_Wrap_Struct(cWspace, 0, alf_free, w);
+  return TypedData_Wrap_Struct(cWspace, &Wspace_data_type, w);
 }
 
 static VALUE rb_alf_params(VALUE obj, VALUE csphase, VALUE cnorm, VALUE norm)
@@ -52,12 +52,12 @@ static VALUE rb_alf_Plm_array(int argc, VALUE *argv, VALUE obj)
     x = NUM2DBL(argv[0]);
     lmax = w->lmax;
     res = gsl_vector_alloc(alf_array_size(lmax));
-    ret = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, res);
+    ret = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, res);
     break;
   case 2: // Plm_array(x, result) or Plm_array(lmax, x)
     if (VECTOR_P(argv[1])) {
       x = NUM2DBL(argv[0]);
-      Data_Get_Struct(argv[1], gsl_vector, res);
+      TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, res);
       lmax = w->lmax;
       if (res->size < alf_array_size(lmax)) {
         rb_raise(rb_eRuntimeError, "Vector length is too small. (%d for >= %d\n", (int) res->size,
@@ -68,7 +68,7 @@ static VALUE rb_alf_Plm_array(int argc, VALUE *argv, VALUE obj)
       lmax = FIX2INT(argv[0]);
       x = NUM2DBL(argv[1]);
       res = gsl_vector_alloc(alf_array_size(lmax));
-      ret = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, res);
+      ret = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, res);
     }
     break;
   case 3: // Plm_array(lmax, x, result) or Plm_array(x, result, deriv)
@@ -76,14 +76,14 @@ static VALUE rb_alf_Plm_array(int argc, VALUE *argv, VALUE obj)
       CHECK_VECTOR(argv[2]);
       lmax = w->lmax;
       x = NUM2DBL(argv[0]);
-      Data_Get_Struct(argv[1], gsl_vector, res);
-      Data_Get_Struct(argv[2], gsl_vector, deriv);
+      TypedData_Get_Struct(argv[1], gsl_vector, &gsl_vector_data_type, res);
+      TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, deriv);
       ret = argv[1];
     } else {
       lmax = FIX2INT(argv[0]);
       x = NUM2DBL(argv[1]);
       CHECK_VECTOR(argv[2]);
-      Data_Get_Struct(argv[2], gsl_vector, res);
+      TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, res);
       if (res->size < alf_array_size(lmax)) {
         rb_raise(rb_eRuntimeError, "Vector length is too small. (%d for >= %d\n", (int) res->size,
                  (int) alf_array_size(lmax));
@@ -95,8 +95,8 @@ static VALUE rb_alf_Plm_array(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR(argv[2]); CHECK_VECTOR(argv[3])
     lmax = FIX2INT(argv[0]);
     x = NUM2DBL(argv[1]);
-    Data_Get_Struct(argv[2], gsl_vector, res);
-    Data_Get_Struct(argv[3], gsl_vector, deriv);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, res);
+    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, deriv);
     ret = argv[2];
     break;
   default:
@@ -127,16 +127,16 @@ static VALUE rb_alf_Plm_deriv_array(int argc, VALUE *argv, VALUE obj)
     lmax = w->lmax;
     res = gsl_vector_alloc(alf_array_size(lmax));
     deriv = gsl_vector_alloc(alf_array_size(lmax));
-    ret1 = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, res);
-    ret2 = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, deriv);
+    ret1 = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, res);
+    ret2 = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, deriv);
     break;
   case 2:
     lmax = FIX2INT(argv[1]);
     x = NUM2DBL(argv[1]);
     res = gsl_vector_alloc(alf_array_size(lmax));
     deriv = gsl_vector_alloc(alf_array_size(lmax));
-    ret1 = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, res);
-    ret2 = Data_Wrap_Struct(cgsl_vector, 0, gsl_vector_free, deriv);
+    ret1 = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, res);
+    ret2 = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, deriv);
     break;
   case 3:
     CHECK_VECTOR(argv[1]);
@@ -151,8 +151,8 @@ static VALUE rb_alf_Plm_deriv_array(int argc, VALUE *argv, VALUE obj)
     x = NUM2DBL(argv[1]);
     CHECK_VECTOR(argv[2]);
     CHECK_VECTOR(argv[3]);
-    Data_Get_Struct(argv[2], gsl_vector, res);
-    Data_Get_Struct(argv[3], gsl_vector, deriv);
+    TypedData_Get_Struct(argv[2], gsl_vector, &gsl_vector_data_type, res);
+    TypedData_Get_Struct(argv[3], gsl_vector, &gsl_vector_data_type, deriv);
     if (res->size < alf_array_size(lmax)) {
       rb_raise(rb_eRuntimeError, "Vector length is too small. (%d for >= %d\n", (int) res->size,
                (int) alf_array_size(lmax));

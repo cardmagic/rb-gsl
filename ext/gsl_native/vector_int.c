@@ -66,7 +66,7 @@ static VALUE rb_gsl_vector_int_coerce(VALUE obj, VALUE other)
     vnew = gsl_vector_int_alloc(v->size);
     if (vnew == NULL) rb_raise(rb_eNoMemError, "gsl_vector_int_alloc failed");
     gsl_vector_int_set_all(vnew, FIX2INT(other));
-    vv = Data_Wrap_Struct(VECTOR_INT_ROW_COL(obj), 0, gsl_vector_int_free, vnew);
+    vv = TypedData_Wrap_Struct(VECTOR_INT_ROW_COL(obj), &gsl_vector_int_data_type, vnew);
     return rb_ary_new3(2, vv, obj);
     break;
   default:
@@ -96,7 +96,7 @@ static VALUE rb_gsl_vector_int_add(VALUE obj, VALUE b)
       vnew = gsl_vector_int_alloc(v->size);
       gsl_vector_int_memcpy(vnew, v);
       gsl_vector_int_add(vnew, vb);
-      return Data_Wrap_Struct(VECTOR_INT_ROW_COL(obj), 0, gsl_vector_int_free, vnew);
+      return TypedData_Wrap_Struct(VECTOR_INT_ROW_COL(obj), &gsl_vector_int_data_type, vnew);
     } else {
       return rb_gsl_vector_add(rb_gsl_vector_int_to_f(obj), b);
     }
@@ -122,7 +122,7 @@ static VALUE rb_gsl_vector_int_sub(VALUE obj, VALUE b)
       vnew = gsl_vector_int_alloc(v->size);
       gsl_vector_int_memcpy(vnew, v);
       gsl_vector_int_sub(vnew, vb);
-      return Data_Wrap_Struct(VECTOR_INT_ROW_COL(obj), 0, gsl_vector_int_free, vnew);
+      return TypedData_Wrap_Struct(VECTOR_INT_ROW_COL(obj), &gsl_vector_int_data_type, vnew);
     } else {
       return rb_gsl_vector_sub(rb_gsl_vector_int_to_f(obj), b);
     }

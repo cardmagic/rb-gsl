@@ -52,7 +52,7 @@ static VALUE rb_gsl_sf_complex_log_e(int argc, VALUE *argv, VALUE obj)
   switch (argc) {
   case 1:
     CHECK_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_complex, z);
+    TypedData_Get_Struct(argv[0], gsl_complex, &gsl_complex_data_type, z);
     re = GSL_REAL(*z);
     im = GSL_IMAG(*z);
     break;

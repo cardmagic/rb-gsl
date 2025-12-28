@@ -64,7 +64,7 @@ static VALUE rb_gsl_dht_apply(int argc, VALUE *argv, VALUE obj)
       ptr1 = vin->data;
       vout = gsl_vector_alloc(vin->size);
       ptr2 = vout->data;
-      ary = Data_Wrap_Struct(VECTOR_ROW_COL(argv[0]), 0, gsl_vector_free, vout);
+      ary = TypedData_Wrap_Struct(VECTOR_ROW_COL(argv[0]), &gsl_vector_data_type, vout);
 #ifdef HAVE_NARRAY_H
     } else if (NA_IsNArray(argv[0])) {
       struct NARRAY *na;

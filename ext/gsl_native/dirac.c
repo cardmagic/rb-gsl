@@ -35,8 +35,8 @@ static VALUE rb_dirac_commute(VALUE obj, VALUE mm1, VALUE mm2)
   gsl_matrix_complex *mnew1, *mnew2;
   CHECK_MATRIX_COMPLEX(mm1);
   CHECK_MATRIX_COMPLEX(mm2);
-  Data_Get_Struct(mm1, gsl_matrix_complex, m1);
-  Data_Get_Struct(mm2, gsl_matrix_complex, m2);
+  TypedData_Get_Struct(mm1, gsl_matrix_complex, &gsl_matrix_complex_data_type, m1);
+  TypedData_Get_Struct(mm2, gsl_matrix_complex, &gsl_matrix_complex_data_type, m2);
   mnew1 = gsl_matrix_complex_alloc(m1->size1, m1->size2);
   mnew2 = gsl_matrix_complex_alloc(m1->size1, m1->size2);
   gsl_matrix_complex_mul(mnew1, m1, m2);
@@ -53,8 +53,8 @@ static VALUE rb_dirac_anticommute(VALUE obj, VALUE mm1, VALUE mm2)
   gsl_matrix_complex *mnew1, *mnew2;
   CHECK_MATRIX_COMPLEX(mm1);
   CHECK_MATRIX_COMPLEX(mm2);
-  Data_Get_Struct(mm1, gsl_matrix_complex, m1);
-  Data_Get_Struct(mm2, gsl_matrix_complex, m2);
+  TypedData_Get_Struct(mm1, gsl_matrix_complex, &gsl_matrix_complex_data_type, m1);
+  TypedData_Get_Struct(mm2, gsl_matrix_complex, &gsl_matrix_complex_data_type, m2);
   mnew1 = gsl_matrix_complex_alloc(m1->size1, m1->size2);
   mnew2 = gsl_matrix_complex_alloc(m1->size1, m1->size2);
   gsl_matrix_complex_mul(mnew1, m1, m2);
@@ -303,8 +303,8 @@ static VALUE rb_Dirac_matrix_is_equal(int argc, VALUE *argv, VALUE obj)
   case T_OBJECT:
     CHECK_MATRIX_COMPLEX(argv[0]);
     CHECK_MATRIX_COMPLEX(argv[1]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, m1);
-    Data_Get_Struct(argv[1], gsl_matrix_complex, m2);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, m1);
+    TypedData_Get_Struct(argv[1], gsl_matrix_complex, &gsl_matrix_complex_data_type, m2);
     if (matrix_is_equal(m1, m2, &ztmp)) {
       z = ALLOC(gsl_complex); vz = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, z);
       *z = ztmp;
@@ -315,8 +315,8 @@ static VALUE rb_Dirac_matrix_is_equal(int argc, VALUE *argv, VALUE obj)
     break;
   default:
     CHECK_MATRIX_COMPLEX(argv[0]);
-    Data_Get_Struct(obj, gsl_matrix_complex, m1);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, m2);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, m1);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, m2);
     if (matrix_is_equal(m1, m2, &ztmp)) {
       z = ALLOC(gsl_complex); vz = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, z);
       *z = ztmp;
@@ -352,14 +352,14 @@ static VALUE rb_Dirac_matrix_whoami(int argc, VALUE *argv, VALUE obj)
   case T_OBJECT:
     if (argc != 1) rb_raise(rb_eArgError, "matrix not given");
     CHECK_MATRIX_COMPLEX(argv[0]);
-    Data_Get_Struct(argv[0], gsl_matrix_complex, m1);
+    TypedData_Get_Struct(argv[0], gsl_matrix_complex, &gsl_matrix_complex_data_type, m1);
     break;
   default:
-    Data_Get_Struct(obj, gsl_matrix_complex, m1);
+    TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, m1);
     break;
   }
   for (i = 0; i < NUM; i++) {
-    Data_Get_Struct(array[i], gsl_matrix_complex, m2);
+    TypedData_Get_Struct(array[i], gsl_matrix_complex, &gsl_matrix_complex_data_type, m2);
     if(matrix_is_equal(m1, m2, &ztmp)) {
       z = ALLOC(gsl_complex); vz = TypedData_Wrap_Struct(cgsl_complex, &gsl_complex_data_type, z);
       *z = ztmp;
