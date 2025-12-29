@@ -805,6 +805,370 @@ class ComplexTest < GSL::TestCase
     assert_in_delta 1.0, result[1].real, 1e-10
   end
 
+  # Vector::Complex iterator tests
+  def test_vector_complex_each
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    v[2] = GSL::Complex.alloc(3.0, 0.0)
+
+    sum = 0.0
+    v.each { |z| sum += z.real }
+    assert_in_delta 6.0, sum, 1e-10
+  end
+
+  def test_vector_complex_reverse_each
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    v[2] = GSL::Complex.alloc(3.0, 0.0)
+
+    values = []
+    v.reverse_each { |z| values << z.real }
+    assert_in_delta 3.0, values[0], 1e-10
+    assert_in_delta 1.0, values[2], 1e-10
+  end
+
+  def test_vector_complex_each_index
+    v = GSL::Vector::Complex.alloc(3)
+    indices = []
+    v.each_index { |i| indices << i }
+    assert_equal [0, 1, 2], indices
+  end
+
+  def test_vector_complex_reverse_each_index
+    v = GSL::Vector::Complex.alloc(3)
+    indices = []
+    v.reverse_each_index { |i| indices << i }
+    assert_equal [2, 1, 0], indices
+  end
+
+  def test_vector_complex_collect
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    v[2] = GSL::Complex.alloc(3.0, 0.0)
+
+    result = v.collect { |z| GSL::Complex.alloc(z.real * 2, 0.0) }
+    assert_in_delta 2.0, result[0].real, 1e-10
+    assert_in_delta 4.0, result[1].real, 1e-10
+    assert_in_delta 6.0, result[2].real, 1e-10
+  end
+
+  def test_vector_complex_collect_bang
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    v[2] = GSL::Complex.alloc(3.0, 0.0)
+
+    v.collect! { |z| GSL::Complex.alloc(z.real * 2, 0.0) }
+    assert_in_delta 2.0, v[0].real, 1e-10
+    assert_in_delta 4.0, v[1].real, 1e-10
+  end
+
+  def test_vector_complex_stride
+    v = GSL::Vector::Complex.alloc(3)
+    assert_equal 1, v.stride
+  end
+
+  def test_vector_complex_owner
+    v = GSL::Vector::Complex.alloc(3)
+    assert_equal 1, v.owner
+  end
+
+  def test_vector_complex_ptr
+    v = GSL::Vector::Complex.alloc(3)
+    v[1] = GSL::Complex.alloc(5.0, 6.0)
+
+    ptr = v.ptr(1)
+    assert ptr.is_a?(GSL::Complex)
+    assert_in_delta 5.0, ptr.real, 1e-10
+    assert_in_delta 6.0, ptr.imag, 1e-10
+  end
+
+  def test_vector_complex_to_a
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 2.0)
+    v[1] = GSL::Complex.alloc(3.0, 4.0)
+
+    arr = v.to_a
+    assert arr.is_a?(Array)
+    # to_a returns raw data: [re0, im0, re1, im1]
+    assert_equal 4, arr.size
+    assert_in_delta 1.0, arr[0], 1e-10
+    assert_in_delta 2.0, arr[1], 1e-10
+    assert_in_delta 3.0, arr[2], 1e-10
+    assert_in_delta 4.0, arr[3], 1e-10
+  end
+
+  def test_vector_complex_to_s
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 2.0)
+
+    str = v.to_s
+    assert str.is_a?(String)
+    assert str.include?("["), "to_s format includes brackets"
+  end
+
+  def test_vector_complex_inspect
+    v = GSL::Vector::Complex.alloc(2)
+    str = v.inspect
+    assert str.is_a?(String)
+  end
+
+  def test_vector_complex_negative_index
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    v[2] = GSL::Complex.alloc(3.0, 0.0)
+
+    assert_in_delta 3.0, v[-1].real, 1e-10
+    assert_in_delta 2.0, v[-2].real, 1e-10
+  end
+
+  def test_vector_complex_calloc
+    v = GSL::Vector::Complex.calloc(3)
+    assert_equal 3, v.size
+    assert_in_delta 0.0, v[0].real, 1e-10
+    assert_in_delta 0.0, v[0].imag, 1e-10
+  end
+
+  def test_vector_complex_set_subvector
+    v = GSL::Vector::Complex.alloc(5)
+    5.times { |i| v[i] = GSL::Complex.alloc(i.to_f, 0.0) }
+
+    v2 = GSL::Vector::Complex.alloc(2)
+    v2[0] = GSL::Complex.alloc(10.0, 0.0)
+    v2[1] = GSL::Complex.alloc(20.0, 0.0)
+
+    v[1..2] = v2
+    assert_in_delta 10.0, v[1].real, 1e-10
+    assert_in_delta 20.0, v[2].real, 1e-10
+  end
+
+  def test_vector_complex_memcpy
+    v1 = GSL::Vector::Complex.alloc(3)
+    v1[0] = GSL::Complex.alloc(1.0, 2.0)
+    v1[1] = GSL::Complex.alloc(3.0, 4.0)
+
+    v2 = GSL::Vector::Complex.alloc(3)
+    GSL::Vector::Complex.memcpy(v2, v1)
+
+    assert_in_delta 1.0, v2[0].real, 1e-10
+    assert_in_delta 3.0, v2[1].real, 1e-10
+  end
+
+  def test_vector_complex_isnull
+    v1 = GSL::Vector::Complex.alloc(3)
+    v1.set_zero
+    assert v1.isnull, "zero vector should be null"
+
+    v2 = GSL::Vector::Complex.alloc(3)
+    v2[0] = GSL::Complex.alloc(1.0, 0.0)
+    refute v2.isnull, "non-zero vector should not be null"
+  end
+
+  def test_vector_complex_add_scalar
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 2.0)
+    v[1] = GSL::Complex.alloc(3.0, 4.0)
+
+    result = v + 1.0
+    assert_in_delta 2.0, result[0].real, 1e-10
+    assert_in_delta 2.0, result[0].imag, 1e-10
+  end
+
+  def test_vector_complex_sub_scalar
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(3.0, 2.0)
+    v[1] = GSL::Complex.alloc(5.0, 4.0)
+
+    result = v - 1.0
+    assert_in_delta 2.0, result[0].real, 1e-10
+    assert_in_delta 2.0, result[0].imag, 1e-10
+  end
+
+  def test_vector_complex_mul_scalar
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 2.0)
+    v[1] = GSL::Complex.alloc(3.0, 4.0)
+
+    result = v * 2.0
+    assert_in_delta 2.0, result[0].real, 1e-10
+    assert_in_delta 4.0, result[0].imag, 1e-10
+  end
+
+  def test_vector_complex_div_scalar
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(4.0, 8.0)
+    v[1] = GSL::Complex.alloc(6.0, 10.0)
+
+    result = v / 2.0
+    assert_in_delta 2.0, result[0].real, 1e-10
+    assert_in_delta 4.0, result[0].imag, 1e-10
+  end
+
+  def test_vector_complex_log10
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(100.0, 0.0)
+    v[1] = GSL::Complex.alloc(1000.0, 0.0)
+
+    result = v.log10
+    assert_in_delta 2.0, result[0].real, 1e-10
+    assert_in_delta 3.0, result[1].real, 1e-10
+  end
+
+  def test_vector_complex_sin
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(0.0, 0.0)
+    v[1] = GSL::Complex.alloc(Math::PI / 2, 0.0)
+
+    result = v.sin
+    assert_in_delta 0.0, result[0].real, 1e-10
+    assert_in_delta 1.0, result[1].real, 1e-10
+  end
+
+  def test_vector_complex_cos
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(0.0, 0.0)
+    v[1] = GSL::Complex.alloc(Math::PI, 0.0)
+
+    result = v.cos
+    assert_in_delta 1.0, result[0].real, 1e-10
+    assert_in_delta -1.0, result[1].real, 1e-10
+  end
+
+  def test_vector_complex_tan
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(0.0, 0.0)
+    v[1] = GSL::Complex.alloc(Math::PI / 4, 0.0)
+
+    result = v.tan
+    assert_in_delta 0.0, result[0].real, 1e-10
+    assert_in_delta 1.0, result[1].real, 1e-10
+  end
+
+  def test_vector_complex_abs2
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(3.0, 4.0)
+
+    result = v.abs2
+    assert result.is_a?(GSL::Vector)
+    assert_in_delta 25.0, result[0], 1e-10
+  end
+
+  def test_vector_complex_logabs
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(Math::E, 0.0)
+
+    result = v.logabs
+    assert result.is_a?(GSL::Vector)
+    assert_in_delta 1.0, result[0], 1e-10
+  end
+
+  def test_vector_complex_indgen
+    v = GSL::Vector::Complex.alloc(3)
+    v.indgen!
+
+    assert_in_delta 0.0, v[0].real, 1e-10
+    assert_in_delta 1.0, v[1].real, 1e-10
+    assert_in_delta 2.0, v[2].real, 1e-10
+  end
+
+  def test_vector_complex_indgen_with_start_step
+    v = GSL::Vector::Complex.alloc(3)
+    v.indgen!(10, 2)
+
+    assert_in_delta 10.0, v[0].real, 1e-10
+    assert_in_delta 12.0, v[1].real, 1e-10
+    assert_in_delta 14.0, v[2].real, 1e-10
+  end
+
+  def test_vector_complex_equal
+    v1 = GSL::Vector::Complex.alloc(2)
+    v1[0] = GSL::Complex.alloc(1.0, 2.0)
+
+    v2 = GSL::Vector::Complex.alloc(2)
+    v2[0] = GSL::Complex.alloc(1.0, 2.0)
+
+    assert v1.equal?(v2), "equal vectors should be equal"
+  end
+
+  def test_vector_complex_not_equal
+    v1 = GSL::Vector::Complex.alloc(2)
+    v1[0] = GSL::Complex.alloc(1.0, 2.0)
+
+    v2 = GSL::Vector::Complex.alloc(2)
+    v2[0] = GSL::Complex.alloc(3.0, 4.0)
+
+    assert v1.not_equal?(v2), "different vectors should not be equal"
+  end
+
+  def test_vector_complex_uplus
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 2.0)
+
+    result = +v
+    assert_in_delta 1.0, result[0].real, 1e-10
+  end
+
+  def test_vector_complex_uminus
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 2.0)
+
+    result = -v
+    assert_in_delta -1.0, result[0].real, 1e-10
+    assert_in_delta -2.0, result[0].imag, 1e-10
+  end
+
+  def test_vector_complex_sinh
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(0.0, 0.0)
+
+    result = v.sinh
+    assert_in_delta 0.0, result[0].real, 1e-10
+  end
+
+  def test_vector_complex_cosh
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(0.0, 0.0)
+
+    result = v.cosh
+    assert_in_delta 1.0, result[0].real, 1e-10
+  end
+
+  def test_vector_complex_tanh
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(0.0, 0.0)
+
+    result = v.tanh
+    assert_in_delta 0.0, result[0].real, 1e-10
+  end
+
+  def test_vector_complex_arcsin
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(0.0, 0.0)
+
+    result = v.arcsin
+    assert_in_delta 0.0, result[0].real, 1e-10
+  end
+
+  def test_vector_complex_arccos
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+
+    result = v.arccos
+    assert_in_delta 0.0, result[0].real, 1e-10
+  end
+
+  def test_vector_complex_arctan
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(0.0, 0.0)
+
+    result = v.arctan
+    assert_in_delta 0.0, result[0].real, 1e-10
+  end
+
   # Additional Matrix::Complex tests for improved coverage
 
   # Note: Matrix::Complex.isnull? is exposed but named isnull (no question mark)

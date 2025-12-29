@@ -2955,7 +2955,7 @@ static VALUE rb_gsl_linalg_symmtd_decomp(int argc, VALUE *argv, VALUE obj)
     break;
   }
   A = make_matrix_clone(Atmp);
-  tau = gsl_vector_alloc(A->size1);
+  tau = gsl_vector_alloc(A->size1 - 1);
   gsl_linalg_symmtd_decomp(A, tau);
   vQ = TypedData_Wrap_Struct(cgsl_matrix_Q, &gsl_matrix_data_type, A);
   vtau = TypedData_Wrap_Struct(cgsl_vector_tau, &gsl_vector_data_type, tau);
@@ -2979,7 +2979,7 @@ static VALUE rb_gsl_linalg_symmtd_decomp2(int argc, VALUE *argv, VALUE obj)
     TypedData_Get_Struct(obj, gsl_matrix, &gsl_matrix_data_type, A);
     break;
   }
-  tau = gsl_vector_alloc(A->size1);
+  tau = gsl_vector_alloc(A->size1 - 1);
   gsl_linalg_symmtd_decomp(A, tau);
   return TypedData_Wrap_Struct(cgsl_vector_tau, &gsl_vector_data_type, tau);
 }
@@ -3006,8 +3006,8 @@ static VALUE rb_gsl_linalg_symmtd_unpack(int argc, VALUE *argv, VALUE obj)
     break;
   }
   Q = gsl_matrix_alloc(A->size1, A->size2);
-  d = gsl_vector_alloc(tau->size);
-  sd = gsl_vector_alloc(tau->size);
+  d = gsl_vector_alloc(A->size1);
+  sd = gsl_vector_alloc(A->size1 - 1);
   gsl_linalg_symmtd_unpack(A, tau, Q, d, sd);
 
   vq = TypedData_Wrap_Struct(cgsl_matrix_Q, &gsl_matrix_data_type, Q);
@@ -3034,7 +3034,7 @@ static VALUE rb_gsl_linalg_symmtd_unpack_T(int argc, VALUE *argv, VALUE obj)
     break;
   }
   d = gsl_vector_alloc(A->size1);
-  sd = gsl_vector_alloc(A->size1);
+  sd = gsl_vector_alloc(A->size1 - 1);
   gsl_linalg_symmtd_unpack_T(A, d, sd);
 
   vd = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, d);
@@ -3063,7 +3063,7 @@ static VALUE rb_gsl_linalg_hermtd_decomp(int argc, VALUE *argv, VALUE obj)
     break;
   }
   A = make_matrix_complex_clone(Atmp);
-  tau = gsl_vector_complex_alloc(A->size1);
+  tau = gsl_vector_complex_alloc(A->size1 - 1);
   gsl_linalg_hermtd_decomp(A, tau);
   vQ = TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, A);
   vtau = TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, tau);
@@ -3086,7 +3086,7 @@ static VALUE rb_gsl_linalg_hermtd_decomp2(int argc, VALUE *argv, VALUE obj)
     TypedData_Get_Struct(obj, gsl_matrix_complex, &gsl_matrix_complex_data_type, A);
     break;
   }
-  tau = gsl_vector_complex_alloc(A->size1);
+  tau = gsl_vector_complex_alloc(A->size1 - 1);
   gsl_linalg_hermtd_decomp(A, tau);
   return TypedData_Wrap_Struct(cgsl_vector_complex, &gsl_vector_complex_data_type, tau);
 }
@@ -3114,8 +3114,8 @@ static VALUE rb_gsl_linalg_hermtd_unpack(int argc, VALUE *argv, VALUE obj)
     break;
   }
   Q = gsl_matrix_complex_alloc(A->size1, A->size2);
-  d = gsl_vector_alloc(tau->size);
-  sd = gsl_vector_alloc(tau->size);
+  d = gsl_vector_alloc(A->size1);
+  sd = gsl_vector_alloc(A->size1 - 1);
   gsl_linalg_hermtd_unpack(A, tau, Q, d, sd);
 
   vq = TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, Q);
@@ -3142,7 +3142,7 @@ static VALUE rb_gsl_linalg_hermtd_unpack_T(int argc, VALUE *argv, VALUE obj)
     break;
   }
   d = gsl_vector_alloc(A->size1);
-  sd = gsl_vector_alloc(A->size1);
+  sd = gsl_vector_alloc(A->size1 - 1);
   gsl_linalg_hermtd_unpack_T(A, d, sd);
 
   vd = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, d);
@@ -3780,6 +3780,8 @@ static VALUE rb_gsl_linalg_hesstri_decomp(int argc, VALUE *argv, VALUE module)
     CHECK_MATRIX(argv[3]);
     TypedData_Get_Struct(argv[2], gsl_matrix, &gsl_matrix_data_type, U);
     TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, V);
+    vU = argv[2];
+    vV = argv[3];
     flag = 1;
     break;
   case 5:
@@ -3833,6 +3835,8 @@ static VALUE rb_gsl_linalg_hesstri_decomp_bang(int argc, VALUE *argv, VALUE modu
     CHECK_MATRIX(argv[3]);
     TypedData_Get_Struct(argv[2], gsl_matrix, &gsl_matrix_data_type, U);
     TypedData_Get_Struct(argv[3], gsl_matrix, &gsl_matrix_data_type, V);
+    vU = argv[2];
+    vV = argv[3];
     flag = 1;
     break;
   case 5:

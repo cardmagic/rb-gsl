@@ -1270,4 +1270,394 @@ class LinalgTest < GSL::TestCase
     assert result.is_a?(GSL::Vector::Complex), "Complex Householder.hv returns vector"
   end
 
+  # Test LU decomposition with pre-allocated permutation
+  def test_LU_decomp_with_permutation
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    perm = GSL::Permutation.alloc(2)
+
+    lu, sign = m.LU_decomp(perm)
+    assert lu.is_a?(GSL::Matrix), "LU_decomp with perm returns matrix"
+    assert sign.is_a?(Integer), "LU_decomp with perm returns sign"
+  end
+
+  # Test LU_decomp! with pre-allocated permutation
+  def test_LU_decomp_bang_with_permutation
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    perm = GSL::Permutation.alloc(2)
+
+    sign = m.LU_decomp!(perm)
+    assert sign.is_a?(Integer), "LU_decomp! with perm returns sign"
+  end
+
+  # Test LU solve with pre-allocated x vector
+  def test_LU_solve_with_preallocated_x
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = GSL::Vector[5.0, 7.0]
+    x = GSL::Vector.alloc(2)
+
+    lu, perm, _sign = m.LU_decomp
+    result = GSL::Linalg::LU.solve(lu, perm, b, x)
+
+    assert_equal x.object_id, result.object_id, "LU_solve returns the pre-allocated x vector"
+  end
+
+  # Test LU_svx via instance method
+  def test_LU_svx_instance_method
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = GSL::Vector[5.0, 7.0]
+    original_m = m.clone
+
+    lu, perm, _sign = m.LU_decomp
+    x = b.clone
+    lu.svx(perm, x)
+
+    # Verify
+    result = original_m * x
+    assert (result[0] - b[0]).abs < 1e-10, "LU_svx instance method solves correctly"
+  end
+
+  # Test Symmtd decomposition
+  def test_symmtd_decomp
+    # Symmetric matrix
+    m = GSL::Matrix.alloc([4.0, 1.0, 2.0], [1.0, 3.0, 1.0], [2.0, 1.0, 5.0])
+
+    q, tau = GSL::Linalg::Symmtd.decomp(m)
+    assert q.is_a?(GSL::Matrix), "Symmtd.decomp returns Q matrix"
+    assert tau.is_a?(GSL::Vector), "Symmtd.decomp returns tau vector"
+  end
+
+  # Test Symmtd decomp! (in place)
+  def test_symmtd_decomp_bang
+    m = GSL::Matrix.alloc([4.0, 1.0, 2.0], [1.0, 3.0, 1.0], [2.0, 1.0, 5.0])
+    original = m.clone
+
+    tau = GSL::Linalg::Symmtd.decomp!(m)
+    refute m == original, "Symmtd.decomp! modifies matrix in place"
+    assert tau.is_a?(GSL::Vector), "Symmtd.decomp! returns tau vector"
+  end
+
+  # Test Symmtd unpack
+  def test_symmtd_unpack
+    m = GSL::Matrix.alloc([4.0, 1.0, 2.0], [1.0, 3.0, 1.0], [2.0, 1.0, 5.0])
+
+    q_decomp, tau = GSL::Linalg::Symmtd.decomp(m)
+    q, d, sd = GSL::Linalg::Symmtd.unpack(q_decomp, tau)
+
+    assert q.is_a?(GSL::Matrix), "Symmtd.unpack returns Q matrix"
+    assert d.is_a?(GSL::Vector), "Symmtd.unpack returns diagonal vector"
+    assert sd.is_a?(GSL::Vector), "Symmtd.unpack returns subdiagonal vector"
+  end
+
+  # Test Symmtd unpack_T
+  def test_symmtd_unpack_T
+    m = GSL::Matrix.alloc([4.0, 1.0, 2.0], [1.0, 3.0, 1.0], [2.0, 1.0, 5.0])
+
+    q_decomp, tau = GSL::Linalg::Symmtd.decomp(m)
+    d, sd = GSL::Linalg::Symmtd.unpack_T(q_decomp)
+
+    assert d.is_a?(GSL::Vector), "Symmtd.unpack_T returns diagonal vector"
+    assert sd.is_a?(GSL::Vector), "Symmtd.unpack_T returns subdiagonal vector"
+  end
+
+  # Test Hermtd decomposition (Hermitian tridiagonal)
+  def test_hermtd_decomp
+    # Hermitian matrix
+    m = GSL::Matrix::Complex.alloc(3, 3)
+    m.set(0, 0, GSL::Complex.alloc(4.0, 0.0))
+    m.set(0, 1, GSL::Complex.alloc(1.0, 1.0))
+    m.set(0, 2, GSL::Complex.alloc(2.0, 0.0))
+    m.set(1, 0, GSL::Complex.alloc(1.0, -1.0))
+    m.set(1, 1, GSL::Complex.alloc(3.0, 0.0))
+    m.set(1, 2, GSL::Complex.alloc(1.0, 1.0))
+    m.set(2, 0, GSL::Complex.alloc(2.0, 0.0))
+    m.set(2, 1, GSL::Complex.alloc(1.0, -1.0))
+    m.set(2, 2, GSL::Complex.alloc(5.0, 0.0))
+
+    q, tau = GSL::Linalg::Hermtd.decomp(m)
+    assert q.is_a?(GSL::Matrix::Complex), "Hermtd.decomp returns Q matrix"
+    assert tau.is_a?(GSL::Vector::Complex), "Hermtd.decomp returns tau vector"
+  end
+
+  # Test Hermtd decomp! (in place)
+  def test_hermtd_decomp_bang
+    m = GSL::Matrix::Complex.alloc(3, 3)
+    m.set(0, 0, GSL::Complex.alloc(4.0, 0.0))
+    m.set(0, 1, GSL::Complex.alloc(1.0, 1.0))
+    m.set(0, 2, GSL::Complex.alloc(2.0, 0.0))
+    m.set(1, 0, GSL::Complex.alloc(1.0, -1.0))
+    m.set(1, 1, GSL::Complex.alloc(3.0, 0.0))
+    m.set(1, 2, GSL::Complex.alloc(1.0, 1.0))
+    m.set(2, 0, GSL::Complex.alloc(2.0, 0.0))
+    m.set(2, 1, GSL::Complex.alloc(1.0, -1.0))
+    m.set(2, 2, GSL::Complex.alloc(5.0, 0.0))
+
+    tau = GSL::Linalg::Hermtd.decomp!(m)
+    assert tau.is_a?(GSL::Vector::Complex), "Hermtd.decomp! returns tau vector"
+  end
+
+  # Test Hermtd unpack
+  def test_hermtd_unpack
+    m = GSL::Matrix::Complex.alloc(3, 3)
+    m.set(0, 0, GSL::Complex.alloc(4.0, 0.0))
+    m.set(0, 1, GSL::Complex.alloc(1.0, 1.0))
+    m.set(0, 2, GSL::Complex.alloc(2.0, 0.0))
+    m.set(1, 0, GSL::Complex.alloc(1.0, -1.0))
+    m.set(1, 1, GSL::Complex.alloc(3.0, 0.0))
+    m.set(1, 2, GSL::Complex.alloc(1.0, 1.0))
+    m.set(2, 0, GSL::Complex.alloc(2.0, 0.0))
+    m.set(2, 1, GSL::Complex.alloc(1.0, -1.0))
+    m.set(2, 2, GSL::Complex.alloc(5.0, 0.0))
+
+    q_decomp, tau = GSL::Linalg::Hermtd.decomp(m)
+    q, d, sd = GSL::Linalg::Hermtd.unpack(q_decomp, tau)
+
+    assert q.is_a?(GSL::Matrix::Complex), "Hermtd.unpack returns Q matrix"
+    assert d.is_a?(GSL::Vector), "Hermtd.unpack returns diagonal vector"
+    assert sd.is_a?(GSL::Vector), "Hermtd.unpack returns subdiagonal vector"
+  end
+
+  # Test Hermtd unpack_T
+  def test_hermtd_unpack_T
+    m = GSL::Matrix::Complex.alloc(3, 3)
+    m.set(0, 0, GSL::Complex.alloc(4.0, 0.0))
+    m.set(0, 1, GSL::Complex.alloc(1.0, 1.0))
+    m.set(0, 2, GSL::Complex.alloc(2.0, 0.0))
+    m.set(1, 0, GSL::Complex.alloc(1.0, -1.0))
+    m.set(1, 1, GSL::Complex.alloc(3.0, 0.0))
+    m.set(1, 2, GSL::Complex.alloc(1.0, 1.0))
+    m.set(2, 0, GSL::Complex.alloc(2.0, 0.0))
+    m.set(2, 1, GSL::Complex.alloc(1.0, -1.0))
+    m.set(2, 2, GSL::Complex.alloc(5.0, 0.0))
+
+    q_decomp, tau = GSL::Linalg::Hermtd.decomp(m)
+    d, sd = GSL::Linalg::Hermtd.unpack_T(q_decomp)
+
+    assert d.is_a?(GSL::Vector), "Hermtd.unpack_T returns diagonal vector"
+    assert sd.is_a?(GSL::Vector), "Hermtd.unpack_T returns subdiagonal vector"
+  end
+
+  # Test hesstri_decomp module function
+  def test_hesstri_decomp
+    a = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0])
+    b = GSL::Matrix.alloc([9.0, 8.0, 7.0], [6.0, 5.0, 4.0], [3.0, 2.0, 1.0])
+
+    h, r = GSL::Linalg.hesstri_decomp(a, b)
+    assert h.is_a?(GSL::Matrix), "hesstri_decomp returns H matrix"
+    assert r.is_a?(GSL::Matrix), "hesstri_decomp returns R matrix"
+  end
+
+  # Test hesstri_decomp! (in place)
+  def test_hesstri_decomp_bang
+    a = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0])
+    b = GSL::Matrix.alloc([9.0, 8.0, 7.0], [6.0, 5.0, 4.0], [3.0, 2.0, 1.0])
+
+    h, r = GSL::Linalg.hesstri_decomp!(a, b)
+    assert h.is_a?(GSL::Matrix), "hesstri_decomp! returns H matrix"
+    assert r.is_a?(GSL::Matrix), "hesstri_decomp! returns R matrix"
+  end
+
+  # Test hesstri_decomp with work vector
+  def test_hesstri_decomp_with_work
+    a = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0])
+    b = GSL::Matrix.alloc([9.0, 8.0, 7.0], [6.0, 5.0, 4.0], [3.0, 2.0, 1.0])
+    work = GSL::Vector.alloc(3)
+
+    h, r = GSL::Linalg.hesstri_decomp(a, b, work)
+    assert h.is_a?(GSL::Matrix), "hesstri_decomp with work returns H matrix"
+    assert r.is_a?(GSL::Matrix), "hesstri_decomp with work returns R matrix"
+  end
+
+  # Test hesstri_decomp with U, V matrices
+  def test_hesstri_decomp_with_uv
+    a = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0])
+    b = GSL::Matrix.alloc([9.0, 8.0, 7.0], [6.0, 5.0, 4.0], [3.0, 2.0, 1.0])
+    u = GSL::Matrix.identity(3)
+    v = GSL::Matrix.identity(3)
+
+    h, r, u_out, v_out = GSL::Linalg.hesstri_decomp(a, b, u, v)
+    assert h.is_a?(GSL::Matrix), "hesstri_decomp with UV returns H matrix"
+    assert r.is_a?(GSL::Matrix), "hesstri_decomp with UV returns R matrix"
+    assert u_out.is_a?(GSL::Matrix), "hesstri_decomp with UV returns U matrix"
+    assert v_out.is_a?(GSL::Matrix), "hesstri_decomp with UV returns V matrix"
+  end
+
+  # Test balance_matrix! (in place)
+  def test_balance_matrix_bang
+    m = GSL::Matrix.alloc([1.0, 1000.0, 0.0], [0.001, 1.0, 0.0], [0.0, 0.0, 1.0])
+
+    d = GSL::Linalg.balance_matrix!(m)
+    assert d.is_a?(GSL::Vector), "balance_matrix! returns scaling vector"
+  end
+
+  # Test balance_matrix with pre-allocated D vector
+  def test_balance_matrix_with_d
+    m = GSL::Matrix.alloc([1.0, 1000.0, 0.0], [0.001, 1.0, 0.0], [0.0, 0.0, 1.0])
+    d = GSL::Vector.alloc(3)
+
+    balanced, d_out = GSL::Linalg.balance_matrix(m, d)
+    assert balanced.is_a?(GSL::Matrix), "balance_matrix with D returns matrix"
+    assert_equal d.object_id, d_out.object_id, "balance_matrix uses pre-allocated D"
+  end
+
+  # Test QR decomp via module function with tau
+  def test_QR_decomp_with_tau
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+    tau = GSL::Vector.alloc(2)
+
+    qr = GSL::Linalg.QR_decomp(m, tau)
+    assert qr.is_a?(GSL::Matrix), "QR_decomp with tau returns matrix"
+  end
+
+  # Test LQ decomp via module function with tau
+  def test_LQ_decomp_with_tau
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+    tau = GSL::Vector.alloc(2)
+
+    lq = GSL::Linalg.LQ_decomp(m, tau)
+    assert lq.is_a?(GSL::Matrix), "LQ_decomp with tau returns matrix"
+  end
+
+  # Test LQ update
+  def test_LQ_update
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+    lq, tau = m.LQ_decomp
+    l, q = GSL::Linalg::LQ.unpack(lq, tau)
+
+    w = GSL::Vector[0.1, 0.2]
+    v = GSL::Vector[0.3, 0.4]
+
+    result = GSL::Linalg::LQ.update(q, l, w, v)
+    assert result == 0, "LQ_update returns success status"
+  end
+
+  # Test QR QRsolve
+  def test_QR_QRsolve
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    qr, tau = m.QR_decomp
+    q, r = GSL::Linalg::QR.unpack(qr, tau)
+    b = GSL::Vector[5.0, 7.0]
+
+    x = GSL::Linalg::QR.QRsolve(q, r, b)
+    assert x.is_a?(GSL::Vector), "QR.QRsolve returns solution vector"
+  end
+
+  # Test balance_columns (non-bang version)
+  def test_balance_columns_non_bang
+    m = GSL::Matrix.alloc([1.0, 1000.0], [0.001, 1.0])
+
+    balanced, vec = GSL::Linalg.balance_columns(m)
+    assert balanced.is_a?(GSL::Matrix), "balance_columns returns matrix"
+    assert vec.is_a?(GSL::Vector), "balance_columns returns vector"
+  end
+
+  # Test LU decomp error - wrong argument count
+  def test_LU_decomp_wrong_args
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+
+    assert_raises(ArgumentError) do
+      m.LU_decomp(GSL::Permutation.alloc(2), "extra_arg")
+    end
+  end
+
+  # Test LU solve error - wrong argument count
+  def test_LU_solve_wrong_args_module
+    assert_raises(ArgumentError) do
+      GSL::Linalg::LU.solve(GSL::Matrix.alloc(2, 2))  # Too few args
+    end
+  end
+
+  # Test LU svx error - wrong argument count
+  def test_LU_svx_wrong_args_module
+    assert_raises(ArgumentError) do
+      GSL::Linalg::LU.svx(GSL::Matrix.alloc(2, 2))  # Too few args
+    end
+  end
+
+  # Test QR decomp error - wrong argument count
+  def test_QR_decomp_wrong_args
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+
+    assert_raises(ArgumentError) do
+      m.QR_decomp(GSL::Vector.alloc(2), "extra_arg")
+    end
+  end
+
+  # Test Hessenberg unpack_accum without pre-allocated V
+  def test_hessenberg_unpack_accum_no_preallocated
+    m = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0])
+
+    h, tau = GSL::Linalg::Hessenberg.decomp(m)
+    u = GSL::Linalg::Hessenberg.unpack_accum(h, tau)
+    assert u.is_a?(GSL::Matrix), "hessenberg_unpack_accum allocates V matrix"
+  end
+
+  # Test complex LU svx via instance method
+  def test_complex_LU_svx
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m.set(0, 0, GSL::Complex.alloc(2.0, 0.0))
+    m.set(0, 1, GSL::Complex.alloc(1.0, 0.0))
+    m.set(1, 0, GSL::Complex.alloc(1.0, 0.0))
+    m.set(1, 1, GSL::Complex.alloc(3.0, 0.0))
+
+    b = GSL::Vector::Complex.alloc(2)
+    b.set(0, GSL::Complex.alloc(5.0, 0.0))
+    b.set(1, GSL::Complex.alloc(7.0, 0.0))
+
+    lu, perm, _sign = m.LU_decomp
+    x = b.clone
+    lu.svx(perm, x)
+    assert x.is_a?(GSL::Vector::Complex), "Complex LU_svx modifies vector in place"
+  end
+
+  # Test complex Cholesky solve
+  def test_complex_cholesky_solve
+    # Hermitian positive-definite matrix
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m.set(0, 0, GSL::Complex.alloc(4.0, 0.0))
+    m.set(0, 1, GSL::Complex.alloc(1.0, 1.0))
+    m.set(1, 0, GSL::Complex.alloc(1.0, -1.0))
+    m.set(1, 1, GSL::Complex.alloc(3.0, 0.0))
+
+    b = GSL::Vector::Complex.alloc(2)
+    b.set(0, GSL::Complex.alloc(10.0, 0.0))
+    b.set(1, GSL::Complex.alloc(7.0, 0.0))
+
+    x = GSL::Linalg::Complex::Cholesky.solve(m, b)
+    assert x.is_a?(GSL::Vector::Complex), "Complex Cholesky.solve returns vector"
+  end
+
+  # Test complex Cholesky svx
+  def test_complex_cholesky_svx
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m.set(0, 0, GSL::Complex.alloc(4.0, 0.0))
+    m.set(0, 1, GSL::Complex.alloc(1.0, 1.0))
+    m.set(1, 0, GSL::Complex.alloc(1.0, -1.0))
+    m.set(1, 1, GSL::Complex.alloc(3.0, 0.0))
+
+    b = GSL::Vector::Complex.alloc(2)
+    b.set(0, GSL::Complex.alloc(10.0, 0.0))
+    b.set(1, GSL::Complex.alloc(7.0, 0.0))
+
+    c = GSL::Linalg::Complex::Cholesky.decomp(m)
+    x = b.clone
+    GSL::Linalg::Complex::Cholesky.svx(c, x)
+    assert x.is_a?(GSL::Vector::Complex), "Complex Cholesky.svx modifies vector"
+  end
+
+  # Test complex Householder hm
+  def test_complex_householder_hm
+    v = GSL::Vector::Complex.alloc(3)
+    v.set(0, GSL::Complex.alloc(3.0, 4.0))
+    v.set(1, GSL::Complex.alloc(0.0, 0.0))
+    v.set(2, GSL::Complex.alloc(0.0, 0.0))
+
+    tau = GSL::Linalg::Complex::Householder.transform(v)
+
+    m = GSL::Matrix::Complex.alloc(3, 2)
+    6.times { |i| m.set(i / 2, i % 2, GSL::Complex.alloc(i + 1.0, 0.0)) }
+
+    result = GSL::Linalg::Complex::Householder.hm(tau, v, m)
+    assert result.is_a?(GSL::Matrix::Complex), "Complex Householder.hm returns matrix"
+  end
+
 end
