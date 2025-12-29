@@ -2655,4 +2655,921 @@ class ComplexTest < GSL::TestCase
     assert_in_delta 2.0, result[0, 0].real, 1e-10
     assert_in_delta 3.0, result[0, 0].imag, 1e-10
   end
+
+  # === Vector::Complex additional branch coverage tests ===
+
+  # Test phasor singleton
+  def test_vector_complex_phasor
+    v = GSL::Vector::Complex.phasor(4)
+    assert_equal 4, v.size
+    v.each { |z| assert_in_delta 1.0, z.abs, 1e-10, "phasor has unit magnitude" }
+  end
+
+  def test_vector_complex_phasor_with_start
+    v = GSL::Vector::Complex.phasor(4, Math::PI/4)
+    assert_equal 4, v.size
+    # First element should be at angle pi/4
+    assert_in_delta Math::PI/4, v[0].arg, 1e-10
+  end
+
+  def test_vector_complex_phasor_with_start_and_step
+    v = GSL::Vector::Complex.phasor(4, 0.0, Math::PI/2)
+    assert_equal 4, v.size
+    # Each element 90 degrees apart
+    assert_in_delta 0.0, v[0].arg, 1e-10
+    assert_in_delta Math::PI/2, v[1].arg, 1e-10
+    assert_in_delta Math::PI, v[2].arg, 1e-10
+  end
+
+  def test_vector_complex_phasor_wrong_args
+    assert_raises(ArgumentError) { GSL::Vector::Complex.phasor(4, 0.0, 1.0, 2.0) }
+  end
+
+  # Test zip
+  def test_vector_complex_zip
+    v1 = GSL::Vector::Complex.alloc(3)
+    v2 = GSL::Vector::Complex.alloc(3)
+    v1[0] = GSL::Complex.alloc(1.0, 0.0)
+    v1[1] = GSL::Complex.alloc(2.0, 0.0)
+    v1[2] = GSL::Complex.alloc(3.0, 0.0)
+    v2[0] = GSL::Complex.alloc(10.0, 0.0)
+    v2[1] = GSL::Complex.alloc(20.0, 0.0)
+    v2[2] = GSL::Complex.alloc(30.0, 0.0)
+
+    result = v1.zip(v2)
+    assert result.is_a?(Array)
+    assert_equal 3, result.size
+    assert_in_delta 1.0, result[0][0].real, 1e-10
+    assert_in_delta 10.0, result[0][1].real, 1e-10
+  end
+
+  def test_vector_complex_zip_singleton
+    v1 = GSL::Vector::Complex.alloc(2)
+    v2 = GSL::Vector::Complex.alloc(2)
+    v1[0] = GSL::Complex.alloc(1.0, 0.0)
+    v1[1] = GSL::Complex.alloc(2.0, 0.0)
+    v2[0] = GSL::Complex.alloc(3.0, 0.0)
+    v2[1] = GSL::Complex.alloc(4.0, 0.0)
+
+    result = GSL::Vector::Complex.zip(v1, v2)
+    assert result.is_a?(Array)
+    assert_equal 2, result.size
+  end
+
+  def test_vector_complex_zip_different_sizes
+    v1 = GSL::Vector::Complex.alloc(3)
+    v2 = GSL::Vector::Complex.alloc(2)  # shorter
+    3.times { |i| v1[i] = GSL::Complex.alloc(i.to_f, 0.0) }
+    2.times { |i| v2[i] = GSL::Complex.alloc((i*10).to_f, 0.0) }
+
+    result = v1.zip(v2)
+    assert_equal 3, result.size
+    # v2[2] doesn't exist, should be zero
+    assert_in_delta 0.0, result[2][1].real, 1e-10
+  end
+
+  # Test concat
+  def test_vector_complex_concat_scalar
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+
+    result = v.concat(3.0)
+    assert_equal 3, result.size
+    assert_in_delta 3.0, result[2].real, 1e-10
+  end
+
+  def test_vector_complex_concat_complex
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    z = GSL::Complex.alloc(3.0, 4.0)
+
+    result = v.concat(z)
+    assert_equal 3, result.size
+    assert_in_delta 3.0, result[2].real, 1e-10
+    assert_in_delta 4.0, result[2].imag, 1e-10
+  end
+
+  def test_vector_complex_concat_array
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    z1 = GSL::Complex.alloc(3.0, 0.0)
+    z2 = GSL::Complex.alloc(4.0, 0.0)
+
+    result = v.concat([z1, z2])
+    assert_equal 4, result.size
+    assert_in_delta 3.0, result[2].real, 1e-10
+    assert_in_delta 4.0, result[3].real, 1e-10
+  end
+
+  def test_vector_complex_concat_range
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+
+    result = v.concat(3..5)
+    assert_equal 5, result.size
+    assert_in_delta 3.0, result[2].real, 1e-10
+    assert_in_delta 4.0, result[3].real, 1e-10
+    assert_in_delta 5.0, result[4].real, 1e-10
+  end
+
+  def test_vector_complex_concat_vector
+    v1 = GSL::Vector::Complex.alloc(2)
+    v2 = GSL::Vector::Complex.alloc(2)
+    v1[0] = GSL::Complex.alloc(1.0, 0.0)
+    v1[1] = GSL::Complex.alloc(2.0, 0.0)
+    v2[0] = GSL::Complex.alloc(3.0, 0.0)
+    v2[1] = GSL::Complex.alloc(4.0, 0.0)
+
+    result = v1.concat(v2)
+    assert_equal 4, result.size
+    assert_in_delta 3.0, result[2].real, 1e-10
+    assert_in_delta 4.0, result[3].real, 1e-10
+  end
+
+  def test_vector_complex_concat_wrong_type
+    v = GSL::Vector::Complex.alloc(2)
+    assert_raises(TypeError) { v.concat("invalid") }
+  end
+
+  # Test statistics functions
+  def test_vector_complex_sum
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 2.0)
+    v[1] = GSL::Complex.alloc(3.0, 4.0)
+    v[2] = GSL::Complex.alloc(5.0, 6.0)
+
+    s = v.sum
+    assert s.is_a?(GSL::Complex)
+    assert_in_delta 9.0, s.real, 1e-10  # 1+3+5
+    assert_in_delta 12.0, s.imag, 1e-10  # 2+4+6
+  end
+
+  def test_vector_complex_mean
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 2.0)
+    v[1] = GSL::Complex.alloc(3.0, 4.0)
+    v[2] = GSL::Complex.alloc(5.0, 6.0)
+
+    m = v.mean
+    assert m.is_a?(GSL::Complex)
+    assert_in_delta 3.0, m.real, 1e-10  # 9/3
+    assert_in_delta 4.0, m.imag, 1e-10  # 12/3
+  end
+
+  def test_vector_complex_tss
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    v[2] = GSL::Complex.alloc(3.0, 0.0)
+
+    tss = v.tss
+    assert tss.is_a?(Float)
+    assert tss >= 0, "tss is non-negative"
+  end
+
+  def test_vector_complex_tss_m
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    v[2] = GSL::Complex.alloc(3.0, 0.0)
+    mean = GSL::Complex.alloc(2.0, 0.0)
+
+    tss = v.tss_m(mean)
+    assert tss.is_a?(Float)
+    assert tss >= 0, "tss_m is non-negative"
+  end
+
+  def test_vector_complex_variance
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    v[2] = GSL::Complex.alloc(3.0, 0.0)
+
+    var = v.variance
+    assert var.is_a?(Float)
+    assert var >= 0, "variance is non-negative"
+  end
+
+  def test_vector_complex_variance_m
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    v[2] = GSL::Complex.alloc(3.0, 0.0)
+    mean = GSL::Complex.alloc(2.0, 0.0)
+
+    var = v.variance_m(mean)
+    assert var.is_a?(Float)
+    assert var >= 0, "variance_m is non-negative"
+  end
+
+  def test_vector_complex_variance_fm
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    v[2] = GSL::Complex.alloc(3.0, 0.0)
+    mean = GSL::Complex.alloc(2.0, 0.0)
+
+    var = v.variance_fm(mean)
+    assert var.is_a?(Float)
+    assert var >= 0, "variance_fm is non-negative"
+  end
+
+  def test_vector_complex_sd
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    v[2] = GSL::Complex.alloc(3.0, 0.0)
+
+    sd = v.sd
+    assert sd.is_a?(Float)
+    assert sd >= 0, "sd is non-negative"
+  end
+
+  def test_vector_complex_sd_m
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    v[2] = GSL::Complex.alloc(3.0, 0.0)
+    mean = GSL::Complex.alloc(2.0, 0.0)
+
+    sd = v.sd_m(mean)
+    assert sd.is_a?(Float)
+    assert sd >= 0, "sd_m is non-negative"
+  end
+
+  def test_vector_complex_sd_fm
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    v[2] = GSL::Complex.alloc(3.0, 0.0)
+    mean = GSL::Complex.alloc(2.0, 0.0)
+
+    sd = v.sd_fm(mean)
+    assert sd.is_a?(Float)
+    assert sd >= 0, "sd_fm is non-negative"
+  end
+
+  # Test fftshift
+  def test_vector_complex_fftshift
+    v = GSL::Vector::Complex.alloc(4)
+    4.times { |i| v[i] = GSL::Complex.alloc(i.to_f, 0.0) }
+
+    result = v.fftshift
+    assert_equal 4, result.size
+    # After fftshift, the second half moves to the beginning
+    assert_in_delta 2.0, result[0].real, 1e-10
+    assert_in_delta 3.0, result[1].real, 1e-10
+    assert_in_delta 0.0, result[2].real, 1e-10
+    assert_in_delta 1.0, result[3].real, 1e-10
+  end
+
+  def test_vector_complex_fftshift_bang
+    v = GSL::Vector::Complex.alloc(4)
+    4.times { |i| v[i] = GSL::Complex.alloc(i.to_f, 0.0) }
+
+    v.fftshift!
+    assert_in_delta 2.0, v[0].real, 1e-10
+    assert_in_delta 3.0, v[1].real, 1e-10
+  end
+
+  def test_vector_complex_ifftshift
+    v = GSL::Vector::Complex.alloc(4)
+    4.times { |i| v[i] = GSL::Complex.alloc(i.to_f, 0.0) }
+
+    result = v.ifftshift
+    assert_equal 4, result.size
+  end
+
+  def test_vector_complex_ifftshift_bang
+    v = GSL::Vector::Complex.alloc(4)
+    4.times { |i| v[i] = GSL::Complex.alloc(i.to_f, 0.0) }
+
+    v.ifftshift!
+    assert_equal 4, v.size
+  end
+
+  # Test set_real and set_imag
+  def test_vector_complex_set_real
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(0.0, 1.0)
+    v[1] = GSL::Complex.alloc(0.0, 2.0)
+    v[2] = GSL::Complex.alloc(0.0, 3.0)
+
+    real_vec = GSL::Vector[10.0, 20.0, 30.0]
+    v.set_real(real_vec)
+
+    assert_in_delta 10.0, v[0].real, 1e-10
+    assert_in_delta 1.0, v[0].imag, 1e-10  # imag unchanged
+    assert_in_delta 20.0, v[1].real, 1e-10
+    assert_in_delta 30.0, v[2].real, 1e-10
+  end
+
+  def test_vector_complex_set_imag
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    v[2] = GSL::Complex.alloc(3.0, 0.0)
+
+    imag_vec = GSL::Vector[10.0, 20.0, 30.0]
+    v.set_imag(imag_vec)
+
+    assert_in_delta 1.0, v[0].real, 1e-10  # real unchanged
+    assert_in_delta 10.0, v[0].imag, 1e-10
+    assert_in_delta 20.0, v[1].imag, 1e-10
+    assert_in_delta 30.0, v[2].imag, 1e-10
+  end
+
+  # Test inner_product
+  def test_vector_complex_inner_product
+    v1 = GSL::Vector::Complex.alloc(2)
+    v2 = GSL::Vector::Complex.alloc(2)
+    v1[0] = GSL::Complex.alloc(1.0, 0.0)
+    v1[1] = GSL::Complex.alloc(2.0, 0.0)
+    v2[0] = GSL::Complex.alloc(3.0, 0.0)
+    v2[1] = GSL::Complex.alloc(4.0, 0.0)
+
+    result = v1.inner_product(v2.col)
+    assert result.is_a?(GSL::Complex)
+    # (1*3 + 2*4) = 11 (real only)
+    assert_in_delta 11.0, result.real, 1e-10
+  end
+
+  def test_vector_complex_inner_product_singleton
+    v1 = GSL::Vector::Complex.alloc(2)
+    v2 = GSL::Vector::Complex.alloc(2)
+    v1[0] = GSL::Complex.alloc(1.0, 1.0)
+    v1[1] = GSL::Complex.alloc(2.0, 2.0)
+    v2[0] = GSL::Complex.alloc(1.0, -1.0)  # conjugate of v1[0]
+    v2[1] = GSL::Complex.alloc(2.0, -2.0)  # conjugate of v1[1]
+
+    result = GSL::Vector::Complex.inner_product(v1, v2.col)
+    assert result.is_a?(GSL::Complex)
+  end
+
+  def test_vector_complex_dot
+    v1 = GSL::Vector::Complex.alloc(2)
+    v2 = GSL::Vector::Complex.alloc(2)
+    v1[0] = GSL::Complex.alloc(1.0, 0.0)
+    v1[1] = GSL::Complex.alloc(2.0, 0.0)
+    v2[0] = GSL::Complex.alloc(3.0, 0.0)
+    v2[1] = GSL::Complex.alloc(4.0, 0.0)
+
+    result = GSL::Vector::Complex.dot(v1, v2.col)
+    assert result.is_a?(GSL::Complex)
+    assert_in_delta 11.0, result.real, 1e-10
+  end
+
+  # Test more trig functions
+  def test_vector_complex_sec
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(0.0, 0.0)
+    v[1] = GSL::Complex.alloc(0.5, 0.0)
+
+    result = v.sec
+    assert result.is_a?(GSL::Vector::Complex)
+    # sec(0) = 1
+    assert_in_delta 1.0, result[0].real, 1e-10
+  end
+
+  def test_vector_complex_csc
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(Math::PI/2, 0.0)
+    v[1] = GSL::Complex.alloc(1.0, 0.0)
+
+    result = v.csc
+    assert result.is_a?(GSL::Vector::Complex)
+    # csc(pi/2) = 1
+    assert_in_delta 1.0, result[0].real, 1e-10
+  end
+
+  def test_vector_complex_cot
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(Math::PI/4, 0.0)
+    v[1] = GSL::Complex.alloc(1.0, 0.0)
+
+    result = v.cot
+    assert result.is_a?(GSL::Vector::Complex)
+    # cot(pi/4) = 1
+    assert_in_delta 1.0, result[0].real, 1e-10
+  end
+
+  def test_vector_complex_sech
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(0.0, 0.0)
+    v[1] = GSL::Complex.alloc(1.0, 0.0)
+
+    result = v.sech
+    assert result.is_a?(GSL::Vector::Complex)
+    # sech(0) = 1
+    assert_in_delta 1.0, result[0].real, 1e-10
+  end
+
+  def test_vector_complex_csch
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+
+    result = v.csch
+    assert result.is_a?(GSL::Vector::Complex)
+  end
+
+  def test_vector_complex_coth
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+
+    result = v.coth
+    assert result.is_a?(GSL::Vector::Complex)
+  end
+
+  # Test inverse trig functions
+  def test_vector_complex_arcsec
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+
+    result = v.arcsec
+    assert result.is_a?(GSL::Vector::Complex)
+    # arcsec(1) = 0
+    assert_in_delta 0.0, result[0].real, 1e-10
+  end
+
+  def test_vector_complex_arccsc
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+
+    result = v.arccsc
+    assert result.is_a?(GSL::Vector::Complex)
+    # arccsc(1) = pi/2
+    assert_in_delta Math::PI/2, result[0].real, 1e-10
+  end
+
+  def test_vector_complex_arccot
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+
+    result = v.arccot
+    assert result.is_a?(GSL::Vector::Complex)
+    # arccot(1) = pi/4
+    assert_in_delta Math::PI/4, result[0].real, 1e-10
+  end
+
+  # Test inverse hyperbolic functions
+  def test_vector_complex_arcsech
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(0.5, 0.0)
+
+    result = v.arcsech
+    assert result.is_a?(GSL::Vector::Complex)
+    # arcsech(1) = 0
+    assert_in_delta 0.0, result[0].real, 1e-10
+  end
+
+  def test_vector_complex_arccsch
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+
+    result = v.arccsch
+    assert result.is_a?(GSL::Vector::Complex)
+  end
+
+  def test_vector_complex_arccoth
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(2.0, 0.0)  # |x| > 1
+    v[1] = GSL::Complex.alloc(3.0, 0.0)
+
+    result = v.arccoth
+    assert result.is_a?(GSL::Vector::Complex)
+  end
+
+  # Test pow and log_b
+  def test_vector_complex_pow
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(2.0, 0.0)
+    v[1] = GSL::Complex.alloc(3.0, 0.0)
+
+    z = GSL::Complex.alloc(2.0, 0.0)
+    result = v.pow(z)
+    assert result.is_a?(GSL::Vector::Complex)
+    # 2^2 = 4
+    assert_in_delta 4.0, result[0].real, 1e-10
+    # 3^2 = 9
+    assert_in_delta 9.0, result[1].real, 1e-10
+  end
+
+  def test_vector_complex_pow_bang
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(2.0, 0.0)
+    v[1] = GSL::Complex.alloc(3.0, 0.0)
+
+    z = GSL::Complex.alloc(2.0, 0.0)
+    v.pow!(z)
+    assert_in_delta 4.0, v[0].real, 1e-10
+    assert_in_delta 9.0, v[1].real, 1e-10
+  end
+
+  def test_vector_complex_log_b
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(8.0, 0.0)
+    v[1] = GSL::Complex.alloc(27.0, 0.0)
+
+    base = GSL::Complex.alloc(2.0, 0.0)
+    result = v.log_b(base)
+    assert result.is_a?(GSL::Vector::Complex)
+    # log_2(8) = 3
+    assert_in_delta 3.0, result[0].real, 1e-10
+  end
+
+  def test_vector_complex_log_b_bang
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(8.0, 0.0)
+    v[1] = GSL::Complex.alloc(16.0, 0.0)
+
+    base = GSL::Complex.alloc(2.0, 0.0)
+    v.log_b!(base)
+    assert_in_delta 3.0, v[0].real, 1e-10
+    assert_in_delta 4.0, v[1].real, 1e-10
+  end
+
+  # Test bang variants
+  def test_vector_complex_sqrt_bang
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(4.0, 0.0)
+    v[1] = GSL::Complex.alloc(9.0, 0.0)
+
+    v.sqrt!
+    assert_in_delta 2.0, v[0].real, 1e-10
+    assert_in_delta 3.0, v[1].real, 1e-10
+  end
+
+  def test_vector_complex_exp_bang
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(0.0, 0.0)
+    v[1] = GSL::Complex.alloc(1.0, 0.0)
+
+    v.exp!
+    assert_in_delta 1.0, v[0].real, 1e-10
+    assert_in_delta Math::E, v[1].real, 1e-10
+  end
+
+  def test_vector_complex_log_bang
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(Math::E, 0.0)
+
+    v.log!
+    assert_in_delta 0.0, v[0].real, 1e-10
+    assert_in_delta 1.0, v[1].real, 1e-10
+  end
+
+  def test_vector_complex_log10_bang
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(10.0, 0.0)
+
+    v.log10!
+    assert_in_delta 0.0, v[0].real, 1e-10
+    assert_in_delta 1.0, v[1].real, 1e-10
+  end
+
+  # Test set_all with two floats
+  def test_vector_complex_set_all_two_floats
+    v = GSL::Vector::Complex.alloc(3)
+    v.set_all(2.0, 3.0)
+
+    assert_in_delta 2.0, v[0].real, 1e-10
+    assert_in_delta 3.0, v[0].imag, 1e-10
+    assert_in_delta 2.0, v[1].real, 1e-10
+    assert_in_delta 3.0, v[1].imag, 1e-10
+  end
+
+  def test_vector_complex_set_all_wrong_args
+    v = GSL::Vector::Complex.alloc(3)
+    assert_raises(ArgumentError) { v.set_all(1.0, 2.0, 3.0) }
+  end
+
+  # Test set_basis
+  def test_vector_complex_set_basis
+    v = GSL::Vector::Complex.alloc(3)
+    v.set_basis(1)
+
+    assert_in_delta 0.0, v[0].real, 1e-10
+    assert_in_delta 1.0, v[1].real, 1e-10
+    assert_in_delta 0.0, v[2].real, 1e-10
+  end
+
+  # Test to_a2
+  def test_vector_complex_to_a2
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 2.0)
+    v[1] = GSL::Complex.alloc(3.0, 4.0)
+
+    arr = v.to_a2
+    assert arr.is_a?(Array)
+    assert_equal 2, arr.size
+    assert_equal 2, arr[0].size  # Each element is [real, imag]
+    assert_in_delta 1.0, arr[0][0], 1e-10
+    assert_in_delta 2.0, arr[0][1], 1e-10
+  end
+
+  # Test to_real
+  def test_vector_complex_to_real
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 2.0)
+    v[1] = GSL::Complex.alloc(3.0, 4.0)
+    v[2] = GSL::Complex.alloc(5.0, 6.0)
+
+    real = v.to_real
+    assert real.is_a?(GSL::Vector)
+    # Should have 6 elements: [re0, im0, re1, im1, re2, im2]
+    assert_equal 6, real.size
+    assert_in_delta 1.0, real[0], 1e-10
+    assert_in_delta 2.0, real[1], 1e-10
+  end
+
+  # Test block
+  def test_vector_complex_block
+    v = GSL::Vector::Complex.alloc(3)
+    blk = v.block
+    assert blk.is_a?(GSL::Block::Complex)
+  end
+
+  # Test trans (transpose)
+  def test_vector_complex_trans
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+    v[1] = GSL::Complex.alloc(2.0, 0.0)
+    v[2] = GSL::Complex.alloc(3.0, 0.0)
+
+    t = v.trans
+    assert t.is_a?(GSL::Vector::Complex::Col)
+    assert_equal 3, t.size
+  end
+
+  def test_vector_complex_trans_bang
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 0.0)
+
+    # trans! should change the type in-place
+    result = v.trans!
+    assert result.is_a?(GSL::Vector::Complex)
+  end
+
+  # Test matrix_view
+  def test_vector_complex_matrix_view
+    v = GSL::Vector::Complex.alloc(6)
+    6.times { |i| v[i] = GSL::Complex.alloc(i.to_f, 0.0) }
+
+    mv = v.matrix_view(2, 3)
+    assert mv.is_a?(GSL::Matrix::Complex)
+    assert_equal 2, mv.size1
+    assert_equal 3, mv.size2
+    assert_in_delta 0.0, mv[0, 0].real, 1e-10
+    assert_in_delta 3.0, mv[1, 0].real, 1e-10
+  end
+
+  def test_vector_complex_matrix_view_with_tda
+    v = GSL::Vector::Complex.alloc(9)
+    9.times { |i| v[i] = GSL::Complex.alloc(i.to_f, 0.0) }
+
+    mv = v.matrix_view_with_tda(2, 3, 4)
+    assert mv.is_a?(GSL::Matrix::Complex)
+    assert_equal 2, mv.size1
+    assert_equal 3, mv.size2
+  end
+
+  # Test constructor from two real vectors
+  def test_vector_complex_from_two_vectors
+    re = GSL::Vector[1.0, 2.0, 3.0]
+    im = GSL::Vector[4.0, 5.0, 6.0]
+
+    v = GSL::Vector::Complex.alloc(re, im)
+    assert_equal 3, v.size
+    assert_in_delta 1.0, v[0].real, 1e-10
+    assert_in_delta 4.0, v[0].imag, 1e-10
+    assert_in_delta 2.0, v[1].real, 1e-10
+    assert_in_delta 5.0, v[1].imag, 1e-10
+  end
+
+  # Test get with array
+  def test_vector_complex_get_array
+    v = GSL::Vector::Complex.alloc(5)
+    5.times { |i| v[i] = GSL::Complex.alloc(i.to_f, 0.0) }
+
+    result = v[[0, 2, 4]]
+    assert result.is_a?(GSL::Vector::Complex)
+    assert_equal 3, result.size
+    assert_in_delta 0.0, result[0].real, 1e-10
+    assert_in_delta 2.0, result[1].real, 1e-10
+    assert_in_delta 4.0, result[2].real, 1e-10
+  end
+
+  # Test get with permutation
+  def test_vector_complex_get_permutation
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(10.0, 0.0)
+    v[1] = GSL::Complex.alloc(20.0, 0.0)
+    v[2] = GSL::Complex.alloc(30.0, 0.0)
+
+    perm = GSL::Permutation.alloc(3)
+    perm.init  # 0, 1, 2
+    perm.swap(0, 2)  # now 2, 1, 0
+
+    result = v[perm]
+    assert result.is_a?(GSL::Vector::Complex)
+    assert_equal 3, result.size
+    assert_in_delta 30.0, result[0].real, 1e-10
+    assert_in_delta 20.0, result[1].real, 1e-10
+    assert_in_delta 10.0, result[2].real, 1e-10
+  end
+
+  def test_vector_complex_get_wrong_type
+    v = GSL::Vector::Complex.alloc(3)
+    assert_raises(TypeError) { v["invalid"] }
+  end
+
+  # Test set with subvector assignment from range
+  def test_vector_complex_set_subvector_range
+    v = GSL::Vector::Complex.alloc(5)
+    v.set_zero
+
+    v[1..3] = 2..4
+
+    assert_in_delta 0.0, v[0].real, 1e-10
+    assert_in_delta 2.0, v[1].real, 1e-10
+    assert_in_delta 3.0, v[2].real, 1e-10
+    assert_in_delta 4.0, v[3].real, 1e-10
+    assert_in_delta 0.0, v[4].real, 1e-10
+  end
+
+  # Test print
+  def test_vector_complex_print
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 2.0)
+    v[1] = GSL::Complex.alloc(3.0, 4.0)
+
+    # print returns the vector
+    result = v.print
+    assert_equal v, result
+  end
+
+  # Test printf
+  def test_vector_complex_printf
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 2.0)
+    v[1] = GSL::Complex.alloc(3.0, 4.0)
+
+    # printf should work with no errors
+    assert_nothing_raised { v.printf }
+    assert_nothing_raised { v.printf("%.2f") }
+  end
+
+  # Test subvector_with_stride
+  def test_vector_complex_subvector_with_stride
+    v = GSL::Vector::Complex.alloc(6)
+    6.times { |i| v[i] = GSL::Complex.alloc(i.to_f, 0.0) }
+
+    sv = v.subvector_with_stride(0, 2, 3)
+    assert sv.is_a?(GSL::Vector::Complex)
+    assert_equal 3, sv.size
+    # Elements at 0, 2, 4
+    assert_in_delta 0.0, sv[0].real, 1e-10
+    assert_in_delta 2.0, sv[1].real, 1e-10
+    assert_in_delta 4.0, sv[2].real, 1e-10
+  end
+
+  # Test indgen! with wrong args
+  def test_vector_complex_indgen_bang_wrong_args
+    v = GSL::Vector::Complex.alloc(3)
+    assert_raises(ArgumentError) { v.indgen!(1, 2, 3) }
+  end
+
+  # Test singleton indgen with different argument counts
+  def test_vector_complex_indgen_singleton_with_start
+    v = GSL::Vector::Complex.indgen(3, 10.0)
+    assert_equal 3, v.size
+    assert_in_delta 10.0, v[0].real, 1e-10
+    assert_in_delta 11.0, v[1].real, 1e-10
+    assert_in_delta 12.0, v[2].real, 1e-10
+  end
+
+  def test_vector_complex_indgen_singleton_with_start_step
+    v = GSL::Vector::Complex.indgen(3, 0.0, 2.0)
+    assert_equal 3, v.size
+    assert_in_delta 0.0, v[0].real, 1e-10
+    assert_in_delta 2.0, v[1].real, 1e-10
+    assert_in_delta 4.0, v[2].real, 1e-10
+  end
+
+  def test_vector_complex_indgen_singleton_wrong_args
+    assert_raises(ArgumentError) { GSL::Vector::Complex.indgen(3, 0.0, 1.0, 2.0) }
+  end
+
+  # Test arithmetic bang variants
+  def test_vector_complex_add_bang
+    v1 = GSL::Vector::Complex.alloc(2)
+    v2 = GSL::Vector::Complex.alloc(2)
+    v1[0] = GSL::Complex.alloc(1.0, 2.0)
+    v1[1] = GSL::Complex.alloc(3.0, 4.0)
+    v2[0] = GSL::Complex.alloc(10.0, 0.0)
+    v2[1] = GSL::Complex.alloc(20.0, 0.0)
+
+    v1.add!(v2)
+    assert_in_delta 11.0, v1[0].real, 1e-10
+    assert_in_delta 23.0, v1[1].real, 1e-10
+  end
+
+  def test_vector_complex_sub_bang
+    v1 = GSL::Vector::Complex.alloc(2)
+    v2 = GSL::Vector::Complex.alloc(2)
+    v1[0] = GSL::Complex.alloc(10.0, 5.0)
+    v1[1] = GSL::Complex.alloc(20.0, 10.0)
+    v2[0] = GSL::Complex.alloc(1.0, 0.0)
+    v2[1] = GSL::Complex.alloc(2.0, 0.0)
+
+    v1.sub!(v2)
+    assert_in_delta 9.0, v1[0].real, 1e-10
+    assert_in_delta 18.0, v1[1].real, 1e-10
+  end
+
+  def test_vector_complex_mul_bang
+    v1 = GSL::Vector::Complex.alloc(2)
+    v2 = GSL::Vector::Complex.alloc(2)
+    v1[0] = GSL::Complex.alloc(2.0, 0.0)
+    v1[1] = GSL::Complex.alloc(3.0, 0.0)
+    v2[0] = GSL::Complex.alloc(4.0, 0.0)
+    v2[1] = GSL::Complex.alloc(5.0, 0.0)
+
+    v1.mul!(v2)
+    assert_in_delta 8.0, v1[0].real, 1e-10
+    assert_in_delta 15.0, v1[1].real, 1e-10
+  end
+
+  def test_vector_complex_div_bang
+    v1 = GSL::Vector::Complex.alloc(2)
+    v2 = GSL::Vector::Complex.alloc(2)
+    v1[0] = GSL::Complex.alloc(8.0, 0.0)
+    v1[1] = GSL::Complex.alloc(15.0, 0.0)
+    v2[0] = GSL::Complex.alloc(2.0, 0.0)
+    v2[1] = GSL::Complex.alloc(3.0, 0.0)
+
+    v1.div!(v2)
+    assert_in_delta 4.0, v1[0].real, 1e-10
+    assert_in_delta 5.0, v1[1].real, 1e-10
+  end
+
+  # Test conj!
+  def test_vector_complex_conj_bang
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.0, 2.0)
+    v[1] = GSL::Complex.alloc(3.0, 4.0)
+
+    v.conj!
+    assert_in_delta 1.0, v[0].real, 1e-10
+    assert_in_delta -2.0, v[0].imag, 1e-10
+    assert_in_delta 3.0, v[1].real, 1e-10
+    assert_in_delta -4.0, v[1].imag, 1e-10
+  end
+
+  # Test fwrite (fread has issues with tempfile, skip it)
+  def test_vector_complex_fwrite
+    require 'tempfile'
+
+    v = GSL::Vector::Complex.alloc(3)
+    v[0] = GSL::Complex.alloc(1.0, 2.0)
+    v[1] = GSL::Complex.alloc(3.0, 4.0)
+    v[2] = GSL::Complex.alloc(5.0, 6.0)
+
+    Tempfile.open('vector_complex') do |f|
+      v.fwrite(f.path)
+
+      # Check file was written (binary format, just check size > 0)
+      assert File.size(f.path) > 0, "fwrite wrote data"
+    end
+  end
+
+  # Test fprintf (fscanf has format issues with complex, skip it)
+  def test_vector_complex_fprintf
+    require 'tempfile'
+
+    v = GSL::Vector::Complex.alloc(2)
+    v[0] = GSL::Complex.alloc(1.5, 2.5)
+    v[1] = GSL::Complex.alloc(3.5, 4.5)
+
+    Tempfile.open('vector_complex_text') do |f|
+      v.fprintf(f.path)
+
+      content = File.read(f.path)
+      # Check that file was written
+      assert content.include?("1.5"), "fprintf wrote real part"
+    end
+  end
 end

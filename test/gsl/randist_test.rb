@@ -465,4 +465,387 @@ class RandistTest < GSL::TestCase
     assert val.is_a?(Float), "gaussian_ziggurat returns a float"
   end
 
+  # === Branch coverage tests for helper functions ===
+
+  # Test vector generation paths (returns vector when count specified)
+  def test_gaussian_vector_generation
+    r = GSL::Rng.alloc
+    vec = r.gaussian(1.0, 5)
+    assert vec.is_a?(GSL::Vector), "gaussian with count returns vector"
+    assert_equal 5, vec.size
+  end
+
+  def test_gaussian_vector_generation_module
+    r = GSL::Rng.alloc
+    vec = GSL::Ran.gaussian(r, 1.0, 5)
+    assert vec.is_a?(GSL::Vector), "module gaussian with count returns vector"
+    assert_equal 5, vec.size
+  end
+
+  def test_exponential_vector_generation
+    r = GSL::Rng.alloc
+    vec = r.exponential(1.0, 5)
+    assert vec.is_a?(GSL::Vector), "exponential with count returns vector"
+    assert_equal 5, vec.size
+    vec.each { |v| assert v >= 0, "exponential values are non-negative" }
+  end
+
+  def test_exponential_vector_generation_module
+    r = GSL::Rng.alloc
+    vec = GSL::Ran.exponential(r, 1.0, 5)
+    assert vec.is_a?(GSL::Vector), "module exponential with count returns vector"
+    assert_equal 5, vec.size
+  end
+
+  def test_cauchy_vector_generation
+    r = GSL::Rng.alloc
+    vec = r.cauchy(1.0, 5)
+    assert vec.is_a?(GSL::Vector), "cauchy with count returns vector"
+    assert_equal 5, vec.size
+  end
+
+  def test_gamma_vector_generation
+    r = GSL::Rng.alloc
+    vec = r.gamma(2.0, 1.0, 5)
+    assert vec.is_a?(GSL::Vector), "gamma with count returns vector"
+    assert_equal 5, vec.size
+    vec.each { |v| assert v >= 0, "gamma values are non-negative" }
+  end
+
+  def test_gamma_vector_generation_module
+    r = GSL::Rng.alloc
+    vec = GSL::Ran.gamma(r, 2.0, 1.0, 5)
+    assert vec.is_a?(GSL::Vector), "module gamma with count returns vector"
+    assert_equal 5, vec.size
+  end
+
+  def test_flat_vector_generation
+    r = GSL::Rng.alloc
+    vec = r.flat(0.0, 1.0, 5)
+    assert vec.is_a?(GSL::Vector), "flat with count returns vector"
+    assert_equal 5, vec.size
+    vec.each { |v| assert v >= 0 && v <= 1, "flat values in [0,1]" }
+  end
+
+  def test_beta_vector_generation
+    r = GSL::Rng.alloc
+    vec = r.beta(2.0, 3.0, 5)
+    assert vec.is_a?(GSL::Vector), "beta with count returns vector"
+    assert_equal 5, vec.size
+    vec.each { |v| assert v >= 0 && v <= 1, "beta values in [0,1]" }
+  end
+
+  def test_levy_vector_generation
+    r = GSL::Rng.alloc
+    vec = r.levy(1.0, 1.5, 5)
+    assert vec.is_a?(GSL::Vector), "levy with count returns vector"
+    assert_equal 5, vec.size
+  end
+
+  def test_levy_skew_vector_generation
+    r = GSL::Rng.alloc
+    vec = r.levy_skew(1.0, 1.5, 0.5, 5)
+    assert vec.is_a?(GSL::Vector), "levy_skew with count returns vector"
+    assert_equal 5, vec.size
+  end
+
+  def test_levy_skew_vector_generation_module
+    r = GSL::Rng.alloc
+    vec = GSL::Ran.levy_skew(r, 1.0, 1.5, 0.5, 5)
+    assert vec.is_a?(GSL::Vector), "module levy_skew with count returns vector"
+    assert_equal 5, vec.size
+  end
+
+  # Test integer-returning distributions with vector generation
+  def test_poisson_vector_generation
+    r = GSL::Rng.alloc
+    vec = r.poisson(3.0, 5)
+    assert vec.is_a?(GSL::Vector::Int), "poisson with count returns int vector"
+    assert_equal 5, vec.size
+  end
+
+  def test_poisson_vector_generation_module
+    r = GSL::Rng.alloc
+    vec = GSL::Ran.poisson(r, 3.0, 5)
+    assert vec.is_a?(GSL::Vector::Int), "module poisson with count returns int vector"
+    assert_equal 5, vec.size
+  end
+
+  def test_geometric_vector_generation
+    r = GSL::Rng.alloc
+    vec = r.geometric(0.5, 5)
+    assert vec.is_a?(GSL::Vector::Int), "geometric with count returns int vector"
+    assert_equal 5, vec.size
+  end
+
+  def test_bernoulli
+    r = GSL::Rng.alloc
+    val = r.bernoulli(0.5)
+    assert val == 0 || val == 1, "bernoulli returns 0 or 1"
+  end
+
+  def test_bernoulli_module
+    r = GSL::Rng.alloc
+    val = GSL::Ran.bernoulli(r, 0.5)
+    assert val == 0 || val == 1, "module bernoulli returns 0 or 1"
+  end
+
+  def test_bernoulli_vector_generation
+    r = GSL::Rng.alloc
+    vec = r.bernoulli(0.5, 10)
+    assert vec.is_a?(GSL::Vector::Int), "bernoulli with count returns int vector"
+    assert_equal 10, vec.size
+    vec.each { |v| assert v == 0 || v == 1, "bernoulli values are 0 or 1" }
+  end
+
+  def test_bernoulli_pdf
+    pdf0 = GSL::Ran.bernoulli_pdf(0, 0.3)
+    pdf1 = GSL::Ran.bernoulli_pdf(1, 0.3)
+    assert_in_delta 0.7, pdf0, 1e-10
+    assert_in_delta 0.3, pdf1, 1e-10
+  end
+
+  def test_binomial_tpe
+    r = GSL::Rng.alloc
+    val = r.binomial_tpe(0.5, 10)
+    assert val.is_a?(Integer), "binomial_tpe returns an integer"
+    assert val >= 0 && val <= 10, "binomial_tpe is in [0, n]"
+  end
+
+  def test_binomial_tpe_module
+    r = GSL::Rng.alloc
+    val = GSL::Ran.binomial_tpe(r, 0.5, 10)
+    assert val.is_a?(Integer), "module binomial_tpe returns an integer"
+    assert val >= 0 && val <= 10, "binomial_tpe is in [0, n]"
+  end
+
+  # Test gaussian with different argument counts
+  def test_gaussian_default_sigma
+    r = GSL::Rng.alloc
+    val = r.gaussian
+    assert val.is_a?(Float), "gaussian with no args uses default sigma=1"
+  end
+
+  def test_gaussian_with_sigma
+    r = GSL::Rng.alloc
+    val = r.gaussian(2.0)
+    assert val.is_a?(Float), "gaussian with sigma returns float"
+  end
+
+  def test_gaussian_module_call
+    r = GSL::Rng.alloc
+    val = GSL::Ran.gaussian(r)
+    assert val.is_a?(Float), "module gaussian with just rng works"
+  end
+
+  def test_gaussian_module_with_sigma
+    r = GSL::Rng.alloc
+    val = GSL::Ran.gaussian(r, 2.0)
+    assert val.is_a?(Float), "module gaussian with sigma works"
+  end
+
+  # Test gaussian_tail with different argument counts
+  def test_gaussian_tail_with_sigma
+    r = GSL::Rng.alloc
+    val = r.gaussian_tail(1.0, 2.0)
+    assert val.is_a?(Float), "gaussian_tail with a and sigma returns float"
+    assert val >= 1.0, "gaussian_tail is >= a"
+  end
+
+  def test_gaussian_tail_module
+    r = GSL::Rng.alloc
+    val = GSL::Ran.gaussian_tail(r, 1.0)
+    assert val.is_a?(Float), "module gaussian_tail works"
+    assert val >= 1.0, "gaussian_tail is >= a"
+  end
+
+  def test_gaussian_tail_module_with_sigma
+    r = GSL::Rng.alloc
+    val = GSL::Ran.gaussian_tail(r, 1.0, 2.0)
+    assert val.is_a?(Float), "module gaussian_tail with sigma works"
+    assert val >= 1.0, "gaussian_tail is >= a"
+  end
+
+  def test_gaussian_tail_vector_generation
+    r = GSL::Rng.alloc
+    vec = r.gaussian_tail(1.0, 2.0, 5)
+    assert vec.is_a?(GSL::Vector), "gaussian_tail with count returns vector"
+    assert_equal 5, vec.size
+    vec.each { |v| assert v >= 1.0, "gaussian_tail values >= a" }
+  end
+
+  def test_gaussian_tail_vector_generation_module
+    r = GSL::Rng.alloc
+    vec = GSL::Ran.gaussian_tail(r, 1.0, 2.0, 5)
+    assert vec.is_a?(GSL::Vector), "module gaussian_tail with count returns vector"
+    assert_equal 5, vec.size
+  end
+
+  # Test gaussian_ratio_method
+  def test_gaussian_ratio_method
+    r = GSL::Rng.alloc
+    val = r.gaussian_ratio_method
+    assert val.is_a?(Float), "gaussian_ratio_method returns float"
+  end
+
+  def test_gaussian_ratio_method_with_sigma
+    r = GSL::Rng.alloc
+    val = r.gaussian_ratio_method(2.0)
+    assert val.is_a?(Float), "gaussian_ratio_method with sigma returns float"
+  end
+
+  def test_gaussian_ratio_method_module
+    r = GSL::Rng.alloc
+    val = GSL::Ran.gaussian_ratio_method(r)
+    assert val.is_a?(Float), "module gaussian_ratio_method returns float"
+  end
+
+  def test_gaussian_ratio_method_module_with_sigma
+    r = GSL::Rng.alloc
+    val = GSL::Ran.gaussian_ratio_method(r, 2.0)
+    assert val.is_a?(Float), "module gaussian_ratio_method with sigma returns float"
+  end
+
+  # Test PDF functions with vectors
+  def test_gaussian_pdf_with_vector
+    x = GSL::Vector[0.0, 1.0, 2.0]
+    pdf = GSL::Ran.gaussian_pdf(x, 1.0)
+    assert pdf.is_a?(GSL::Vector), "gaussian_pdf with vector returns vector"
+    assert_equal 3, pdf.size
+    pdf.each { |p| assert p >= 0, "pdf values are non-negative" }
+  end
+
+  def test_ugaussian_pdf_with_vector
+    x = GSL::Vector[0.0, 1.0, 2.0]
+    pdf = GSL::Ran.gaussian_pdf(x)
+    assert pdf.is_a?(GSL::Vector), "ugaussian_pdf with vector returns vector"
+    assert_equal 3, pdf.size
+  end
+
+  def test_exponential_pdf_with_vector
+    x = GSL::Vector[0.0, 1.0, 2.0]
+    pdf = GSL::Ran.exponential_pdf(x, 1.0)
+    assert pdf.is_a?(GSL::Vector), "exponential_pdf with vector returns vector"
+    assert_equal 3, pdf.size
+  end
+
+  def test_gamma_pdf_with_vector
+    x = GSL::Vector[0.5, 1.0, 2.0]
+    pdf = GSL::Ran.gamma_pdf(x, 2.0, 1.0)
+    assert pdf.is_a?(GSL::Vector), "gamma_pdf with vector returns vector"
+    assert_equal 3, pdf.size
+  end
+
+  # Test gaussian_tail_pdf
+  def test_ugaussian_tail_pdf
+    pdf = GSL::Ran.gaussian_tail_pdf(1.5, 1.0)
+    assert pdf.is_a?(Float), "ugaussian_tail_pdf returns float"
+    assert pdf >= 0, "pdf is non-negative"
+  end
+
+  def test_gaussian_tail_pdf_full
+    pdf = GSL::Ran.gaussian_tail_pdf(3.0, 1.0, 2.0)
+    assert pdf.is_a?(Float), "gaussian_tail_pdf returns float"
+    assert pdf >= 0, "pdf is non-negative"
+  end
+
+  # Test exppow distribution
+  def test_exppow
+    r = GSL::Rng.alloc
+    val = r.exppow(1.0, 2.0)
+    assert val.is_a?(Float), "exppow returns float"
+  end
+
+  def test_exppow_module
+    r = GSL::Rng.alloc
+    val = GSL::Ran.exppow(r, 1.0, 2.0)
+    assert val.is_a?(Float), "module exppow returns float"
+  end
+
+  def test_exppow_pdf
+    pdf = GSL::Ran.exppow_pdf(0.0, 1.0, 2.0)
+    assert pdf.is_a?(Float), "exppow_pdf returns float"
+    assert pdf > 0, "exppow_pdf is positive at 0"
+  end
+
+  # Test flat distribution
+  def test_flat
+    r = GSL::Rng.alloc
+    val = r.flat(1.0, 3.0)
+    assert val >= 1.0 && val <= 3.0, "flat is in [a, b]"
+  end
+
+  def test_flat_pdf
+    pdf = GSL::Ran.flat_pdf(1.5, 1.0, 2.0)
+    assert_in_delta 1.0, pdf, 1e-10, "flat_pdf is 1/(b-a) inside range"
+
+    pdf_outside = GSL::Ran.flat_pdf(0.5, 1.0, 2.0)
+    assert_in_delta 0.0, pdf_outside, 1e-10, "flat_pdf is 0 outside range"
+  end
+
+  # Test negative_binomial module call
+  def test_negative_binomial_module
+    r = GSL::Rng.alloc
+    val = GSL::Ran.negative_binomial(r, 0.5, 5.0)
+    assert val.is_a?(Integer), "module negative_binomial returns integer"
+    assert val >= 0, "negative_binomial is non-negative"
+  end
+
+  # Test hypergeometric module call
+  def test_hypergeometric_module
+    r = GSL::Rng.alloc
+    val = GSL::Ran.hypergeometric(r, 10, 20, 5)
+    assert val.is_a?(Integer), "module hypergeometric returns integer"
+    assert val >= 0 && val <= 5, "hypergeometric is in valid range"
+  end
+
+  # Test logarithmic module call
+  def test_logarithmic_module
+    r = GSL::Rng.alloc
+    val = GSL::Ran.logarithmic(r, 0.5)
+    assert val.is_a?(Integer), "module logarithmic returns integer"
+    assert val >= 1, "logarithmic is >= 1"
+  end
+
+  # Test pascal module call
+  def test_pascal_module
+    r = GSL::Rng.alloc
+    val = GSL::Ran.pascal(r, 0.5, 5)
+    assert val.is_a?(Integer), "module pascal returns integer"
+    assert val >= 0, "pascal is non-negative"
+  end
+
+  # Test direction distributions
+  def test_dir_2d_trig_method
+    r = GSL::Rng.alloc
+    x, y = r.dir_2d_trig_method
+    assert_in_delta 1.0, x*x + y*y, 1e-10, "dir_2d_trig_method gives unit vector"
+  end
+
+  # Error path tests
+  def test_gaussian_wrong_args
+    r = GSL::Rng.alloc
+    assert_raises(ArgumentError) { r.gaussian(1.0, 2.0, 3.0) }
+  end
+
+  def test_gaussian_module_wrong_args
+    r = GSL::Rng.alloc
+    assert_raises(ArgumentError) { GSL::Ran.gaussian(r, 1.0, 2.0, 3.0) }
+  end
+
+  def test_exponential_wrong_args
+    r = GSL::Rng.alloc
+    assert_raises(ArgumentError) { r.exponential(1.0, 2.0, 3.0) }
+  end
+
+  def test_gamma_wrong_args
+    r = GSL::Rng.alloc
+    assert_raises(ArgumentError) { r.gamma(1.0, 2.0, 3.0, 4.0, 5.0) }
+  end
+
+  def test_binomial_wrong_args
+    r = GSL::Rng.alloc
+    assert_raises(ArgumentError) { r.binomial(0.5, 10, 20) }
+  end
+
 end
