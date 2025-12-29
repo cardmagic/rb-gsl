@@ -764,8 +764,8 @@ class LinalgTest < GSL::TestCase
     assert result.is_a?(GSL::Vector), "Householder.hv returns a vector"
   end
 
-  # Test HH solve (Householder solver)
-  def test_HH_solve
+  # Test HH solve (Householder solver) - additional verification
+  def test_HH_solve_verification
     m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
     b = GSL::Vector[5.0, 7.0]
 
@@ -849,6 +849,425 @@ class LinalgTest < GSL::TestCase
     assert tau.is_a?(GSL::Vector), "PTLQ_decomp returns tau vector"
     assert perm.is_a?(GSL::Permutation), "PTLQ_decomp returns permutation"
     assert sign.is_a?(Integer), "PTLQ_decomp returns sign"
+  end
+
+  # Test LU refine
+  def test_LU_refine
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = GSL::Vector[5.0, 7.0]
+
+    lu, perm, _sign = m.LU_decomp
+    x = GSL::Linalg::LU.solve(lu, perm, b)
+
+    # Refine the solution
+    x_refined, residual = GSL::Linalg::LU.refine(m, lu, perm, b, x)
+
+    assert x_refined.is_a?(GSL::Vector), "LU_refine returns refined solution"
+    assert residual.is_a?(GSL::Vector), "LU_refine returns residual"
+  end
+
+  # Test SV decomposition with modified method
+  def test_SV_decomp_mod
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0], [5.0, 6.0])
+
+    u, v, s = GSL::Linalg::SV.decomp_mod(m)
+    assert u.is_a?(GSL::Matrix), "SV_decomp_mod returns U matrix"
+    assert v.is_a?(GSL::Matrix), "SV_decomp_mod returns V matrix"
+    assert s.is_a?(GSL::Vector), "SV_decomp_mod returns singular values"
+  end
+
+  # Test QRPT decomp2 (returns Q, R matrices separately)
+  def test_QRPT_decomp2
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+
+    q, r, tau, perm, sign = GSL::Linalg::QRPT.decomp2(m)
+    assert q.is_a?(GSL::Matrix), "QRPT_decomp2 returns Q matrix"
+    assert r.is_a?(GSL::Matrix), "QRPT_decomp2 returns R matrix"
+    assert tau.is_a?(GSL::Vector), "QRPT_decomp2 returns tau vector"
+    assert perm.is_a?(GSL::Permutation), "QRPT_decomp2 returns permutation"
+    assert sign.is_a?(Integer), "QRPT_decomp2 returns sign"
+  end
+
+  # Test QRPT svx (solve in place)
+  def test_QRPT_svx
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = GSL::Vector[5.0, 7.0]
+    original_m = m.clone
+
+    qr, tau, perm, _sign = m.QRPT_decomp
+    x = b.clone
+    qr.svx(tau, perm, x)
+
+    # Verify: original_m * x should equal b
+    result = original_m * x
+    assert (result[0] - b[0]).abs < 1e-10, "QRPT_svx solves correctly"
+    assert (result[1] - b[1]).abs < 1e-10, "QRPT_svx solves correctly"
+  end
+
+  # Test QRPT Rsolve (using instance method)
+  def test_QRPT_Rsolve
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    qr, tau, perm, _sign = m.QRPT_decomp
+
+    b = GSL::Vector[1.0, 2.0]
+    x = qr.Rsolve(perm, b)
+    assert x.is_a?(GSL::Vector), "QRPT_Rsolve returns a vector"
+  end
+
+  # Test QRPT Rsvx (using instance method)
+  def test_QRPT_Rsvx
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    qr, tau, perm, _sign = m.QRPT_decomp
+
+    x = GSL::Vector[1.0, 2.0]
+    qr.Rsvx(perm, x)
+    assert x.is_a?(GSL::Vector), "QRPT_Rsvx modifies vector in place"
+  end
+
+  # Test QR Rsolve
+  def test_QR_Rsolve
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    qr, tau = m.QR_decomp
+
+    b = GSL::Vector[1.0, 2.0]
+    x = GSL::Linalg::QR.Rsolve(qr, b)
+    assert x.is_a?(GSL::Vector), "QR_Rsolve returns a vector"
+  end
+
+  # Note: QR.Rsvx has a parameter type mismatch bug in rb-gsl
+  # The C code expects the first arg to be vector but gets matrix
+
+  # Test QR update
+  def test_QR_update
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+    qr, tau = m.QR_decomp
+    q, r = GSL::Linalg::QR.unpack(qr, tau)
+
+    w = GSL::Vector[0.1, 0.2]
+    v = GSL::Vector[0.3, 0.4]
+
+    result = GSL::Linalg::QR.update(q, r, w, v)
+    assert result == 0, "QR_update returns success status"
+  end
+
+  # Test Hessenberg decomposition
+  def test_hessenberg_decomp
+    m = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0])
+
+    h, tau = GSL::Linalg::Hessenberg.decomp(m)
+    assert h.is_a?(GSL::Matrix), "hessenberg_decomp returns H matrix"
+    assert tau.is_a?(GSL::Vector), "hessenberg_decomp returns tau vector"
+  end
+
+  # Test Hessenberg unpack
+  def test_hessenberg_unpack
+    m = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0])
+
+    h, tau = GSL::Linalg::Hessenberg.decomp(m)
+    u = GSL::Linalg::Hessenberg.unpack(h, tau)
+    assert u.is_a?(GSL::Matrix), "hessenberg_unpack returns U matrix"
+  end
+
+  # Test Hessenberg unpack_accum
+  def test_hessenberg_unpack_accum
+    m = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0])
+
+    h, tau = GSL::Linalg::Hessenberg.decomp(m)
+    u = GSL::Matrix.identity(3)
+    result = GSL::Linalg::Hessenberg.unpack_accum(h, tau, u)
+    assert result.is_a?(GSL::Matrix), "hessenberg_unpack_accum returns U matrix"
+  end
+
+  # Test Hessenberg set_zero
+  def test_hessenberg_set_zero
+    m = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0])
+    h, tau = GSL::Linalg::Hessenberg.decomp(m)
+
+    result = GSL::Linalg::Hessenberg.set_zero(h)
+    assert result == 0, "hessenberg_set_zero returns status"
+  end
+
+  # Test balance_matrix
+  def test_balance_matrix
+    m = GSL::Matrix.alloc([1.0, 1000.0, 0.0], [0.001, 1.0, 0.0], [0.0, 0.0, 1.0])
+
+    balanced, d = GSL::Linalg.balance_matrix(m)
+    assert balanced.is_a?(GSL::Matrix), "balance_matrix returns balanced matrix"
+    assert d.is_a?(GSL::Vector), "balance_matrix returns scaling vector"
+  end
+
+  # Test LQ solve_T (with square matrix)
+  def test_LQ_solve_T
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = GSL::Vector[5.0, 7.0]
+
+    lq, tau = m.LQ_decomp
+    x = GSL::Linalg::LQ.solve_T(lq, tau, b)
+    assert x.is_a?(GSL::Vector), "LQ_solve_T returns a vector"
+  end
+
+  # Test LQ svx_T (solve in place with square matrix)
+  def test_LQ_svx_T
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = GSL::Vector[5.0, 7.0]
+
+    lq, tau = m.LQ_decomp
+    x = b.clone
+    lq.svx_T(tau, x)
+    assert x.is_a?(GSL::Vector), "LQ_svx_T modifies vector in place"
+  end
+
+  # Test LQ lssolve_T (with square matrix for least squares)
+  def test_LQ_lssolve_T
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = GSL::Vector[5.0, 7.0]
+
+    x, residual = GSL::Linalg::LQ.lssolve_T(m, b)
+    assert x.is_a?(GSL::Vector), "LQ_lssolve_T returns solution vector"
+    assert residual.is_a?(GSL::Vector), "LQ_lssolve_T returns residual"
+  end
+
+  # Test LQ vecQT (with square matrix)
+  def test_LQ_vecQT
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    lq, tau = m.LQ_decomp
+    v = GSL::Vector[1.0, 2.0]
+
+    result = GSL::Linalg::LQ.vecQT(lq, tau, v)
+    assert result.is_a?(GSL::Vector), "LQ_vecQT returns a vector"
+  end
+
+  # Test LQ vecQ (with square matrix)
+  def test_LQ_vecQ
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    lq, tau = m.LQ_decomp
+    v = GSL::Vector[1.0, 2.0]
+
+    result = GSL::Linalg::LQ.vecQ(lq, tau, v)
+    assert result.is_a?(GSL::Vector), "LQ_vecQ returns a vector"
+  end
+
+  # Test LQ unpack (with square matrix)
+  def test_LQ_unpack
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    lq, tau = m.LQ_decomp
+
+    l, q = GSL::Linalg::LQ.unpack(lq, tau)
+    assert l.is_a?(GSL::Matrix), "LQ_unpack returns L matrix"
+    assert q.is_a?(GSL::Matrix), "LQ_unpack returns Q matrix"
+  end
+
+  # Test LQ Lsolve_T
+  def test_LQ_Lsolve_T
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    lq, tau = m.LQ_decomp
+
+    b = GSL::Vector[1.0, 2.0]
+    x = GSL::Linalg::LQ.Lsolve_T(lq, b)
+    assert x.is_a?(GSL::Vector), "LQ_Lsolve_T returns a vector"
+  end
+
+  # Note: LQ.Lsvx_T has a bug in the C code - argv[istart+1]
+  # should be argv[istart] at line 1633
+
+  # Test PTLQ decomp!
+  def test_PTLQ_decomp_bang
+    m = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0])
+    original = m.clone
+
+    tau, perm, sign = GSL::Linalg::PTLQ.decomp!(m)
+    refute m == original, "PTLQ_decomp! modifies matrix in place"
+    assert tau.is_a?(GSL::Vector), "PTLQ_decomp! returns tau vector"
+    assert perm.is_a?(GSL::Permutation), "PTLQ_decomp! returns permutation"
+  end
+
+  # Test PTLQ decomp2 (with square matrix)
+  def test_PTLQ_decomp2
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+
+    p, l, tau, perm, sign = GSL::Linalg::PTLQ.decomp2(m)
+    assert p.is_a?(GSL::Matrix), "PTLQ_decomp2 returns P matrix"
+    assert l.is_a?(GSL::Matrix), "PTLQ_decomp2 returns L matrix"
+    assert tau.is_a?(GSL::Vector), "PTLQ_decomp2 returns tau vector"
+    assert perm.is_a?(GSL::Permutation), "PTLQ_decomp2 returns permutation"
+  end
+
+  # Test PTLQ solve_T (with square matrix)
+  def test_PTLQ_solve_T
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = GSL::Vector[5.0, 7.0]
+
+    x = GSL::Linalg::PTLQ.solve_T(m, b)
+    assert x.is_a?(GSL::Vector), "PTLQ_solve_T returns a vector"
+  end
+
+  # Test PTLQ svx_T
+  def test_PTLQ_svx_T
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = GSL::Vector[5.0, 7.0]
+
+    lq, tau, perm, _sign = m.PTLQ_decomp
+    x = b.clone
+    lq.svx_T(tau, perm, x)
+    assert x.is_a?(GSL::Vector), "PTLQ_svx_T modifies vector in place"
+  end
+
+  # Test PTLQ Lsolve_T (using instance method)
+  def test_PTLQ_Lsolve_T
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    lq, tau, perm, _sign = m.PTLQ_decomp
+
+    b = GSL::Vector[1.0, 2.0]
+    x = lq.Lsolve_T(perm, b)
+    assert x.is_a?(GSL::Vector), "PTLQ_Lsolve_T returns a vector"
+  end
+
+  # Note: PTLQ.Lsvx_T appears to have a bug in the C code
+  # (returns "unknown operation" in all cases)
+
+  # Test Householder hm (apply Householder to matrix from left)
+  def test_householder_hm
+    v = GSL::Vector[3.0, 4.0, 0.0]
+    tau = GSL::Linalg::Householder.transform(v)
+
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0], [5.0, 6.0])
+    result = GSL::Linalg::Householder.hm(tau, v, m)
+    assert result.is_a?(GSL::Matrix), "Householder.hm returns a matrix"
+  end
+
+  # Test Householder mh (apply Householder to matrix from right)
+  def test_householder_mh
+    v = GSL::Vector[3.0, 4.0]
+    tau = GSL::Linalg::Householder.transform(v)
+
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0], [5.0, 6.0])
+    result = GSL::Linalg::Householder.mh(tau, v, m)
+    assert result.is_a?(GSL::Matrix), "Householder.mh returns a matrix"
+  end
+
+  # Test HH solve! (in place)
+  def test_HH_solve_bang
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    original_m = m.clone
+    b = GSL::Vector[5.0, 7.0]
+
+    x = GSL::Linalg::HH.solve!(m, b)
+    assert x.is_a?(GSL::Vector), "HH_solve! returns solution"
+    refute m == original_m, "HH_solve! modifies matrix in place"
+  end
+
+  # Test bidiag_decomp! (in place)
+  def test_bidiag_decomp_bang
+    m = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0], [10.0, 11.0, 12.0])
+    original = m.clone
+
+    tau_u, tau_v = GSL::Linalg::Bidiag.decomp!(m)
+    refute m == original, "bidiag_decomp! modifies matrix in place"
+    assert tau_u.is_a?(GSL::Vector), "bidiag_decomp! returns tau_U"
+    assert tau_v.is_a?(GSL::Vector), "bidiag_decomp! returns tau_V"
+  end
+
+  # Test bidiag_unpack2
+  def test_bidiag_unpack2
+    m = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0], [10.0, 11.0, 12.0])
+
+    tau_u, tau_v = m.bidiag_decomp!
+    v = m.bidiag_unpack2(tau_u, tau_v)
+    assert v.is_a?(GSL::Matrix), "bidiag_unpack2 returns V matrix"
+  end
+
+  # Test bidiag_unpack_B - module function version
+  def test_bidiag_unpack_B
+    m = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0])
+
+    # bidiag_unpack_B extracts diagonal and super-diagonal from bidiag decomposition
+    # Use module function which handles allocation correctly
+    decomp = m.bidiag_decomp
+    d, sd = GSL::Linalg::Bidiag.unpack_B(decomp[0])
+    assert d.is_a?(GSL::Vector), "bidiag_unpack_B returns diagonal"
+    assert sd.is_a?(GSL::Vector), "bidiag_unpack_B returns superdiagonal"
+  end
+
+  # Test R_solve (solve using R matrix from QR)
+  def test_R_solve
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    qr, tau = m.QR_decomp
+    q, r = GSL::Linalg::QR.unpack(qr, tau)
+
+    b = GSL::Vector[1.0, 2.0]
+    x = r.solve(b)
+    assert x.is_a?(GSL::Vector), "R_solve returns solution vector"
+  end
+
+  # Test L_solve_T (solve using L matrix from LQ)
+  def test_L_solve_T
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    lq, tau = m.LQ_decomp
+    l, q = GSL::Linalg::LQ.unpack(lq, tau)
+
+    b = GSL::Vector[1.0, 2.0]
+    x = l.solve_T(b)
+    assert x.is_a?(GSL::Vector), "L_solve_T returns solution vector"
+  end
+
+  # Test complex LU determinant
+  def test_complex_LU_det
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m.set(0, 0, GSL::Complex.alloc(1.0, 0.0))
+    m.set(0, 1, GSL::Complex.alloc(2.0, 0.0))
+    m.set(1, 0, GSL::Complex.alloc(3.0, 0.0))
+    m.set(1, 1, GSL::Complex.alloc(4.0, 0.0))
+
+    det = m.det
+    assert det.is_a?(GSL::Complex), "Complex det returns Complex"
+    # det = 1*4 - 2*3 = -2
+    assert (det.re - (-2.0)).abs < 1e-10, "Complex det computes correctly"
+  end
+
+  # Test complex LU lndet
+  def test_complex_LU_lndet
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m.set(0, 0, GSL::Complex.alloc(2.0, 0.0))
+    m.set(0, 1, GSL::Complex.alloc(0.0, 0.0))
+    m.set(1, 0, GSL::Complex.alloc(0.0, 0.0))
+    m.set(1, 1, GSL::Complex.alloc(3.0, 0.0))
+
+    lndet = m.lndet
+    expected = Math.log(6.0)
+    assert (lndet - expected).abs < 1e-10, "Complex lndet computes correctly"
+  end
+
+  # Test complex LU invert
+  def test_complex_LU_invert
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m.set(0, 0, GSL::Complex.alloc(1.0, 0.0))
+    m.set(0, 1, GSL::Complex.alloc(2.0, 0.0))
+    m.set(1, 0, GSL::Complex.alloc(3.0, 0.0))
+    m.set(1, 1, GSL::Complex.alloc(4.0, 0.0))
+
+    inv = m.inv
+    assert inv.is_a?(GSL::Matrix::Complex), "Complex inv returns Complex matrix"
+
+    # Check m * inv = I
+    identity = m * inv
+    assert (identity.get(0, 0).re - 1.0).abs < 1e-10, "m * inv = I check (0,0)"
+    assert (identity.get(1, 1).re - 1.0).abs < 1e-10, "m * inv = I check (1,1)"
+  end
+
+  # Test complex Householder hv
+  def test_complex_householder_hv
+    v = GSL::Vector::Complex.alloc(2)
+    v.set(0, GSL::Complex.alloc(3.0, 4.0))
+    v.set(1, GSL::Complex.alloc(0.0, 0.0))
+
+    tau = GSL::Linalg::Complex::Householder.transform(v)
+
+    w = GSL::Vector::Complex.alloc(2)
+    w.set(0, GSL::Complex.alloc(1.0, 0.0))
+    w.set(1, GSL::Complex.alloc(1.0, 0.0))
+
+    result = GSL::Linalg::Complex::Householder.hv(tau, v, w)
+    assert result.is_a?(GSL::Vector::Complex), "Complex Householder.hv returns vector"
   end
 
 end

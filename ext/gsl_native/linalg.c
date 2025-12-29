@@ -3307,7 +3307,7 @@ static VALUE rb_gsl_linalg_bidiag_unpack_B(int argc, VALUE *argv, VALUE obj)
   }
   size0 = GSL_MIN(A->size1, A->size2);
   d = gsl_vector_alloc(size0);
-  s = gsl_vector_alloc(size0);
+  s = gsl_vector_alloc(size0 - 1);
   gsl_linalg_bidiag_unpack_B(A, d, s);
   vd = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, d);
   vs = TypedData_Wrap_Struct(cgsl_vector, &gsl_vector_data_type, s);
