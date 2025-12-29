@@ -19,3 +19,6 @@ coverage/
 coverage-c/
 *.gcda
 *.gcno
+*.gcov
+*.info
+*_report/
