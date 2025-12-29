@@ -2076,4 +2076,324 @@ class SfTest < GSL::TestCase
     }
   }
 
+  # Additional Bessel function tests (non-error versions and array functions)
+  def test_bessel_J0_non_e
+    result = GSL::Sf.bessel_J0(2.0)
+    assert_in_delta 0.22389077914123566805, result, 1e-10
+  end
+
+  def test_bessel_J1_non_e
+    result = GSL::Sf.bessel_J1(2.0)
+    assert_in_delta 0.57672480775687338720, result, 1e-10
+  end
+
+  def test_bessel_Jn_non_e
+    result = GSL::Sf.bessel_Jn(4, 0.1)
+    assert_in_delta 2.6028648545684032338e-07, result, 1e-17
+  end
+
+  def test_bessel_Y0_non_e
+    result = GSL::Sf.bessel_Y0(2.0)
+    assert_in_delta 0.5103756726497451196, result, 1e-10
+  end
+
+  def test_bessel_Y1_non_e
+    result = GSL::Sf.bessel_Y1(2.0)
+    assert_in_delta -0.10703243154093754689, result, 1e-10
+  end
+
+  def test_bessel_Yn_non_e
+    result = GSL::Sf.bessel_Yn(5, 2)
+    assert_in_delta -9.935989128481974981, result, 1e-10
+  end
+
+  def test_bessel_I0_non_e
+    result = GSL::Sf.bessel_I0(2.0)
+    assert_in_delta 2.2795853023360672674, result, 1e-10
+  end
+
+  def test_bessel_I1_non_e
+    result = GSL::Sf.bessel_I1(2.0)
+    assert_in_delta 1.59063685463732906340, result, 1e-10
+  end
+
+  def test_bessel_In_non_e
+    result = GSL::Sf.bessel_In(5, 2.0)
+    assert_in_delta 0.009825679323131702321, result, 1e-15
+  end
+
+  def test_bessel_I0_scaled_non_e
+    result = GSL::Sf.bessel_I0_scaled(2.0)
+    assert_in_delta 0.30850832255367103953, result, 1e-10
+  end
+
+  def test_bessel_I1_scaled_non_e
+    result = GSL::Sf.bessel_I1_scaled(2.0)
+    assert_in_delta 0.21526928924893765916, result, 1e-10
+  end
+
+  def test_bessel_In_scaled_non_e
+    result = GSL::Sf.bessel_In_scaled(5, 2.0)
+    assert_in_delta 0.0013297610941881578142, result, 1e-15
+  end
+
+  def test_bessel_K0_non_e
+    result = GSL::Sf.bessel_K0(2.0)
+    assert_in_delta 0.11389387274953343565, result, 1e-10
+  end
+
+  def test_bessel_K1_non_e
+    result = GSL::Sf.bessel_K1(2.0)
+    assert_in_delta 0.13986588181652242728, result, 1e-10
+  end
+
+  def test_bessel_Kn_non_e
+    result = GSL::Sf.bessel_Kn(5, 2.0)
+    assert_in_delta 9.431049100596467443, result, 1e-10
+  end
+
+  def test_bessel_K0_scaled_non_e
+    result = GSL::Sf.bessel_K0_scaled(2.0)
+    assert_in_delta 0.8415682150707714179, result, 1e-10
+  end
+
+  def test_bessel_K1_scaled_non_e
+    result = GSL::Sf.bessel_K1_scaled(2.0)
+    assert_in_delta 1.0334768470686885732, result, 1e-10
+  end
+
+  def test_bessel_Kn_scaled_non_e
+    result = GSL::Sf.bessel_Kn_scaled(5, 2.0)
+    assert_in_delta 69.68655087607675118, result, 1e-10
+  end
+
+  # Spherical bessel functions (lowercase)
+  def test_bessel_j0_non_e
+    result = GSL::Sf.bessel_j0(1.0)
+    assert_in_delta 0.84147098480789650670, result, 1e-10
+  end
+
+  def test_bessel_j1_non_e
+    result = GSL::Sf.bessel_j1(1.0)
+    assert_in_delta 0.30116867893975678925, result, 1e-10
+  end
+
+  def test_bessel_j2_non_e
+    result = GSL::Sf.bessel_j2(1.0)
+    assert_in_delta 0.06203505201137386110, result, 1e-10
+  end
+
+  def test_bessel_jl_non_e
+    result = GSL::Sf.bessel_jl(5, 1.0)
+    assert_in_delta 0.00009256115861125816357, result, 1e-15
+  end
+
+  def test_bessel_y0_non_e
+    result = GSL::Sf.bessel_y0(1.0)
+    assert_in_delta -0.5403023058681397174, result, 1e-10
+  end
+
+  def test_bessel_y1_non_e
+    result = GSL::Sf.bessel_y1(1.0)
+    assert_in_delta -1.3817732906760362241, result, 1e-10
+  end
+
+  def test_bessel_y2_non_e
+    result = GSL::Sf.bessel_y2(1.0)
+    assert_in_delta -3.605017566159968955, result, 1e-10
+  end
+
+  def test_bessel_yl_non_e
+    result = GSL::Sf.bessel_yl(0, 1.0)
+    assert_in_delta -0.54030230586813972, result, 1e-10
+  end
+
+  # Modified spherical bessel functions
+  def test_bessel_i0_scaled_non_e
+    result = GSL::Sf.bessel_i0_scaled(2.0)
+    assert_in_delta 0.24542109027781645493, result, 1e-10
+  end
+
+  def test_bessel_i1_scaled_non_e
+    result = GSL::Sf.bessel_i1_scaled(2.0)
+    assert_in_delta 0.131868364583275317610, result, 1e-10
+  end
+
+  def test_bessel_i2_scaled_non_e
+    result = GSL::Sf.bessel_i2_scaled(2.0)
+    assert_in_delta 0.0476185434029034785100, result, 1e-10
+  end
+
+  def test_bessel_il_scaled_non_e
+    result = GSL::Sf.bessel_il_scaled(5, 2.0)
+    assert_in_delta 0.0004851564602127540059, result, 1e-15
+  end
+
+  def test_bessel_k0_scaled_non_e
+    result = GSL::Sf.bessel_k0_scaled(2.0)
+    assert_in_delta 0.7853981633974483096, result, 1e-10
+  end
+
+  def test_bessel_k1_scaled_non_e
+    result = GSL::Sf.bessel_k1_scaled(2.0)
+    assert_in_delta 1.1780972450961724644, result, 1e-10
+  end
+
+  def test_bessel_k2_scaled_non_e
+    result = GSL::Sf.bessel_k2_scaled(2.0)
+    assert_in_delta 2.5525440310417070063, result, 1e-10
+  end
+
+  def test_bessel_kl_scaled_non_e
+    result = GSL::Sf.bessel_kl_scaled(5, 2.0)
+    assert_in_delta 138.10735829492005119, result, 1e-8
+  end
+
+  # Fractional order bessel functions
+  def test_bessel_Jnu_non_e
+    result = GSL::Sf.bessel_Jnu(0.75, 1.0)
+    assert_in_delta 0.5586524932048917478, result, 1e-10
+  end
+
+  def test_bessel_Ynu_non_e
+    result = GSL::Sf.bessel_Ynu(0.75, 1.0)
+    assert_in_delta -0.6218694174429746383, result, 1e-10
+  end
+
+  def test_bessel_Inu_non_e
+    result = GSL::Sf.bessel_Inu(1.0, 1.0)
+    assert_in_delta 0.5651591039924850272, result, 1e-10
+  end
+
+  def test_bessel_Inu_scaled_non_e
+    result = GSL::Sf.bessel_Inu_scaled(1.0, 1.0)
+    assert_in_delta 0.20791041534970844887, result, 1e-10
+  end
+
+  def test_bessel_Knu_non_e
+    result = GSL::Sf.bessel_Knu(1.0, 1.0)
+    assert_in_delta 0.6019072301972345747, result, 1e-10
+  end
+
+  def test_bessel_lnKnu_non_e
+    result = GSL::Sf.bessel_lnKnu(1.0, 1.0)
+    assert_in_delta -0.5076519482107523309, result, 1e-10
+  end
+
+  def test_bessel_Knu_scaled_non_e
+    result = GSL::Sf.bessel_Knu_scaled(1.0, 1.0)
+    assert_in_delta 1.6361534862632582465, result, 1e-10
+  end
+
+  # Zero finding functions
+  def test_bessel_zero_J0_non_e
+    result = GSL::Sf.bessel_zero_J0(1)
+    assert_in_delta 2.404825557695771, result, 1e-10
+  end
+
+  def test_bessel_zero_J1_non_e
+    result = GSL::Sf.bessel_zero_J1(1)
+    assert_in_delta 3.831705970207512, result, 1e-10
+  end
+
+  def test_bessel_zero_Jnu_non_e
+    result = GSL::Sf.bessel_zero_Jnu(1.5, 1)
+    assert_in_delta 4.4934094579090641, result, 1e-10
+  end
+
+  # Array functions
+  def test_bessel_Jn_array
+    result = GSL::Sf.bessel_Jn_array(0, 3, 2.0)
+    assert result.is_a?(GSL::Vector), "returns Vector"
+    assert_equal 4, result.size
+    assert_in_delta 0.22389077914123566805, result[0], 1e-10  # J0(2)
+    assert_in_delta 0.57672480775687338720, result[1], 1e-10  # J1(2)
+  end
+
+  def test_bessel_Yn_array
+    result = GSL::Sf.bessel_Yn_array(0, 2, 2.0)
+    assert result.is_a?(GSL::Vector), "returns Vector"
+    assert_equal 3, result.size
+    assert_in_delta 0.5103756726497451196, result[0], 1e-10  # Y0(2)
+  end
+
+  def test_bessel_In_array
+    result = GSL::Sf.bessel_In_array(0, 2, 2.0)
+    assert result.is_a?(GSL::Vector), "returns Vector"
+    assert_equal 3, result.size
+    assert_in_delta 2.2795853023360672674, result[0], 1e-10  # I0(2)
+  end
+
+  def test_bessel_In_scaled_array
+    result = GSL::Sf.bessel_In_scaled_array(0, 2, 2.0)
+    assert result.is_a?(GSL::Vector), "returns Vector"
+    assert_equal 3, result.size
+    assert_in_delta 0.30850832255367103953, result[0], 1e-10  # I0_scaled(2)
+  end
+
+  def test_bessel_Kn_array
+    result = GSL::Sf.bessel_Kn_array(0, 2, 2.0)
+    assert result.is_a?(GSL::Vector), "returns Vector"
+    assert_equal 3, result.size
+    assert_in_delta 0.11389387274953343565, result[0], 1e-10  # K0(2)
+  end
+
+  def test_bessel_Kn_scaled_array
+    result = GSL::Sf.bessel_Kn_scaled_array(0, 2, 2.0)
+    assert result.is_a?(GSL::Vector), "returns Vector"
+    assert_equal 3, result.size
+    assert_in_delta 0.8415682150707714179, result[0], 1e-10  # K0_scaled(2)
+  end
+
+  def test_bessel_jl_array
+    result = GSL::Sf.bessel_jl_array(3, 1.0)
+    assert result.is_a?(GSL::Vector), "returns Vector"
+    assert_equal 4, result.size
+    assert_in_delta 0.84147098480789650670, result[0], 1e-10  # j0(1)
+    assert_in_delta 0.30116867893975678925, result[1], 1e-10  # j1(1)
+  end
+
+  def test_bessel_jl_steed_array
+    result = GSL::Sf.bessel_jl_steed_array(3, 1.0)
+    assert result.is_a?(GSL::Vector), "returns Vector"
+    assert_equal 4, result.size
+    assert_in_delta 0.84147098480789650670, result[0], 1e-10  # j0(1)
+  end
+
+  def test_bessel_yl_array
+    result = GSL::Sf.bessel_yl_array(2, 1.0)
+    assert result.is_a?(GSL::Vector), "returns Vector"
+    assert_equal 3, result.size
+    assert_in_delta -0.54030230586813972, result[0], 1e-10  # y0(1)
+  end
+
+  def test_bessel_il_scaled_array
+    result = GSL::Sf.bessel_il_scaled_array(2, 2.0)
+    assert result.is_a?(GSL::Vector), "returns Vector"
+    assert_equal 3, result.size
+    assert_in_delta 0.24542109027781645493, result[0], 1e-10  # i0_scaled(2)
+  end
+
+  def test_bessel_kl_scaled_array
+    result = GSL::Sf.bessel_kl_scaled_array(2, 2.0)
+    assert result.is_a?(GSL::Vector), "returns Vector"
+    assert_equal 3, result.size
+    assert_in_delta 0.7853981633974483096, result[0], 1e-10  # k0_scaled(2)
+  end
+
+  # Test bessel_sequence_Jnu_e with array
+  def test_bessel_sequence_Jnu_e
+    x = [1.0, 2.0, 3.0]
+    result = GSL::Sf.bessel_sequence_Jnu_e(0.5, x)
+    assert result.is_a?(GSL::Vector), "returns Vector"
+    assert_equal 3, result.size
+  end
+
+  # Test bessel_sequence_Jnu_e with vector
+  def test_bessel_sequence_Jnu_e_vector
+    v = GSL::Vector[1.0, 2.0, 3.0]
+    result = GSL::Sf.bessel_sequence_Jnu_e(0.5, v)
+    assert result.is_a?(GSL::Vector), "returns Vector"
+  end
+
 end

@@ -804,4 +804,648 @@ class ComplexTest < GSL::TestCase
     assert_in_delta 0.0, result[0].real, 1e-10
     assert_in_delta 1.0, result[1].real, 1e-10
   end
+
+  # Additional Matrix::Complex tests for improved coverage
+
+  # Note: Matrix::Complex.isnull? is exposed but named isnull (no question mark)
+  def test_matrix_complex_isnull
+    m1 = GSL::Matrix::Complex.alloc(2, 2)
+    m1.set_zero
+    assert m1.isnull, "zero matrix should be null"
+
+    m2 = GSL::Matrix::Complex.alloc(2, 2)
+    m2[0, 0] = GSL::Complex.alloc(1.0, 0.0)
+    refute m2.isnull, "non-zero matrix should not be null"
+  end
+
+  # Note: set_row takes row index then multiple Complex values
+  # It sets columns starting from 0 for that row
+  def test_matrix_complex_set_row
+    m = GSL::Matrix::Complex.alloc(2, 3)
+    z1 = GSL::Complex.alloc(1.0, 2.0)
+    z2 = GSL::Complex.alloc(3.0, 4.0)
+
+    m.set_row(0, z1, z2)
+    assert_in_delta 1.0, m[0, 0].real, 1e-10
+    assert_in_delta 3.0, m[0, 1].real, 1e-10
+  end
+
+  # Note: set_col takes col index then multiple Complex values
+  # It sets rows starting from 0 for that column
+  def test_matrix_complex_set_col
+    m = GSL::Matrix::Complex.alloc(3, 2)
+    z1 = GSL::Complex.alloc(1.0, 2.0)
+    z2 = GSL::Complex.alloc(3.0, 4.0)
+
+    m.set_col(0, z1, z2)
+    assert_in_delta 1.0, m[0, 0].real, 1e-10
+    assert_in_delta 3.0, m[1, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_to_a
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(1.0, 2.0)
+    m[0, 1] = GSL::Complex.alloc(3.0, 4.0)
+    m[1, 0] = GSL::Complex.alloc(5.0, 6.0)
+    m[1, 1] = GSL::Complex.alloc(7.0, 8.0)
+
+    arr = m.to_a
+    assert arr.is_a?(Array), "to_a returns Array"
+    assert_equal 2, arr.size
+    assert_equal 2, arr[0].size
+    assert_in_delta 1.0, arr[0][0].real, 1e-10
+    assert_in_delta 7.0, arr[1][1].real, 1e-10
+  end
+
+  def test_matrix_complex_ptr
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 1] = GSL::Complex.alloc(3.0, 4.0)
+
+    ptr = m.ptr(0, 1)
+    assert ptr.is_a?(GSL::Complex), "ptr returns Complex"
+    assert_in_delta 3.0, ptr.real, 1e-10
+    assert_in_delta 4.0, ptr.imag, 1e-10
+  end
+
+  def test_matrix_complex_to_s
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(1.0, 2.0)
+
+    str = m.to_s
+    assert str.is_a?(String), "to_s returns String"
+    assert str.include?("["), "to_s format includes brackets"
+  end
+
+  def test_matrix_complex_inspect
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    str = m.inspect
+    assert str.is_a?(String), "inspect returns String"
+    assert str.include?("Matrix::Complex"), "inspect includes class name"
+  end
+
+  def test_matrix_complex_collect
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(1.0, 0.0)
+    m[0, 1] = GSL::Complex.alloc(2.0, 0.0)
+    m[1, 0] = GSL::Complex.alloc(3.0, 0.0)
+    m[1, 1] = GSL::Complex.alloc(4.0, 0.0)
+
+    result = m.collect { |z| GSL::Complex.alloc(z.real * 2, z.imag) }
+    assert_in_delta 2.0, result[0, 0].real, 1e-10
+    assert_in_delta 4.0, result[0, 1].real, 1e-10
+  end
+
+  def test_matrix_complex_collect_bang
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(1.0, 0.0)
+    m[0, 1] = GSL::Complex.alloc(2.0, 0.0)
+
+    m.collect! { |z| GSL::Complex.alloc(z.real * 2, z.imag) }
+    assert_in_delta 2.0, m[0, 0].real, 1e-10
+    assert_in_delta 4.0, m[0, 1].real, 1e-10
+  end
+
+  def test_matrix_complex_scale_bang
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(1.0, 2.0)
+    m[0, 1] = GSL::Complex.alloc(3.0, 4.0)
+
+    m.scale!(2.0)
+    assert_in_delta 2.0, m[0, 0].real, 1e-10
+    assert_in_delta 4.0, m[0, 0].imag, 1e-10
+  end
+
+  def test_matrix_complex_matmul
+    m1 = GSL::Matrix::Complex.alloc(2, 2)
+    m1[0, 0] = GSL::Complex.alloc(1.0, 0.0)
+    m1[0, 1] = GSL::Complex.alloc(2.0, 0.0)
+    m1[1, 0] = GSL::Complex.alloc(3.0, 0.0)
+    m1[1, 1] = GSL::Complex.alloc(4.0, 0.0)
+
+    m2 = GSL::Matrix::Complex.alloc(2, 2)
+    m2[0, 0] = GSL::Complex.alloc(1.0, 0.0)
+    m2[0, 1] = GSL::Complex.alloc(0.0, 0.0)
+    m2[1, 0] = GSL::Complex.alloc(0.0, 0.0)
+    m2[1, 1] = GSL::Complex.alloc(1.0, 0.0)
+
+    result = m1 * m2
+    assert_in_delta 1.0, result[0, 0].real, 1e-10
+    assert_in_delta 4.0, result[1, 1].real, 1e-10
+  end
+
+  def test_matrix_complex_add_diagonal
+    m = GSL::Matrix::Complex.alloc(3, 3)
+    m.set_zero
+
+    m.add_diagonal(GSL::Complex.alloc(2.0, 1.0))
+    assert_in_delta 2.0, m[0, 0].real, 1e-10
+    assert_in_delta 1.0, m[0, 0].imag, 1e-10
+    assert_in_delta 2.0, m[1, 1].real, 1e-10
+  end
+
+  def test_matrix_complex_set_diagonal
+    m = GSL::Matrix::Complex.alloc(3, 3)
+    m.set_zero
+
+    diag = GSL::Vector::Complex.alloc(3)
+    diag[0] = GSL::Complex.alloc(1.0, 0.0)
+    diag[1] = GSL::Complex.alloc(2.0, 0.0)
+    diag[2] = GSL::Complex.alloc(3.0, 0.0)
+
+    m.set_diagonal(diag)
+    assert_in_delta 1.0, m[0, 0].real, 1e-10
+    assert_in_delta 2.0, m[1, 1].real, 1e-10
+    assert_in_delta 3.0, m[2, 2].real, 1e-10
+  end
+
+  def test_matrix_complex_subdiagonal
+    m = GSL::Matrix::Complex.alloc(3, 3)
+    m.set_identity
+
+    sub = m.subdiagonal(1)
+    assert_equal 2, sub.size
+  end
+
+  def test_matrix_complex_superdiagonal
+    m = GSL::Matrix::Complex.alloc(3, 3)
+    m.set_identity
+
+    super_diag = m.superdiagonal(1)
+    assert_equal 2, super_diag.size
+  end
+
+  def test_matrix_complex_real
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(1.0, 2.0)
+    m[0, 1] = GSL::Complex.alloc(3.0, 4.0)
+
+    real = m.real
+    assert real.is_a?(GSL::Matrix), "real returns real Matrix"
+    assert_in_delta 1.0, real[0, 0], 1e-10
+    assert_in_delta 3.0, real[0, 1], 1e-10
+  end
+
+  def test_matrix_complex_imag
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(1.0, 2.0)
+    m[0, 1] = GSL::Complex.alloc(3.0, 4.0)
+
+    imag = m.imag
+    assert imag.is_a?(GSL::Matrix), "imag returns real Matrix"
+    assert_in_delta 2.0, imag[0, 0], 1e-10
+    assert_in_delta 4.0, imag[0, 1], 1e-10
+  end
+
+  def test_matrix_complex_each_row
+    m = GSL::Matrix::Complex.alloc(2, 3)
+    m[0, 0] = GSL::Complex.alloc(1.0, 0.0)
+    m[1, 0] = GSL::Complex.alloc(2.0, 0.0)
+
+    count = 0
+    m.each_row { |row| count += 1 }
+    assert_equal 2, count
+  end
+
+  def test_matrix_complex_each_col
+    m = GSL::Matrix::Complex.alloc(2, 3)
+    m[0, 0] = GSL::Complex.alloc(1.0, 0.0)
+
+    count = 0
+    m.each_col { |col| count += 1 }
+    assert_equal 3, count
+  end
+
+  def test_matrix_complex_size1
+    m = GSL::Matrix::Complex.alloc(3, 4)
+    assert_equal 3, m.size1
+  end
+
+  def test_matrix_complex_size2
+    m = GSL::Matrix::Complex.alloc(3, 4)
+    assert_equal 4, m.size2
+  end
+
+  def test_matrix_complex_shape
+    m = GSL::Matrix::Complex.alloc(3, 4)
+    shape = m.shape
+    assert_equal [3, 4], shape
+  end
+
+  def test_matrix_complex_uplus
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(1.0, 2.0)
+
+    result = +m
+    assert_in_delta 1.0, result[0, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_uminus
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(1.0, 2.0)
+
+    result = -m
+    assert_in_delta -1.0, result[0, 0].real, 1e-10
+    assert_in_delta -2.0, result[0, 0].imag, 1e-10
+  end
+
+  def test_matrix_complex_abs2
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(3.0, 4.0)  # |z|^2 = 25
+
+    abs2 = m.abs2
+    assert abs2.is_a?(GSL::Matrix)
+    assert_in_delta 25.0, abs2[0, 0], 1e-10
+  end
+
+  def test_matrix_complex_logabs
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(Math::E, 0.0)  # log|e| = 1
+
+    logabs = m.logabs
+    assert logabs.is_a?(GSL::Matrix)
+    assert_in_delta 1.0, logabs[0, 0], 1e-10
+  end
+
+  def test_matrix_complex_log10
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(100.0, 0.0)
+
+    result = m.log10
+    assert result.is_a?(GSL::Matrix::Complex)
+    assert_in_delta 2.0, result[0, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_tan
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(0.0, 0.0)  # tan(0) = 0
+
+    result = m.tan
+    assert result.is_a?(GSL::Matrix::Complex)
+    assert_in_delta 0.0, result[0, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_sec
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(0.0, 0.0)  # sec(0) = 1
+
+    result = m.sec
+    assert result.is_a?(GSL::Matrix::Complex)
+    assert_in_delta 1.0, result[0, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_csc
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(Math::PI/2, 0.0)  # csc(pi/2) = 1
+
+    result = m.csc
+    assert result.is_a?(GSL::Matrix::Complex)
+    assert_in_delta 1.0, result[0, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_cot
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(Math::PI/4, 0.0)  # cot(pi/4) = 1
+
+    result = m.cot
+    assert result.is_a?(GSL::Matrix::Complex)
+    assert_in_delta 1.0, result[0, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_arcsin
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(0.0, 0.0)  # arcsin(0) = 0
+
+    result = m.arcsin
+    assert result.is_a?(GSL::Matrix::Complex)
+    assert_in_delta 0.0, result[0, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_arccos
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(1.0, 0.0)  # arccos(1) = 0
+
+    result = m.arccos
+    assert result.is_a?(GSL::Matrix::Complex)
+    assert_in_delta 0.0, result[0, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_arctan
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(0.0, 0.0)  # arctan(0) = 0
+
+    result = m.arctan
+    assert result.is_a?(GSL::Matrix::Complex)
+    assert_in_delta 0.0, result[0, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_sinh
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(0.0, 0.0)  # sinh(0) = 0
+
+    result = m.sinh
+    assert result.is_a?(GSL::Matrix::Complex)
+    assert_in_delta 0.0, result[0, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_cosh
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(0.0, 0.0)  # cosh(0) = 1
+
+    result = m.cosh
+    assert result.is_a?(GSL::Matrix::Complex)
+    assert_in_delta 1.0, result[0, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_tanh
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(0.0, 0.0)  # tanh(0) = 0
+
+    result = m.tanh
+    assert result.is_a?(GSL::Matrix::Complex)
+    assert_in_delta 0.0, result[0, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_sech
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(0.0, 0.0)  # sech(0) = 1
+
+    result = m.sech
+    assert result.is_a?(GSL::Matrix::Complex)
+    assert_in_delta 1.0, result[0, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_arcsinh
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(0.0, 0.0)  # arcsinh(0) = 0
+
+    result = m.arcsinh
+    assert result.is_a?(GSL::Matrix::Complex)
+    assert_in_delta 0.0, result[0, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_arctanh
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(0.0, 0.0)  # arctanh(0) = 0
+
+    result = m.arctanh
+    assert result.is_a?(GSL::Matrix::Complex)
+    assert_in_delta 0.0, result[0, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_indgen
+    m = GSL::Matrix::Complex.alloc(2, 3)
+    result = m.indgen
+
+    assert_in_delta 0.0, result[0, 0].real, 1e-10
+    assert_in_delta 1.0, result[0, 1].real, 1e-10
+    assert_in_delta 5.0, result[1, 2].real, 1e-10
+  end
+
+  def test_matrix_complex_indgen_with_start_step
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    result = m.indgen(10, 2)
+
+    assert_in_delta 10.0, result[0, 0].real, 1e-10
+    assert_in_delta 12.0, result[0, 1].real, 1e-10
+    assert_in_delta 14.0, result[1, 0].real, 1e-10
+  end
+
+  def test_matrix_complex_indgen_bang
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m.indgen!
+
+    assert_in_delta 0.0, m[0, 0].real, 1e-10
+    assert_in_delta 1.0, m[0, 1].real, 1e-10
+  end
+
+  def test_matrix_complex_indgen_singleton
+    m = GSL::Matrix::Complex.indgen(2, 3)
+
+    assert_equal 2, m.size1
+    assert_equal 3, m.size2
+    assert_in_delta 0.0, m[0, 0].real, 1e-10
+    assert_in_delta 5.0, m[1, 2].real, 1e-10
+  end
+
+  def test_matrix_complex_equal_method
+    m1 = GSL::Matrix::Complex.alloc(2, 2)
+    m1[0, 0] = GSL::Complex.alloc(1.0, 2.0)
+    m1[0, 1] = GSL::Complex.alloc(3.0, 4.0)
+
+    m2 = GSL::Matrix::Complex.alloc(2, 2)
+    m2[0, 0] = GSL::Complex.alloc(1.0, 2.0)
+    m2[0, 1] = GSL::Complex.alloc(3.0, 4.0)
+
+    assert m1.equal?(m2), "equal matrices should be equal"
+  end
+
+  def test_matrix_complex_not_equal
+    m1 = GSL::Matrix::Complex.alloc(2, 2)
+    m1[0, 0] = GSL::Complex.alloc(1.0, 2.0)
+
+    m2 = GSL::Matrix::Complex.alloc(2, 2)
+    m2[0, 0] = GSL::Complex.alloc(5.0, 6.0)
+
+    assert m1.not_equal?(m2), "different matrices should not be equal"
+  end
+
+  def test_matrix_complex_subrow
+    m = GSL::Matrix::Complex.alloc(3, 4)
+    4.times { |j| m[1, j] = GSL::Complex.alloc(j.to_f, 0.0) }
+
+    sub = m[1, 1..2]
+    assert_equal 2, sub.size
+    assert_in_delta 1.0, sub[0].real, 1e-10
+    assert_in_delta 2.0, sub[1].real, 1e-10
+  end
+
+  def test_matrix_complex_get_single_index
+    m = GSL::Matrix::Complex.alloc(2, 3)
+    m[0, 0] = GSL::Complex.alloc(0.0, 0.0)
+    m[0, 1] = GSL::Complex.alloc(1.0, 0.0)
+    m[0, 2] = GSL::Complex.alloc(2.0, 0.0)
+    m[1, 0] = GSL::Complex.alloc(3.0, 0.0)
+
+    # Single index access (row-major order)
+    assert_in_delta 3.0, m[3].real, 1e-10
+  end
+
+  def test_matrix_complex_get_negative_index
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[1, 1] = GSL::Complex.alloc(5.0, 6.0)
+
+    # Negative index access
+    assert_in_delta 5.0, m[-1, -1].real, 1e-10
+  end
+
+  def test_matrix_complex_get_array_index
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[1, 0] = GSL::Complex.alloc(7.0, 8.0)
+
+    # Array index access
+    result = m[[1, 0]]
+    assert_in_delta 7.0, result.real, 1e-10
+  end
+
+  # Test Matrix::Complex conjugate! (in-place)
+  def test_matrix_complex_conjugate_bang
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(1.0, 2.0)
+    m[0, 1] = GSL::Complex.alloc(3.0, -4.0)
+
+    m.conjugate!
+    assert_in_delta 1.0, m[0, 0].real, 1e-10
+    assert_in_delta -2.0, m[0, 0].imag, 1e-10
+    assert_in_delta 3.0, m[0, 1].real, 1e-10
+    assert_in_delta 4.0, m[0, 1].imag, 1e-10
+  end
+
+  # Test dagger! (conjugate transpose in-place)
+  def test_matrix_complex_dagger_bang
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(1.0, 2.0)
+    m[0, 1] = GSL::Complex.alloc(3.0, 4.0)
+    m[1, 0] = GSL::Complex.alloc(5.0, 6.0)
+    m[1, 1] = GSL::Complex.alloc(7.0, 8.0)
+
+    m.dagger!
+    # After conjugate transpose: m[0,1] should be old m[1,0] conjugated
+    assert_in_delta 5.0, m[0, 1].real, 1e-10
+    assert_in_delta -6.0, m[0, 1].imag, 1e-10
+  end
+
+  # Note: Matrix::Complex.transpose is the in-place version
+  # (unlike Ruby convention - no bang, but modifies in place)
+  def test_matrix_complex_transpose_inplace
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(1.0, 0.0)
+    m[0, 1] = GSL::Complex.alloc(2.0, 0.0)
+    m[1, 0] = GSL::Complex.alloc(3.0, 0.0)
+    m[1, 1] = GSL::Complex.alloc(4.0, 0.0)
+
+    m.transpose
+    assert_in_delta 3.0, m[0, 1].real, 1e-10
+    assert_in_delta 2.0, m[1, 0].real, 1e-10
+  end
+
+  # Test Matrix::Complex multiply with real vector
+  def test_matrix_complex_mul_real_vector
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(1.0, 0.0)
+    m[0, 1] = GSL::Complex.alloc(2.0, 0.0)
+    m[1, 0] = GSL::Complex.alloc(3.0, 0.0)
+    m[1, 1] = GSL::Complex.alloc(4.0, 0.0)
+
+    v = GSL::Vector[1.0, 1.0]
+    result = m * v
+
+    assert result.is_a?(GSL::Vector::Complex)
+    assert_in_delta 3.0, result[0].real, 1e-10  # 1+2
+    assert_in_delta 7.0, result[1].real, 1e-10  # 3+4
+  end
+
+  # Test Matrix::Complex multiply with real matrix
+  def test_matrix_complex_mul_real_matrix
+    m1 = GSL::Matrix::Complex.alloc(2, 2)
+    m1[0, 0] = GSL::Complex.alloc(1.0, 1.0)
+    m1[0, 1] = GSL::Complex.alloc(0.0, 0.0)
+    m1[1, 0] = GSL::Complex.alloc(0.0, 0.0)
+    m1[1, 1] = GSL::Complex.alloc(1.0, 1.0)
+
+    m2 = GSL::Matrix[[1.0, 0.0], [0.0, 1.0]]
+    result = m1 * m2
+
+    assert result.is_a?(GSL::Matrix::Complex)
+    assert_in_delta 1.0, result[0, 0].real, 1e-10
+    assert_in_delta 1.0, result[0, 0].imag, 1e-10
+  end
+
+  # Test eye with complex diagonal value
+  def test_matrix_complex_eye_with_complex
+    z = GSL::Complex.alloc(2.0, 3.0)
+    m = GSL::Matrix::Complex.eye(3, z)
+
+    assert_in_delta 2.0, m[0, 0].real, 1e-10
+    assert_in_delta 3.0, m[0, 0].imag, 1e-10
+    assert_in_delta 0.0, m[0, 1].real, 1e-10
+  end
+
+  # Test eye with array
+  def test_matrix_complex_eye_with_array
+    m = GSL::Matrix::Complex.eye(3, [2.0, 3.0])
+
+    assert_in_delta 2.0, m[0, 0].real, 1e-10
+    assert_in_delta 3.0, m[0, 0].imag, 1e-10
+  end
+
+  # Test eye with two floats
+  def test_matrix_complex_eye_with_two_floats
+    m = GSL::Matrix::Complex.eye(3, 2.0, 3.0)
+
+    assert_in_delta 2.0, m[0, 0].real, 1e-10
+    assert_in_delta 3.0, m[0, 0].imag, 1e-10
+  end
+
+  # Test set_all with array
+  def test_matrix_complex_set_all_array
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m.set_all([3.0, 4.0])
+
+    assert_in_delta 3.0, m[0, 0].real, 1e-10
+    assert_in_delta 4.0, m[0, 0].imag, 1e-10
+  end
+
+  # Test set_all with float
+  def test_matrix_complex_set_all_float
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m.set_all(5.0)
+
+    assert_in_delta 5.0, m[0, 0].real, 1e-10
+    assert_in_delta 0.0, m[0, 0].imag, 1e-10
+  end
+
+  # Test add_diagonal with array
+  def test_matrix_complex_add_diagonal_array
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m.set_zero
+    m.add_diagonal([1.0, 2.0])
+
+    assert_in_delta 1.0, m[0, 0].real, 1e-10
+    assert_in_delta 2.0, m[0, 0].imag, 1e-10
+  end
+
+  # Test add_diagonal with float
+  def test_matrix_complex_add_diagonal_float
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m.set_zero
+    m.add_diagonal(3.0)
+
+    assert_in_delta 3.0, m[0, 0].real, 1e-10
+    assert_in_delta 0.0, m[0, 0].imag, 1e-10
+  end
+
+  # Test set with range
+  def test_matrix_complex_set_range
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0..1] = 1..2
+
+    assert_in_delta 1.0, m[0, 0].real, 1e-10
+    assert_in_delta 2.0, m[0, 1].real, 1e-10
+  end
+
+  # Test set with array of rows
+  def test_matrix_complex_set_array_rows
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    z1 = GSL::Complex.alloc(1.0, 0.0)
+    z2 = GSL::Complex.alloc(2.0, 0.0)
+    z3 = GSL::Complex.alloc(3.0, 0.0)
+    z4 = GSL::Complex.alloc(4.0, 0.0)
+
+    m.set([z1, z2], [z3, z4])
+
+    assert_in_delta 1.0, m[0, 0].real, 1e-10
+    assert_in_delta 2.0, m[0, 1].real, 1e-10
+    assert_in_delta 3.0, m[1, 0].real, 1e-10
+    assert_in_delta 4.0, m[1, 1].real, 1e-10
+  end
 end
