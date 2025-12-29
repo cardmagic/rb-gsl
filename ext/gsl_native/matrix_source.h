@@ -1051,7 +1051,7 @@ static VALUE FUNCTION(rb_gsl_matrix,get_row)(VALUE obj, VALUE i)
   GSL_TYPE(gsl_vector) *v = NULL;
   CHECK_FIXNUM(i);
   Data_Get_Mat(obj, m);
-  v = FUNCTION(gsl_vector,alloc)(m->size1);
+  v = FUNCTION(gsl_vector,alloc)(m->size2);  // row has size2 columns
   if (v == NULL) rb_raise(rb_eNoMemError, "gsl_vector_alloc failed");
   FUNCTION(gsl_matrix,get_row)(v, m, FIX2INT(i));
   return TypedData_Wrap_Struct(GSL_TYPE(cgsl_vector), &VECTOR_DATA_TYPE, v);
@@ -1063,7 +1063,7 @@ static VALUE FUNCTION(rb_gsl_matrix,get_col)(VALUE obj, VALUE i)
   GSL_TYPE(gsl_vector) *v = NULL;
   CHECK_FIXNUM(i);
   Data_Get_Mat(obj, m);
-  v = FUNCTION(gsl_vector,alloc)(m->size2);
+  v = FUNCTION(gsl_vector,alloc)(m->size1);  // column has size1 rows
   if (v == NULL) rb_raise(rb_eNoMemError, "gsl_vector_alloc failed");
   FUNCTION(gsl_matrix,get_col)(v, m, FIX2INT(i));
   // TODO This is NOT returning a view!  Is there a macro more appropriate than
@@ -1343,7 +1343,7 @@ static VALUE FUNCTION(rb_gsl_matrix,uminus)(VALUE obj)
       FUNCTION(gsl_matrix,set)(mnew, i, j, -FUNCTION(gsl_matrix,get)(m, i, j));
     }
   }
-  return TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, mnew);
+  return TypedData_Wrap_Struct(GSL_TYPE(cgsl_matrix), &MATRIX_DATA_TYPE, mnew);
 }
 
 VALUE FUNCTION(rb_gsl_matrix,power)(VALUE obj, VALUE bb)
