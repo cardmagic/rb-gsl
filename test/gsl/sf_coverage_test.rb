@@ -632,4 +632,129 @@ class SfCoverageTest < GSL::TestCase
     result = GSL::Sf.Si(1.0)
     assert_kind_of Float, result
   end
+
+  # =====================================================
+  # Log function tests (sf_log.c)
+  # =====================================================
+
+  def test_sf_log_scalar
+    result = GSL::Sf.log(Math::E)
+    assert_in_delta 1.0, result, 1e-10
+  end
+
+  def test_sf_log_vector
+    v = GSL::Vector[1.0, Math::E, Math::E**2]
+    result = GSL::Sf.log(v)
+    assert_kind_of GSL::Vector, result
+    assert_in_delta 0.0, result[0], 1e-10
+    assert_in_delta 1.0, result[1], 1e-10
+    assert_in_delta 2.0, result[2], 1e-10
+  end
+
+  def test_sf_log_complex
+    z = GSL::Complex.alloc(Math::E, 0.0)
+    result = GSL::Sf.log(z)
+    assert_kind_of GSL::Complex, result
+    assert_in_delta 1.0, result.real, 1e-10
+    assert_in_delta 0.0, result.imag, 1e-10
+  end
+
+  def test_sf_log_vector_complex
+    vc = GSL::Vector::Complex.alloc(2)
+    vc[0] = GSL::Complex.alloc(Math::E, 0.0)
+    vc[1] = GSL::Complex.alloc(1.0, 0.0)
+    result = GSL::Sf.log(vc)
+    assert_kind_of GSL::Vector::Complex, result
+    assert_in_delta 1.0, result[0].real, 1e-10
+    assert_in_delta 0.0, result[1].real, 1e-10
+  end
+
+  def test_sf_log_matrix_complex
+    mc = GSL::Matrix::Complex.alloc(2, 2)
+    mc[0, 0] = GSL::Complex.alloc(Math::E, 0.0)
+    mc[1, 1] = GSL::Complex.alloc(1.0, 0.0)
+    result = GSL::Sf.log(mc)
+    assert_kind_of GSL::Matrix::Complex, result
+    assert_in_delta 1.0, result[0, 0].real, 1e-10
+    assert_in_delta 0.0, result[1, 1].real, 1e-10
+  end
+
+  def test_sf_log10_scalar
+    result = GSL::Sf.log10(100.0)
+    assert_in_delta 2.0, result, 1e-10
+  end
+
+  def test_sf_log10_complex
+    z = GSL::Complex.alloc(10.0, 0.0)
+    result = GSL::Sf.log10(z)
+    assert_kind_of GSL::Complex, result
+    assert_in_delta 1.0, result.real, 1e-10
+  end
+
+  def test_sf_log10_vector_complex
+    vc = GSL::Vector::Complex.alloc(2)
+    vc[0] = GSL::Complex.alloc(100.0, 0.0)
+    vc[1] = GSL::Complex.alloc(10.0, 0.0)
+    result = GSL::Sf.log10(vc)
+    assert_kind_of GSL::Vector::Complex, result
+    assert_in_delta 2.0, result[0].real, 1e-10
+    assert_in_delta 1.0, result[1].real, 1e-10
+  end
+
+  def test_sf_log10_matrix_complex
+    mc = GSL::Matrix::Complex.alloc(2, 2)
+    mc[0, 0] = GSL::Complex.alloc(100.0, 0.0)
+    mc[1, 1] = GSL::Complex.alloc(10.0, 0.0)
+    result = GSL::Sf.log10(mc)
+    assert_kind_of GSL::Matrix::Complex, result
+    assert_in_delta 2.0, result[0, 0].real, 1e-10
+    assert_in_delta 1.0, result[1, 1].real, 1e-10
+  end
+
+  def test_sf_log_e
+    r, = GSL::Sf.log_e(Math::E)
+    assert_kind_of GSL::Sf::Result, r
+    assert_in_delta 1.0, r.val, 1e-10
+  end
+
+  def test_sf_log_abs
+    result = GSL::Sf.log_abs(-1.0)
+    assert_in_delta 0.0, result, 1e-10  # log(|-1|) = log(1) = 0
+  end
+
+  def test_sf_log_abs_e
+    r, = GSL::Sf.log_abs_e(-Math::E)
+    assert_kind_of GSL::Sf::Result, r
+    assert_in_delta 1.0, r.val, 1e-10  # log(|-e|) = 1
+  end
+
+  def test_sf_complex_log_e_with_complex
+    z = GSL::Complex.alloc(1.0, 1.0)
+    lnr, theta = GSL::Sf.complex_log_e(z)
+    assert_kind_of GSL::Sf::Result, lnr
+    assert_kind_of GSL::Sf::Result, theta
+  end
+
+  def test_sf_log_1plusx
+    result = GSL::Sf.log_1plusx(0.001)
+    # log(1+x) ≈ x for small x
+    assert_in_delta 0.001, result, 0.001
+  end
+
+  def test_sf_log_1plusx_e
+    r, = GSL::Sf.log_1plusx_e(0.001)
+    assert_kind_of GSL::Sf::Result, r
+    assert_in_delta 0.001, r.val, 0.001
+  end
+
+  def test_sf_log_1plusx_mx
+    # log(1+x) - x for small x ≈ -x^2/2
+    result = GSL::Sf.log_1plusx_mx(0.1)
+    assert_kind_of Float, result
+  end
+
+  def test_sf_log_1plusx_mx_e
+    r, = GSL::Sf.log_1plusx_mx_e(0.1)
+    assert_kind_of GSL::Sf::Result, r
+  end
 end

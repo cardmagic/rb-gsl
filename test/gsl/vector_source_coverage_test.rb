@@ -2016,4 +2016,632 @@ class VectorSourceCoverageTest < GSL::TestCase
     assert_in_delta 0.0, v[1], 1e-10
     assert_in_delta 3.0, v[2], 1e-10
   end
+
+  # =====================================================
+  # In-place operator tests (add!, sub!, mul!, div!)
+  # =====================================================
+
+  def test_add_inplace_with_vector
+    v1 = GSL::Vector[1, 2, 3]
+    v2 = GSL::Vector[4, 5, 6]
+    result = v1.add!(v2)
+    assert_equal v1.object_id, result.object_id
+    assert_in_delta 5.0, v1[0], 1e-10
+    assert_in_delta 9.0, v1[2], 1e-10
+  end
+
+  def test_add_inplace_with_scalar
+    v = GSL::Vector[1, 2, 3]
+    result = v.add!(10)
+    assert_equal v.object_id, result.object_id
+    assert_in_delta 11.0, v[0], 1e-10
+    assert_in_delta 13.0, v[2], 1e-10
+  end
+
+  def test_sub_inplace_with_vector
+    v1 = GSL::Vector[10, 20, 30]
+    v2 = GSL::Vector[1, 2, 3]
+    result = v1.sub!(v2)
+    assert_equal v1.object_id, result.object_id
+    assert_in_delta 9.0, v1[0], 1e-10
+    assert_in_delta 27.0, v1[2], 1e-10
+  end
+
+  def test_sub_inplace_with_scalar
+    v = GSL::Vector[10, 20, 30]
+    result = v.sub!(5)
+    assert_equal v.object_id, result.object_id
+    assert_in_delta 5.0, v[0], 1e-10
+    assert_in_delta 25.0, v[2], 1e-10
+  end
+
+  def test_mul_inplace_with_vector
+    v1 = GSL::Vector[1, 2, 3]
+    v2 = GSL::Vector[4, 5, 6]
+    result = v1.mul!(v2)
+    assert_equal v1.object_id, result.object_id
+    assert_in_delta 4.0, v1[0], 1e-10
+    assert_in_delta 18.0, v1[2], 1e-10
+  end
+
+  def test_mul_inplace_with_scalar
+    v = GSL::Vector[1, 2, 3]
+    result = v.mul!(2)
+    assert_equal v.object_id, result.object_id
+    assert_in_delta 2.0, v[0], 1e-10
+    assert_in_delta 6.0, v[2], 1e-10
+  end
+
+  def test_div_inplace_with_vector
+    v1 = GSL::Vector[4, 6, 8]
+    v2 = GSL::Vector[2, 3, 4]
+    result = v1.div!(v2)
+    assert_equal v1.object_id, result.object_id
+    assert_in_delta 2.0, v1[0], 1e-10
+    assert_in_delta 2.0, v1[2], 1e-10
+  end
+
+  def test_div_inplace_with_scalar
+    v = GSL::Vector[4, 6, 8]
+    result = v.div!(2)
+    assert_equal v.object_id, result.object_id
+    assert_in_delta 2.0, v[0], 1e-10
+    assert_in_delta 4.0, v[2], 1e-10
+  end
+
+  # =====================================================
+  # where2 tests
+  # =====================================================
+
+  def test_where2
+    v = GSL::Vector[1, 0, 3, 0, 5]
+    true_indices, false_indices = v.where2
+    assert_kind_of GSL::Index, true_indices
+    assert_kind_of GSL::Index, false_indices
+    assert_equal 3, true_indices.size  # indices 0, 2, 4
+    assert_equal 2, false_indices.size  # indices 1, 3
+  end
+
+  def test_where2_with_block
+    v = GSL::Vector[1, 2, 3, 4, 5]
+    true_indices, false_indices = v.where2 { |x| x > 3 }
+    assert_kind_of GSL::Index, true_indices
+    assert_kind_of GSL::Index, false_indices
+    assert_equal 2, true_indices.size  # indices 3, 4
+    assert_equal 3, false_indices.size  # indices 0, 1, 2
+  end
+
+  def test_where2_all_true
+    v = GSL::Vector[1, 2, 3]
+    true_indices, false_indices = v.where2
+    assert_kind_of GSL::Index, true_indices
+    assert_equal 3, true_indices.size
+    assert_nil false_indices
+  end
+
+  def test_where2_all_false
+    v = GSL::Vector[0, 0, 0]
+    true_indices, false_indices = v.where2
+    assert_nil true_indices
+    assert_kind_of GSL::Index, false_indices
+    assert_equal 3, false_indices.size
+  end
+
+  def test_where_all_false_returns_nil
+    v = GSL::Vector[0, 0, 0]
+    result = v.where
+    assert_nil result
+  end
+
+  # =====================================================
+  # zip tests
+  # =====================================================
+
+  def test_zip_instance
+    v1 = GSL::Vector[1, 2, 3]
+    v2 = GSL::Vector[4, 5, 6]
+    result = v1.zip(v2)
+    assert_kind_of Array, result
+    assert_equal 3, result.size
+    assert_kind_of GSL::Vector, result[0]
+    assert_in_delta 1.0, result[0][0], 1e-10
+    assert_in_delta 4.0, result[0][1], 1e-10
+  end
+
+  def test_zip_class_method
+    v1 = GSL::Vector[1, 2, 3]
+    v2 = GSL::Vector[4, 5, 6]
+    result = GSL::Vector.zip(v1, v2)
+    assert_kind_of Array, result
+    assert_equal 3, result.size
+  end
+
+  def test_zip_different_sizes
+    v1 = GSL::Vector[1, 2, 3, 4, 5]
+    v2 = GSL::Vector[10, 20]  # shorter
+    result = v1.zip(v2)
+    assert_equal 5, result.size
+    # For indices beyond v2's size, should get 0
+    assert_in_delta 10.0, result[0][1], 1e-10
+    assert_in_delta 0.0, result[3][1], 1e-10
+  end
+
+  # =====================================================
+  # join tests
+  # =====================================================
+
+  def test_join_default_separator
+    v = GSL::Vector[1, 2, 3]
+    result = v.join
+    assert_kind_of String, result
+    # Default separator is space
+    assert result.include?(" ")
+  end
+
+  def test_join_custom_separator
+    v = GSL::Vector[1, 2, 3]
+    result = v.join(",")
+    assert_kind_of String, result
+    assert result.include?(",")
+  end
+
+  def test_join_wrong_args_raises
+    v = GSL::Vector[1, 2, 3]
+    assert_raises(ArgumentError) do
+      v.join(",", "extra")
+    end
+  end
+
+  # =====================================================
+  # any, all, none with block tests
+  # =====================================================
+
+  def test_any_with_block
+    v = GSL::Vector[1, 2, 3, 4, 5]
+    result = v.any { |x| x > 3 }
+    assert_equal 1, result  # Returns 1 for true
+  end
+
+  def test_any_with_block_false
+    v = GSL::Vector[1, 2, 3]
+    result = v.any { |x| x > 10 }
+    assert_equal 0, result  # Returns 0 for false
+  end
+
+  def test_all_with_block
+    v = GSL::Vector[2, 4, 6, 8]
+    result = v.all? { |x| x % 2 == 0 }
+    assert_equal true, result
+  end
+
+  def test_all_with_block_false
+    v = GSL::Vector[2, 4, 5, 8]
+    result = v.all? { |x| x % 2 == 0 }
+    assert_equal false, result
+  end
+
+  def test_none_with_block
+    v = GSL::Vector[1, 2, 3]
+    result = v.none? { |x| x > 10 }
+    assert_equal true, result
+  end
+
+  def test_none_with_block_false
+    v = GSL::Vector[1, 2, 3]
+    result = v.none? { |x| x > 2 }
+    assert_equal false, result
+  end
+
+  # =====================================================
+  # isnan?, isinf?, finite? (boolean array versions)
+  # =====================================================
+
+  def test_isnan_question
+    v = GSL::Vector[1, Float::NAN, 3]
+    result = v.isnan?
+    assert_kind_of Array, result
+    assert_equal false, result[0]
+    assert_equal true, result[1]
+    assert_equal false, result[2]
+  end
+
+  def test_isinf_question
+    v = GSL::Vector[1, Float::INFINITY, 3]
+    result = v.isinf?
+    assert_kind_of Array, result
+    assert_equal false, result[0]
+    assert_equal true, result[1]
+    assert_equal false, result[2]
+  end
+
+  def test_finite_question
+    v = GSL::Vector[1, Float::INFINITY, 3]
+    result = v.finite?
+    assert_kind_of Array, result
+    assert_equal true, result[0]
+    assert_equal false, result[1]
+    assert_equal true, result[2]
+  end
+
+  # =====================================================
+  # histogram with Vector ranges
+  # =====================================================
+
+  def test_histogram_with_vector_ranges
+    v = GSL::Vector[1, 2, 3, 4, 5]
+    ranges = GSL::Vector[0, 2, 4, 6]
+    h = v.histogram(ranges)
+    assert_kind_of GSL::Histogram, h
+  end
+
+  # =====================================================
+  # logical operators with scalars
+  # =====================================================
+
+  def test_and_scalar
+    v = GSL::Vector[0, 1, 2, 3]
+    result = v.and(1.0)
+    assert_kind_of GSL::Block::Byte, result
+    assert_equal 0, result[0]  # 0 && 1 = 0
+    assert_equal 1, result[1]  # 1 && 1 = 1
+    assert_equal 1, result[2]  # 2 && 1 = 1
+    assert_equal 1, result[3]  # 3 && 1 = 1
+  end
+
+  def test_and_scalar_zero
+    v = GSL::Vector[0, 1, 2, 3]
+    result = v.and(0.0)
+    assert_kind_of GSL::Block::Byte, result
+    assert_equal 0, result[0]  # 0 && 0 = 0
+    assert_equal 0, result[1]  # 1 && 0 = 0
+    assert_equal 0, result[2]  # 2 && 0 = 0
+    assert_equal 0, result[3]  # 3 && 0 = 0
+  end
+
+  def test_or_scalar
+    v = GSL::Vector[0, 1, 2, 0]
+    result = v.or(0.0)
+    assert_kind_of GSL::Block::Byte, result
+    assert_equal 0, result[0]  # 0 || 0 = 0
+    assert_equal 1, result[1]  # 1 || 0 = 1
+    assert_equal 1, result[2]  # 2 || 0 = 1
+    assert_equal 0, result[3]  # 0 || 0 = 0
+  end
+
+  def test_or_scalar_nonzero
+    v = GSL::Vector[0, 1, 2, 0]
+    result = v.or(1.0)
+    assert_kind_of GSL::Block::Byte, result
+    assert_equal 1, result[0]  # 0 || 1 = 1
+    assert_equal 1, result[1]  # 1 || 1 = 1
+    assert_equal 1, result[2]  # 2 || 1 = 1
+    assert_equal 1, result[3]  # 0 || 1 = 1
+  end
+
+  def test_xor_scalar
+    v = GSL::Vector[0, 1, 2, 0]
+    result = v.xor(1.0)
+    assert_kind_of GSL::Block::Byte, result
+    assert_equal 1, result[0]  # 0 ^ 1 = 1
+    assert_equal 0, result[1]  # 1 ^ 1 = 0
+    assert_equal 0, result[2]  # 2 ^ 1 = 0
+    assert_equal 1, result[3]  # 0 ^ 1 = 1
+  end
+
+  def test_xor_scalar_zero
+    v = GSL::Vector[0, 1, 2, 0]
+    result = v.xor(0.0)
+    assert_kind_of GSL::Block::Byte, result
+    assert_equal 0, result[0]  # 0 ^ 0 = 0
+    assert_equal 1, result[1]  # 1 ^ 0 = 1
+    assert_equal 1, result[2]  # 2 ^ 0 = 1
+    assert_equal 0, result[3]  # 0 ^ 0 = 0
+  end
+
+  # =====================================================
+  # matrix_view_with_tda separate method
+  # =====================================================
+
+  def test_matrix_view_with_tda_method
+    v = GSL::Vector[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    m = v.matrix_view_with_tda(2, 3, 5)  # 2 rows, 3 cols, tda=5
+    assert_equal 2, m.size1
+    assert_equal 3, m.size2
+    assert_in_delta 1.0, m[0, 0], 1e-10
+    assert_in_delta 6.0, m[1, 0], 1e-10
+  end
+
+  # =====================================================
+  # scale and add_constant (non-bang versions)
+  # =====================================================
+
+  def test_scale_non_mutating
+    v = GSL::Vector[1, 2, 3]
+    result = v.scale(2)
+    assert_in_delta 2.0, result[0], 1e-10
+    assert_in_delta 4.0, result[1], 1e-10
+    assert_in_delta 6.0, result[2], 1e-10
+    # Original unchanged
+    assert_in_delta 1.0, v[0], 1e-10
+  end
+
+  def test_add_constant_non_mutating
+    v = GSL::Vector[1, 2, 3]
+    result = v.add_constant(10)
+    assert_in_delta 11.0, result[0], 1e-10
+    assert_in_delta 12.0, result[1], 1e-10
+    assert_in_delta 13.0, result[2], 1e-10
+    # Original unchanged
+    assert_in_delta 1.0, v[0], 1e-10
+  end
+
+  # =====================================================
+  # Integer vector additional coverage
+  # =====================================================
+
+  def test_int_vector_add_inplace
+    v1 = GSL::Vector::Int[1, 2, 3]
+    v2 = GSL::Vector::Int[4, 5, 6]
+    v1.add!(v2)
+    assert_equal 5, v1[0]
+    assert_equal 9, v1[2]
+  end
+
+  def test_int_vector_sub_inplace
+    v1 = GSL::Vector::Int[10, 20, 30]
+    v2 = GSL::Vector::Int[1, 2, 3]
+    v1.sub!(v2)
+    assert_equal 9, v1[0]
+    assert_equal 27, v1[2]
+  end
+
+  def test_int_vector_mul_inplace
+    v1 = GSL::Vector::Int[1, 2, 3]
+    v2 = GSL::Vector::Int[4, 5, 6]
+    v1.mul!(v2)
+    assert_equal 4, v1[0]
+    assert_equal 18, v1[2]
+  end
+
+  def test_int_vector_div_inplace
+    v1 = GSL::Vector::Int[4, 6, 8]
+    v2 = GSL::Vector::Int[2, 3, 4]
+    v1.div!(v2)
+    assert_equal 2, v1[0]
+    assert_equal 2, v1[2]
+  end
+
+  def test_int_vector_where
+    v = GSL::Vector::Int[1, 0, 3, 0, 5]
+    result = v.where
+    assert_kind_of GSL::Index, result
+    assert_equal 3, result.size
+  end
+
+  def test_int_vector_any
+    v1 = GSL::Vector::Int[0, 0, 0]
+    v2 = GSL::Vector::Int[0, 1, 0]
+    assert_equal false, v1.any?
+    assert_equal true, v2.any?
+  end
+
+  def test_int_vector_all
+    v1 = GSL::Vector::Int[1, 2, 3]
+    v2 = GSL::Vector::Int[1, 0, 3]
+    assert_equal true, v1.all?
+    assert_equal false, v2.all?
+  end
+
+  def test_int_vector_none
+    v1 = GSL::Vector::Int[0, 0, 0]
+    v2 = GSL::Vector::Int[0, 1, 0]
+    assert_equal true, v1.none?
+    assert_equal false, v2.none?
+  end
+
+  def test_int_vector_join
+    v = GSL::Vector::Int[1, 2, 3]
+    result = v.join(",")
+    assert_kind_of String, result
+    assert result.include?(",")
+  end
+
+  def test_int_vector_cumsum
+    v = GSL::Vector::Int[1, 2, 3, 4, 5]
+    result = v.cumsum
+    assert_equal 1, result[0]
+    assert_equal 3, result[1]
+    assert_equal 15, result[4]
+  end
+
+  def test_int_vector_cumprod
+    v = GSL::Vector::Int[1, 2, 3, 4, 5]
+    result = v.cumprod
+    assert_equal 1, result[0]
+    assert_equal 2, result[1]
+    assert_equal 120, result[4]
+  end
+
+  def test_int_vector_scale
+    v = GSL::Vector::Int[1, 2, 3]
+    result = v.scale(2)
+    assert_equal 2, result[0]
+    assert_equal 6, result[2]
+  end
+
+  def test_int_vector_add_constant
+    v = GSL::Vector::Int[1, 2, 3]
+    result = v.add_constant(10)
+    assert_equal 11, result[0]
+    assert_equal 13, result[2]
+  end
+
+  # =====================================================
+  # Additional edge cases
+  # =====================================================
+
+  def test_view_get_with_array
+    v = GSL::Vector[1, 2, 3, 4, 5]
+    view = v.subvector(0, 5)
+    result = view[[0, 2, 4]]
+    assert_kind_of GSL::Vector, result
+    assert_equal 3, result.size
+  end
+
+  def test_connect_with_multiple_vectors
+    v1 = GSL::Vector[1, 2]
+    v2 = GSL::Vector[3, 4]
+    v3 = GSL::Vector[5, 6]
+    result = v1.connect(v2, v3)
+    assert_equal 6, result.size
+    assert_in_delta 1.0, result[0], 1e-10
+    assert_in_delta 6.0, result[5], 1e-10
+  end
+
+  def test_set_all_vector
+    v1 = GSL::Vector[1, 2, 3, 4, 5]
+    v2 = GSL::Vector[10, 20, 30, 40, 50]
+    v1[] = v2
+    assert_in_delta 10.0, v1[0], 1e-10
+    assert_in_delta 50.0, v1[4], 1e-10
+  end
+
+  def test_isnull_returns_fixnum
+    v = GSL::Vector[0, 0, 0]
+    result = v.isnull
+    assert_kind_of Integer, result
+    assert_equal 1, result
+  end
+
+  def test_isnull_false_returns_fixnum
+    v = GSL::Vector[1, 0, 0]
+    result = v.isnull
+    assert_kind_of Integer, result
+    assert_equal 0, result
+  end
+
+  def test_ispos_returns_fixnum
+    v = GSL::Vector[1, 2, 3]
+    result = v.ispos
+    assert_kind_of Integer, result
+    assert_equal 1, result
+  end
+
+  def test_isneg_returns_fixnum
+    v = GSL::Vector[-1, -2, -3]
+    result = v.isneg
+    assert_kind_of Integer, result
+    assert_equal 1, result
+  end
+
+  def test_isnonneg_returns_fixnum
+    v = GSL::Vector[0, 1, 2]
+    result = v.isnonneg
+    assert_kind_of Integer, result
+    assert_equal 1, result
+  end
+
+  def test_view_owner
+    v = GSL::Vector[1, 2, 3, 4, 5]
+    view = v.subvector(1, 3)
+    # Views don't own their data
+    assert_equal 0, view.owner
+  end
+
+  # =====================================================
+  # Col vector specific tests
+  # =====================================================
+
+  def test_col_vector_cumsum
+    v = GSL::Vector[1, 2, 3, 4, 5].col
+    result = v.cumsum
+    assert result.is_a?(GSL::Vector::Col)
+    assert_in_delta 15.0, result[4], 1e-10
+  end
+
+  def test_col_vector_cumprod
+    v = GSL::Vector[1, 2, 3, 4, 5].col
+    result = v.cumprod
+    assert result.is_a?(GSL::Vector::Col)
+    assert_in_delta 120.0, result[4], 1e-10
+  end
+
+  def test_col_vector_sgn
+    v = GSL::Vector[-1, 0, 3].col
+    result = v.sgn
+    assert result.is_a?(GSL::Vector::Col)
+    assert_in_delta(-1.0, result[0], 1e-10)
+    assert_in_delta 0.0, result[1], 1e-10
+    assert_in_delta 1.0, result[2], 1e-10
+  end
+
+  def test_col_vector_abs
+    v = GSL::Vector[-1, -2, 3].col
+    result = v.abs
+    assert result.is_a?(GSL::Vector::Col)
+    assert_in_delta 1.0, result[0], 1e-10
+    assert_in_delta 2.0, result[1], 1e-10
+  end
+
+  def test_col_vector_concat
+    v = GSL::Vector[1, 2, 3].col
+    result = v.concat(4)
+    assert result.is_a?(GSL::Vector::Col)
+    assert_equal 4, result.size
+  end
+
+  def test_col_vector_subvector_is_col_view
+    v = GSL::Vector[1, 2, 3, 4, 5].col
+    view = v.subvector(1, 3)
+    assert view.is_a?(GSL::Vector::Col::View)
+  end
+
+  def test_col_vector_scale
+    v = GSL::Vector[1, 2, 3].col
+    result = v.scale(2)
+    assert result.is_a?(GSL::Vector::Col)
+  end
+
+  def test_col_vector_add_constant
+    v = GSL::Vector[1, 2, 3].col
+    result = v.add_constant(10)
+    assert result.is_a?(GSL::Vector::Col)
+  end
+
+  # =====================================================
+  # Sort view tests
+  # =====================================================
+
+  def test_sort_bang_on_view
+    v = GSL::Vector[5, 3, 4, 1, 2]
+    view = v.subvector(1, 3)  # [3, 4, 1]
+    view.sort!
+    # View is sorted, original affected
+    assert_in_delta 1.0, view[0], 1e-10
+    assert_in_delta 3.0, view[1], 1e-10
+    assert_in_delta 4.0, view[2], 1e-10
+  end
+
+  def test_sort_on_view
+    v = GSL::Vector[5, 3, 4, 1, 2]
+    view = v.subvector(1, 3)  # [3, 4, 1]
+    sorted = view.sort
+    # New vector is sorted
+    assert_in_delta 1.0, sorted[0], 1e-10
+    assert_in_delta 3.0, sorted[1], 1e-10
+    assert_in_delta 4.0, sorted[2], 1e-10
+    # Original unchanged
+    assert_in_delta 3.0, view[0], 1e-10
+  end
+
+  # =====================================================
+  # Info method test
+  # =====================================================
+
+  def test_info_integer_vector
+    v = GSL::Vector::Int[1, 2, 3]
+    info = v.info
+    assert_kind_of String, info
+    assert info.include?("Size")
+  end
 end
