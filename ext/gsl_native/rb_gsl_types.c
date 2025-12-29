@@ -86,6 +86,17 @@ const rb_data_type_t gsl_vector_view_data_type = {
     .flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
 
+/* Temporary vector type for stack-allocated vectors that must not be freed */
+const rb_data_type_t gsl_vector_tmp_data_type = {
+    .wrap_struct_name = "GSL::Vector::Tmp",
+    .function = {
+        .dmark = NULL,
+        .dfree = NULL,  /* Stack-allocated - must not be freed */
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
 const rb_data_type_t gsl_vector_int_data_type = {
     .wrap_struct_name = "GSL::Vector::Int",
     .function = {
@@ -125,6 +136,17 @@ const rb_data_type_t gsl_matrix_view_data_type = {
     .function = {
         .dmark = NULL,
         .dfree = RUBY_DEFAULT_FREE,
+        .dsize = NULL,
+    },
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+/* Temporary matrix type for stack-allocated matrices that must not be freed */
+const rb_data_type_t gsl_matrix_tmp_data_type = {
+    .wrap_struct_name = "GSL::Matrix::Tmp",
+    .function = {
+        .dmark = NULL,
+        .dfree = NULL,  /* Stack-allocated - must not be freed */
         .dsize = NULL,
     },
     .flags = RUBY_TYPED_FREE_IMMEDIATELY,

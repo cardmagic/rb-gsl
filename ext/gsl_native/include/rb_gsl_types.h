@@ -17,12 +17,14 @@
 /* Vector Types */
 extern const rb_data_type_t gsl_vector_data_type;
 extern const rb_data_type_t gsl_vector_view_data_type;
+extern const rb_data_type_t gsl_vector_tmp_data_type;  /* Stack-allocated vectors that must not be freed */
 extern const rb_data_type_t gsl_vector_int_data_type;
 extern const rb_data_type_t gsl_vector_complex_data_type;
 
 /* Matrix Types */
 extern const rb_data_type_t gsl_matrix_data_type;
 extern const rb_data_type_t gsl_matrix_view_data_type;
+extern const rb_data_type_t gsl_matrix_tmp_data_type;  /* Stack-allocated matrices that must not be freed */
 extern const rb_data_type_t gsl_matrix_int_data_type;
 extern const rb_data_type_t gsl_matrix_complex_data_type;
 

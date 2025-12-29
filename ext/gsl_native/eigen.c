@@ -1316,9 +1316,10 @@ static VALUE rb_gsl_eigen_nonsymmv_Z(int argc, VALUE *argv, VALUE obj)
     wflag = 1;
     break;
   case 1:
-    if (CLASS_OF(argv2[0]) == cgsl_eigen_nonsymm_workspace) {
+    if (CLASS_OF(argv2[0]) == cgsl_eigen_nonsymmv_workspace) {
       v = gsl_vector_complex_alloc(m->size1);
       evec = gsl_matrix_complex_alloc(m->size1, m->size2);
+      Z = gsl_matrix_alloc(m->size1, m->size2);
       vflag = 1;
       TypedData_Get_Struct(argv2[0], gsl_eigen_nonsymmv_workspace, &gsl_eigen_nonsymmv_workspace_data_type, w);
     } else {
@@ -1336,12 +1337,12 @@ static VALUE rb_gsl_eigen_nonsymmv_Z(int argc, VALUE *argv, VALUE obj)
     CHECK_VECTOR_COMPLEX(argv2[0]);
     CHECK_MATRIX_COMPLEX(argv2[1]);
     CHECK_MATRIX(argv2[2]);
-    if (CLASS_OF(argv2[3]) != cgsl_eigen_nonsymm_workspace) {
-      rb_raise(rb_eArgError, "argv[1] must be a GSL::Eigen::Nonsymm::Workspace.\n");
+    if (CLASS_OF(argv2[3]) != cgsl_eigen_nonsymmv_workspace) {
+      rb_raise(rb_eArgError, "argv[3] must be a GSL::Eigen::Nonsymmv::Workspace.\n");
     }
     TypedData_Get_Struct(argv2[0], gsl_vector_complex, &gsl_vector_complex_data_type, v);
     TypedData_Get_Struct(argv2[1], gsl_matrix_complex, &gsl_matrix_complex_data_type, evec);
-    TypedData_Get_Struct(argv2[1], gsl_matrix, &gsl_matrix_data_type, Z);
+    TypedData_Get_Struct(argv2[2], gsl_matrix, &gsl_matrix_data_type, Z);
     TypedData_Get_Struct(argv2[3], gsl_eigen_nonsymmv_workspace, &gsl_eigen_nonsymmv_workspace_data_type, w);
     break;
   default:
@@ -1358,7 +1359,7 @@ static VALUE rb_gsl_eigen_nonsymmv_Z(int argc, VALUE *argv, VALUE obj)
                        TypedData_Wrap_Struct(cgsl_matrix_complex, &gsl_matrix_complex_data_type, evec),
                        TypedData_Wrap_Struct(cgsl_matrix, &gsl_matrix_data_type, Z));
   }  else {
-    return rb_ary_new3(2, argv2[0], argv2[1], argv2[2]);
+    return rb_ary_new3(3, argv2[0], argv2[1], argv2[2]);
   }
 }
 
@@ -2292,7 +2293,7 @@ void Init_gsl_eigen(VALUE module)
                             rb_gsl_eigen_hermv_sort, -1);
 
 #ifdef HAVE_GSL_EIGEN_FRANCIS
-  mgsl_eigen_francis = rb_define_module_under(mgsl_eigen, "francis");
+  mgsl_eigen_francis = rb_define_module_under(mgsl_eigen, "Francis");
   cgsl_eigen_francis_workspace = rb_define_class_under(mgsl_eigen_francis,
                                                        "Workspace", cGSL_Object);
   rb_define_singleton_method(cgsl_eigen_francis_workspace, "alloc",

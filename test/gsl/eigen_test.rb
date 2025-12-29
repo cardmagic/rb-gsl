@@ -560,4 +560,393 @@ class EigenTest < GSL::TestCase
     _test_eigen_herm('herm(4) diag', r.to_complex)
   end
 
+  def test_eigen_francis
+    m = GSL::Matrix[[1, 2], [3, 2]]
+    e_val = GSL::Eigen.francis(m)
+    assert_kind_of GSL::Vector::Complex, e_val
+    assert_equal 2, e_val.size
+
+    e_real = e_val.real.sort
+    assert_abs e_real[0], -1, 1e-10, 'GSL::Eigen.francis eigenvalue 1'
+    assert_abs e_real[1], 4, 1e-10, 'GSL::Eigen.francis eigenvalue 2'
+
+    # Use an upper Hessenberg matrix (zeros below the first subdiagonal)
+    # The francis algorithm requires upper Hessenberg form
+    m2 = GSL::Matrix[[4, 1, -1], [2, 5, -2], [0, 1, 2]]
+    e_val2 = m2.eigen_francis
+    assert_equal 3, e_val2.size
+    e_real2 = e_val2.real.sort
+    assert_abs e_real2[0], 2.5857864376, 1e-6, 'GSL::Matrix#eigen_francis eigenvalue 1'
+    assert_abs e_real2[1], 3.0, 1e-6, 'GSL::Matrix#eigen_francis eigenvalue 2'
+    assert_abs e_real2[2], 5.4142135624, 1e-6, 'GSL::Matrix#eigen_francis eigenvalue 3'
+
+    w = GSL::Eigen::Francis::Workspace.alloc
+    v = GSL::Vector::Complex.alloc(2)
+    m3 = GSL::Matrix[[1, 2], [3, 2]]
+    result = GSL::Eigen.francis(m3, v, w)
+    assert_same v, result
+    e_real3 = v.real.sort
+    assert_abs e_real3[0], -1, 1e-10, 'GSL::Eigen.francis with workspace'
+    assert_abs e_real3[1], 4, 1e-10, 'GSL::Eigen.francis with workspace'
+
+    m4 = GSL::Matrix[[1, 2], [3, 2]]
+    result2 = GSL::Eigen.francis(m4, w)
+    e_real4 = result2.real.sort
+    assert_abs e_real4[0], -1, 1e-10, 'GSL::Eigen.francis with workspace only'
+    assert_abs e_real4[1], 4, 1e-10, 'GSL::Eigen.francis with workspace only'
+  end
+
+  def test_eigen_francis_Z
+    # Test basic usage - no extra args (allocates v and Z internally)
+    m = GSL::Matrix[[1, 2], [3, 2]]
+    e_val, z = GSL::Eigen.francis_Z(m)
+    assert_kind_of GSL::Vector::Complex, e_val
+    assert_kind_of GSL::Matrix, z
+    assert_equal 2, e_val.size
+    assert_equal [2, 2], [z.size1, z.size2]
+
+    e_real = e_val.real.sort
+    assert_abs e_real[0], -1, 1e-10, 'GSL::Eigen.francis_Z eigenvalue 1'
+    assert_abs e_real[1], 4, 1e-10, 'GSL::Eigen.francis_Z eigenvalue 2'
+
+    # Test method form
+    m2 = GSL::Matrix[[1, 2], [3, 2]]
+    e_val2, z2 = m2.eigen_francis_Z
+    assert_kind_of GSL::Vector::Complex, e_val2
+    assert_kind_of GSL::Matrix, z2
+
+    # Test with workspace only (1 extra arg)
+    w = GSL::Eigen::Francis::Workspace.alloc
+    m3 = GSL::Matrix[[1, 2], [3, 2]]
+    e_val3, z3 = GSL::Eigen.francis_Z(m3, w)
+    e_real3 = e_val3.real.sort
+    assert_abs e_real3[0], -1, 1e-10, 'GSL::Eigen.francis_Z with workspace'
+    assert_abs e_real3[1], 4, 1e-10, 'GSL::Eigen.francis_Z with workspace'
+
+    # Test with v, Z, and workspace (3 extra args)
+    w2 = GSL::Eigen::Francis::Workspace.alloc
+    v2 = GSL::Vector::Complex.alloc(2)
+    zmat = GSL::Matrix.alloc(2, 2)
+    m4 = GSL::Matrix[[1, 2], [3, 2]]
+    e_val4, z4 = GSL::Eigen.francis_Z(m4, v2, zmat, w2)
+    assert_same v2, e_val4
+    assert_same zmat, z4
+    e_real4 = v2.real.sort
+    assert_abs e_real4[0], -1, 1e-10, 'GSL::Eigen.francis_Z with all args'
+    assert_abs e_real4[1], 4, 1e-10, 'GSL::Eigen.francis_Z with all args'
+  end
+
+  def test_eigen_francis_T
+    w = GSL::Eigen::Francis::Workspace.alloc
+    # When called on the workspace object, T takes an integer argument
+    result = w.T(1)
+    assert_equal true, result
+    result = w.T(0)
+    assert_equal true, result
+  end
+
+  def test_eigen_nonsymm_Z
+    m = GSL::Matrix[[1, 2], [3, 2]]
+    e_val, z = m.eigen_nonsymm_Z
+    assert_kind_of GSL::Vector::Complex, e_val
+    assert_kind_of GSL::Matrix, z
+    assert_equal 2, e_val.size
+
+    e_real = e_val.real.sort
+    assert_abs e_real[0], -1, 1e-10, 'GSL::Matrix#eigen_nonsymm_Z eigenvalue 1'
+    assert_abs e_real[1], 4, 1e-10, 'GSL::Matrix#eigen_nonsymm_Z eigenvalue 2'
+
+    m2 = GSL::Matrix[[4, 1, -1], [2, 5, -2], [1, 1, 2]]
+    e_val2, z2 = GSL::Eigen.nonsymm_Z(m2)
+    assert_equal 3, e_val2.size
+    e_real2 = e_val2.real.sort
+    assert_abs e_real2[0], 3, 1e-10, 'GSL::Eigen.nonsymm_Z'
+    assert_abs e_real2[1], 3, 1e-10, 'GSL::Eigen.nonsymm_Z'
+    assert_abs e_real2[2], 5, 1e-10, 'GSL::Eigen.nonsymm_Z'
+
+    w = GSL::Eigen::Nonsymm::Workspace.alloc(2)
+    m3 = GSL::Matrix[[1, 2], [3, 2]]
+    e_val3, z3 = GSL::Eigen.nonsymm_Z(m3, w)
+    e_real3 = e_val3.real.sort
+    assert_abs e_real3[0], -1, 1e-10, 'GSL::Eigen.nonsymm_Z with workspace'
+    assert_abs e_real3[1], 4, 1e-10, 'GSL::Eigen.nonsymm_Z with workspace'
+  end
+
+  def test_eigen_nonsymmv_Z
+    m = GSL::Matrix[[1, 2], [3, 2]]
+    e_val, e_vec, z = m.eigen_nonsymmv_Z
+    assert_kind_of GSL::Vector::Complex, e_val
+    assert_kind_of GSL::Matrix::Complex, e_vec
+    assert_kind_of GSL::Matrix, z
+    assert_equal 2, e_val.size
+
+    e_real = e_val.real.sort
+    assert_abs e_real[0], -1, 1e-10, 'GSL::Matrix#eigen_nonsymmv_Z eigenvalue 1'
+    assert_abs e_real[1], 4, 1e-10, 'GSL::Matrix#eigen_nonsymmv_Z eigenvalue 2'
+
+    m2 = GSL::Matrix[[4, 1, -1], [2, 5, -2], [1, 1, 2]]
+    e_val2, e_vec2, z2 = GSL::Eigen.nonsymmv_Z(m2)
+    assert_equal 3, e_val2.size
+    e_real2 = e_val2.real.sort
+    assert_abs e_real2[0], 3, 1e-10, 'GSL::Eigen.nonsymmv_Z'
+    assert_abs e_real2[1], 3, 1e-10, 'GSL::Eigen.nonsymmv_Z'
+    assert_abs e_real2[2], 5, 1e-10, 'GSL::Eigen.nonsymmv_Z'
+
+    w = GSL::Eigen::Nonsymmv::Workspace.alloc(2)
+    m3 = GSL::Matrix[[1, 2], [3, 2]]
+    e_val3, e_vec3, z3 = GSL::Eigen.nonsymmv_Z(m3, w)
+    e_real3 = e_val3.real.sort
+    assert_abs e_real3[0], -1, 1e-10, 'GSL::Eigen.nonsymmv_Z with workspace'
+    assert_abs e_real3[1], 4, 1e-10, 'GSL::Eigen.nonsymmv_Z with workspace'
+  end
+
+  def test_eigen_nonsymm_params
+    w = GSL::Eigen::Nonsymm::Workspace.alloc(3)
+    result = w.params(1, 1)
+    assert_equal true, result
+
+    w2 = GSL::Eigen::Nonsymm::Workspace.alloc(3)
+    result2 = GSL::Eigen::Nonsymm.params(0, 0, w2)
+    assert_equal true, result2
+  end
+
+  def test_eigen_vectors_unpack
+    m = GSL::Matrix[[1, 0, 0], [0, 2, 0], [0, 0, 3]]
+    e_val, e_vec = m.eigen_symmv
+    vectors = e_vec.unpack
+    assert_kind_of Array, vectors
+    assert_equal 3, vectors.size
+    vectors.each do |v|
+      assert_kind_of GSL::Vector, v
+      assert_equal 3, v.size
+    end
+  end
+
+  def test_eigen_herm_vectors_unpack
+    m = GSL::Matrix::Complex.alloc(3, 3)
+    m[0, 0] = GSL::Complex.alloc(1.0, 0.0)
+    m[1, 1] = GSL::Complex.alloc(2.0, 0.0)
+    m[2, 2] = GSL::Complex.alloc(3.0, 0.0)
+    m[0, 1] = GSL::Complex.alloc(0.0, 0.0)
+    m[0, 2] = GSL::Complex.alloc(0.0, 0.0)
+    m[1, 0] = GSL::Complex.alloc(0.0, 0.0)
+    m[1, 2] = GSL::Complex.alloc(0.0, 0.0)
+    m[2, 0] = GSL::Complex.alloc(0.0, 0.0)
+    m[2, 1] = GSL::Complex.alloc(0.0, 0.0)
+
+    e_val, e_vec = m.eigen_hermv
+    vectors = e_vec.unpack
+    assert_kind_of Array, vectors
+    assert_equal 3, vectors.size
+    vectors.each do |v|
+      assert_kind_of GSL::Vector::Complex, v
+      assert_equal 3, v.size
+    end
+  end
+
+  def test_eigen_nonsymm_with_workspace
+    n = 3
+    w = GSL::Eigen::Nonsymm::Workspace.alloc(n)
+    m = GSL::Matrix[[4, 1, -1], [2, 5, -2], [1, 1, 2]]
+    v = GSL::Vector::Complex.alloc(n)
+    result = GSL::Eigen.nonsymm(m, v, w)
+    assert_same v, result
+    e_real = v.real.sort
+    assert_abs e_real[0], 3, 1e-10, 'GSL::Eigen.nonsymm with vector+workspace'
+    assert_abs e_real[1], 3, 1e-10, 'GSL::Eigen.nonsymm with vector+workspace'
+    assert_abs e_real[2], 5, 1e-10, 'GSL::Eigen.nonsymm with vector+workspace'
+
+    m2 = GSL::Matrix[[4, 1, -1], [2, 5, -2], [1, 1, 2]]
+    result2 = GSL::Eigen.nonsymm(m2, w)
+    e_real2 = result2.real.sort
+    assert_abs e_real2[0], 3, 1e-10, 'GSL::Eigen.nonsymm with workspace only'
+    assert_abs e_real2[1], 3, 1e-10, 'GSL::Eigen.nonsymm with workspace only'
+    assert_abs e_real2[2], 5, 1e-10, 'GSL::Eigen.nonsymm with workspace only'
+  end
+
+  def test_eigen_nonsymmv_with_workspace
+    n = 3
+    w = GSL::Eigen::Nonsymmv::Workspace.alloc(n)
+    m = GSL::Matrix[[4, 1, -1], [2, 5, -2], [1, 1, 2]]
+    e_val, e_vec = GSL::Eigen.nonsymmv(m, w)
+    assert_kind_of GSL::Vector::Complex, e_val
+    assert_kind_of GSL::Matrix::Complex, e_vec
+    e_real = e_val.real.sort
+    assert_abs e_real[0], 3, 1e-10, 'GSL::Eigen.nonsymmv with workspace'
+    assert_abs e_real[1], 3, 1e-10, 'GSL::Eigen.nonsymmv with workspace'
+    assert_abs e_real[2], 5, 1e-10, 'GSL::Eigen.nonsymmv with workspace'
+  end
+
+  def test_eigen_nonsymmv_sort
+    m = GSL::Matrix[[4, 1, -1], [2, 5, -2], [1, 1, 2]]
+    e_val, e_vec = m.eigen_nonsymmv
+
+    e_val_copy = e_val.clone
+    GSL::Eigen.nonsymmv_sort(e_val_copy, nil, GSL::EIGEN_SORT_ABS_ASC)
+    assert_abs e_val_copy[0].abs, 3, 1e-10, 'nonsymmv_sort abs/asc first'
+
+    e_val2, e_vec2 = m.clone.eigen_nonsymmv
+    GSL::Eigen::Nonsymmv.sort(e_val2, e_vec2, GSL::EIGEN_SORT_ABS_DESC)
+    assert_abs e_val2[0].abs, 5, 1e-10, 'nonsymmv_sort abs/desc first'
+  end
+
+  def test_module_level_eigen_functions
+    m = GSL::Matrix[[1, 2], [3, 2]]
+
+    e_val = GSL.eigen_nonsymm(m.clone)
+    e_real = e_val.real.sort
+    assert_abs e_real[0], -1, 1e-10, 'GSL.eigen_nonsymm'
+    assert_abs e_real[1], 4, 1e-10, 'GSL.eigen_nonsymm'
+
+    e_val2, e_vec2 = GSL.eigen_nonsymmv(m.clone)
+    e_real2 = e_val2.real.sort
+    assert_abs e_real2[0], -1, 1e-10, 'GSL.eigen_nonsymmv'
+    assert_abs e_real2[1], 4, 1e-10, 'GSL.eigen_nonsymmv'
+
+    e_val3, z3 = GSL.eigen_nonsymm_Z(m.clone)
+    e_real3 = e_val3.real.sort
+    assert_abs e_real3[0], -1, 1e-10, 'GSL.eigen_nonsymm_Z'
+    assert_abs e_real3[1], 4, 1e-10, 'GSL.eigen_nonsymm_Z'
+
+    e_val4, e_vec4, z4 = GSL.eigen_nonsymmv_Z(m.clone)
+    e_real4 = e_val4.real.sort
+    assert_abs e_real4[0], -1, 1e-10, 'GSL.eigen_nonsymmv_Z'
+    assert_abs e_real4[1], 4, 1e-10, 'GSL.eigen_nonsymmv_Z'
+
+    e_val5 = GSL.eigen_francis(m.clone)
+    e_real5 = e_val5.real.sort
+    assert_abs e_real5[0], -1, 1e-10, 'GSL.eigen_francis'
+    assert_abs e_real5[1], 4, 1e-10, 'GSL.eigen_francis'
+
+    e_val6, z6 = GSL.eigen_francis_Z(m.clone)
+    e_real6 = e_val6.real.sort
+    assert_abs e_real6[0], -1, 1e-10, 'GSL.eigen_francis_Z'
+    assert_abs e_real6[1], 4, 1e-10, 'GSL.eigen_francis_Z'
+  end
+
+  def test_eigen_symm_module_functions
+    m = GSL::Matrix[[1, 0], [0, 2]]
+    e_val = GSL.eigen_symm(m.clone)
+    e_sorted = e_val.to_a.sort
+    assert_abs e_sorted[0], 1, 1e-10, 'GSL.eigen_symm'
+    assert_abs e_sorted[1], 2, 1e-10, 'GSL.eigen_symm'
+
+    e_val2, e_vec2 = GSL.eigen_symmv(m.clone)
+    e_sorted2 = e_val2.to_a.sort
+    assert_abs e_sorted2[0], 1, 1e-10, 'GSL.eigen_symmv'
+    assert_abs e_sorted2[1], 2, 1e-10, 'GSL.eigen_symmv'
+  end
+
+  def test_eigen_herm_module_functions
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m[0, 0] = GSL::Complex.alloc(1.0, 0.0)
+    m[1, 1] = GSL::Complex.alloc(2.0, 0.0)
+    m[0, 1] = GSL::Complex.alloc(0.0, 0.0)
+    m[1, 0] = GSL::Complex.alloc(0.0, 0.0)
+
+    e_val = GSL.eigen_herm(m.clone)
+    e_sorted = e_val.to_a.sort
+    assert_abs e_sorted[0], 1, 1e-10, 'GSL.eigen_herm'
+    assert_abs e_sorted[1], 2, 1e-10, 'GSL.eigen_herm'
+
+    e_val2, e_vec2 = GSL.eigen_hermv(m.clone)
+    e_sorted2 = e_val2.to_a.sort
+    assert_abs e_sorted2[0], 1, 1e-10, 'GSL.eigen_hermv'
+    assert_abs e_sorted2[1], 2, 1e-10, 'GSL.eigen_hermv'
+  end
+
+  def test_eigen_gensymm_module_functions
+    rng = GSL::Rng.alloc
+    n = 3
+
+    a = _create_random_symm_matrix(n, n, rng, -10, 10)
+    b = _create_random_posdef_matrix(n, n, rng)
+
+    e_val = GSL.eigen_gensymm(a.clone, b.clone)
+    assert_kind_of GSL::Vector, e_val
+    assert_equal n, e_val.size
+
+    e_val2, e_vec2 = GSL.eigen_gensymmv(a.clone, b.clone)
+    assert_kind_of GSL::Vector, e_val2
+    assert_kind_of GSL::Matrix, e_vec2
+
+    GSL.eigen_gensymmv_sort(e_val2, e_vec2, GSL::EIGEN_SORT_VAL_ASC)
+    assert e_val2[0] <= e_val2[1] && e_val2[1] <= e_val2[2], 'gensymmv_sort val/asc'
+  end
+
+  def test_eigen_genherm_module_functions
+    rng = GSL::Rng.alloc
+    n = 3
+
+    a = _create_random_herm_matrix(n, n, rng, -10, 10)
+    b = _create_random_complex_posdef_matrix(n, n, rng)
+
+    e_val = GSL.eigen_genherm(a.clone, b.clone)
+    assert_kind_of GSL::Vector, e_val
+    assert_equal n, e_val.size
+
+    e_val2, e_vec2 = GSL.eigen_genhermv(a.clone, b.clone)
+    assert_kind_of GSL::Vector, e_val2
+    assert_kind_of GSL::Matrix::Complex, e_vec2
+
+    GSL.eigen_genhermv_sort(e_val2, e_vec2, GSL::EIGEN_SORT_VAL_ASC)
+    assert e_val2[0] <= e_val2[1] && e_val2[1] <= e_val2[2], 'genhermv_sort val/asc'
+  end
+
+  def test_eigen_gen_workspace_methods
+    n = 3
+    w = GSL::Eigen::Gen.alloc(n)
+    wv = GSL::Eigen::Genv.alloc(n)
+
+    a = GSL::Matrix[[1, 1, 0], [0, -1, 1], [0, 0, 1]]
+    b = GSL::Matrix[[-1, 0, -1], [0, -1, 0], [0, 0, -1]]
+
+    w.params(1, 1, 0)
+    alpha, beta = w.gen(a.clone, b.clone)
+    assert_kind_of GSL::Vector::Complex, alpha
+    assert_kind_of GSL::Vector, beta
+
+    alphav, betav, e_vec = wv.genv(a.clone, b.clone)
+    assert_kind_of GSL::Vector::Complex, alphav
+    assert_kind_of GSL::Vector, betav
+    assert_kind_of GSL::Matrix::Complex, e_vec
+  end
+
+  def test_eigen_gen_QZ_workspace_methods
+    n = 3
+    w = GSL::Eigen::Gen.alloc(n)
+    wv = GSL::Eigen::Genv.alloc(n)
+
+    a = GSL::Matrix[[1, 1, 0], [0, -1, 1], [0, 0, 1]]
+    b = GSL::Matrix[[-1, 0, -1], [0, -1, 0], [0, 0, -1]]
+
+    GSL::Eigen.gen_params(1, 1, 0, w)
+    alpha, beta, q, z = w.gen_QZ(a.clone, b.clone)
+    assert_kind_of GSL::Vector::Complex, alpha
+    assert_kind_of GSL::Vector, beta
+    assert_kind_of GSL::Matrix, q
+    assert_kind_of GSL::Matrix, z
+
+    alphav, betav, e_vec, qv, zv = wv.genv_QZ(a.clone, b.clone)
+    assert_kind_of GSL::Vector::Complex, alphav
+    assert_kind_of GSL::Vector, betav
+    assert_kind_of GSL::Matrix::Complex, e_vec
+    assert_kind_of GSL::Matrix, qv
+    assert_kind_of GSL::Matrix, zv
+  end
+
+  def test_eigen_genv_sort_module
+    rng = GSL::Rng.alloc
+    n = 3
+    a = _create_random_nonsymm_matrix(n, n, rng, -10, 10)
+    b = _create_random_nonsymm_matrix(n, n, rng, -10, 10)
+
+    wv = GSL::Eigen::Genv.alloc(n)
+    alphav, betav, e_vec = GSL::Eigen.genv(a.clone, b.clone, wv)
+
+    GSL.eigen_genv_sort(alphav, betav, e_vec, GSL::EIGEN_SORT_ABS_ASC)
+    assert_kind_of GSL::Vector::Complex, alphav
+    assert_kind_of GSL::Vector, betav
+  end
+
 end
