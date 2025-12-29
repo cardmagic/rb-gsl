@@ -553,7 +553,7 @@ static VALUE rb_gsl_vector_complex_fread(VALUE obj, VALUE io)
   FILE *f = NULL;
   int status, flag = 0;
   TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, h);
-  f = rb_gsl_open_writefile(io, &flag);
+  f = rb_gsl_open_readfile(io, &flag);
   status = gsl_vector_complex_fread(f, h);
   if (flag == 1) fclose(f);
   return INT2FIX(status);
@@ -565,7 +565,7 @@ static VALUE rb_gsl_vector_complex_fscanf(VALUE obj, VALUE io)
   FILE *f = NULL;
   int status, flag = 0;
   TypedData_Get_Struct(obj, gsl_vector_complex, &gsl_vector_complex_data_type, h);
-  f = rb_gsl_open_writefile(io, &flag);
+  f = rb_gsl_open_readfile(io, &flag);
   status = gsl_vector_complex_fscanf(f, h);
   if (flag == 1) fclose(f);
   return INT2FIX(status);
