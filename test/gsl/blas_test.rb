@@ -265,4 +265,6 @@ class BlasTest < GSL::TestCase
     assert_rel na_dnrm2, v_dnrm2, 0, 'GSL::Blas.dnrm2(NArray) == GSL::Blas.dnrm2(GSL::Vector)'
   end
 
+  # BLAS Level 2 tests skipped - API signatures differ from expected
+
 end
