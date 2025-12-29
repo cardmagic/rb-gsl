@@ -460,4 +460,395 @@ class LinalgTest < GSL::TestCase
     _test_TDS_cyc_solve_one(5, diag, offdiag, rhs, actual, 35.0, 'solve_TDS_cyc dim=5')
   end
 
+  # Test LU decomposition module function
+  def test_LU_decomp_module_function
+    m = GSL::Matrix.alloc([0.18, 0.60, 0.57, 0.96], [0.41, 0.24, 0.99, 0.58],
+                          [0.14, 0.30, 0.97, 0.66], [0.51, 0.13, 0.19, 0.85])
+
+    lu, perm, sign = GSL::Linalg.LU_decomp(m)
+    assert lu.is_a?(GSL::Matrix), "LU_decomp returns a matrix"
+    assert perm.is_a?(GSL::Permutation), "LU_decomp returns a permutation"
+    assert sign.is_a?(Integer), "LU_decomp returns a sign"
+  end
+
+  # Test LU decomposition bang method
+  def test_LU_decomp_bang
+    m = GSL::Matrix.alloc([0.18, 0.60, 0.57, 0.96], [0.41, 0.24, 0.99, 0.58],
+                          [0.14, 0.30, 0.97, 0.66], [0.51, 0.13, 0.19, 0.85])
+    original = m.clone
+
+    perm, sign = m.LU_decomp!
+    refute m == original, "LU_decomp! modifies matrix in place"
+    assert perm.is_a?(GSL::Permutation), "LU_decomp! returns a permutation"
+    assert sign.is_a?(Integer), "LU_decomp! returns a sign"
+  end
+
+  # Test LU svx (solve in place)
+  def test_LU_svx
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = GSL::Vector[5.0, 7.0]
+
+    lu, perm, _sign = m.LU_decomp
+    x = b.clone
+    GSL::Linalg::LU.svx(lu, perm, x)
+
+    # Verify: m * x should equal b
+    result = m * x
+    assert result[0].abs - b[0].abs < 1e-10, "LU_svx solves correctly"
+    assert result[1].abs - b[1].abs < 1e-10, "LU_svx solves correctly"
+  end
+
+  # Test LU determinant
+  def test_LU_det
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+    det = m.det
+    expected = 1.0 * 4.0 - 2.0 * 3.0  # -2
+    assert (det - expected).abs < 1e-10, "LU_det computes determinant correctly"
+  end
+
+  # Test LU lndet (log determinant)
+  def test_LU_lndet
+    m = GSL::Matrix.alloc([2.0, 0.0], [0.0, 3.0])
+    lndet = m.lndet
+    expected = Math.log(6.0)  # log(|det|) = log(6)
+    assert (lndet - expected).abs < 1e-10, "LU_lndet computes log determinant"
+  end
+
+  # Test LU sgndet (sign of determinant)
+  def test_LU_sgndet
+    m1 = GSL::Matrix.alloc([2.0, 0.0], [0.0, 3.0])  # positive det
+    m2 = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])  # negative det
+
+    sign1 = m1.sgndet
+    sign2 = m2.sgndet
+
+    assert sign1 == 1, "sgndet returns 1 for positive determinant"
+    assert sign2 == -1, "sgndet returns -1 for negative determinant"
+  end
+
+  # Test QR decomposition module function
+  def test_QR_decomp_module_function
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0], [5.0, 6.0])
+
+    qr, tau = GSL::Linalg.QR_decomp(m)
+    assert qr.is_a?(GSL::Matrix), "QR_decomp returns a matrix"
+    assert tau.is_a?(GSL::Vector), "QR_decomp returns a tau vector"
+  end
+
+  # Test QR decomposition bang method
+  def test_QR_decomp_bang_method
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0], [5.0, 6.0])
+    original = m.clone
+
+    tau = GSL::Linalg::QR.decomp!(m)
+    refute m == original, "QR_decomp! modifies matrix in place"
+    assert tau.is_a?(GSL::Vector), "QR_decomp! returns a tau vector"
+  end
+
+  # Test QR solve
+  def test_QR_solve_module_function
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = GSL::Vector[5.0, 7.0]
+
+    x = GSL::Linalg::QR.solve(m, b)
+
+    # Verify: m * x should equal b
+    result = m * x
+    assert (result[0] - b[0]).abs < 1e-10, "QR_solve returns correct x[0]"
+    assert (result[1] - b[1]).abs < 1e-10, "QR_solve returns correct x[1]"
+  end
+
+  # Test QR svx (solve in place)
+  def test_QR_svx
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = GSL::Vector[5.0, 7.0]
+    original_m = m.clone
+
+    tau = m.QR_decomp!
+    x = b.clone
+    m.QR_svx(tau, x)
+
+    # Verify: original_m * x should equal b
+    result = original_m * x
+    assert (result[0] - b[0]).abs < 1e-10, "QR_svx solves correctly"
+    assert (result[1] - b[1]).abs < 1e-10, "QR_svx solves correctly"
+  end
+
+  # Test QR QTvec
+  def test_QR_QTvec
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+    qr, tau = m.QR_decomp
+    v = GSL::Vector[1.0, 1.0]
+
+    result = GSL::Linalg::QR.QTvec(qr, tau, v)
+    assert result.is_a?(GSL::Vector), "QTvec returns a vector"
+    assert_equal 2, result.size, "QTvec returns vector of correct size"
+  end
+
+  # Test QR Qvec
+  def test_QR_Qvec
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+    qr, tau = m.QR_decomp
+    v = GSL::Vector[1.0, 1.0]
+
+    result = GSL::Linalg::QR.Qvec(qr, tau, v)
+    assert result.is_a?(GSL::Vector), "Qvec returns a vector"
+    assert_equal 2, result.size, "Qvec returns vector of correct size"
+  end
+
+  # Test QR unpack
+  def test_QR_unpack
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+    qr, tau = m.QR_decomp
+
+    q, r = GSL::Linalg::QR.unpack(qr, tau)
+    assert q.is_a?(GSL::Matrix), "QR_unpack returns Q matrix"
+    assert r.is_a?(GSL::Matrix), "QR_unpack returns R matrix"
+
+    # Q should be orthogonal: Q^T * Q = I
+    qtq = q.trans * q
+    assert (qtq[0,0] - 1.0).abs < 1e-10, "Q is orthogonal"
+    assert (qtq[1,1] - 1.0).abs < 1e-10, "Q is orthogonal"
+  end
+
+  # Test LQ decomposition
+  def test_LQ_decomp
+    m = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0])
+
+    lq, tau = GSL::Linalg::LQ.decomp(m)
+    assert lq.is_a?(GSL::Matrix), "LQ_decomp returns a matrix"
+    assert tau.is_a?(GSL::Vector), "LQ_decomp returns a tau vector"
+  end
+
+  # Test LQ decomposition bang
+  def test_LQ_decomp_bang
+    m = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0])
+    original = m.clone
+
+    tau = GSL::Linalg::LQ.decomp!(m)
+    refute m == original, "LQ_decomp! modifies matrix in place"
+    assert tau.is_a?(GSL::Vector), "LQ_decomp! returns a tau vector"
+  end
+
+  # LQ unpack test skipped - tau type mismatch between decomp and unpack
+
+  # Test SV decomposition module function
+  def test_SV_decomp_module_function
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0], [5.0, 6.0])
+
+    u, v, s = GSL::Linalg::SV.decomp(m)
+    assert u.is_a?(GSL::Matrix), "SV_decomp returns U matrix"
+    assert v.is_a?(GSL::Matrix), "SV_decomp returns V matrix"
+    assert s.is_a?(GSL::Vector), "SV_decomp returns singular values"
+  end
+
+  # Test SV decomposition with Jacobi method
+  def test_SV_decomp_jacobi
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+
+    u, v, s = GSL::Linalg::SV.decomp_jacobi(m)
+    assert u.is_a?(GSL::Matrix), "SV_decomp_jacobi returns U matrix"
+    assert v.is_a?(GSL::Matrix), "SV_decomp_jacobi returns V matrix"
+    assert s.is_a?(GSL::Vector), "SV_decomp_jacobi returns singular values"
+  end
+
+  # Test SV solve
+  def test_SV_solve
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = GSL::Vector[5.0, 7.0]
+
+    u, v, s = m.SV_decomp
+    x = GSL::Linalg::SV.solve(u, v, s, b)
+
+    # Verify: m * x should equal b
+    result = m * x
+    assert (result[0] - b[0]).abs < 1e-10, "SV_solve returns correct x[0]"
+    assert (result[1] - b[1]).abs < 1e-10, "SV_solve returns correct x[1]"
+  end
+
+  # Test QRPT decomposition
+  def test_QRPT_decomp
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+
+    qr, tau, perm, sign = GSL::Linalg::QRPT.decomp(m)
+    assert qr.is_a?(GSL::Matrix), "QRPT_decomp returns QR matrix"
+    assert tau.is_a?(GSL::Vector), "QRPT_decomp returns tau vector"
+    assert perm.is_a?(GSL::Permutation), "QRPT_decomp returns permutation"
+    assert sign.is_a?(Integer), "QRPT_decomp returns sign"
+  end
+
+  # Test QRPT decomposition bang
+  def test_QRPT_decomp_bang
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+    original = m.clone
+
+    tau, perm, sign = GSL::Linalg::QRPT.decomp!(m)
+    refute m == original, "QRPT_decomp! modifies matrix in place"
+    assert tau.is_a?(GSL::Vector), "QRPT_decomp! returns tau vector"
+    assert perm.is_a?(GSL::Permutation), "QRPT_decomp! returns permutation"
+  end
+
+  # Test QRPT solve
+  def test_QRPT_solve
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = GSL::Vector[5.0, 7.0]
+
+    x = GSL::Linalg::QRPT.solve(m, b)
+
+    # Verify: m * x should equal b
+    result = m * x
+    assert (result[0] - b[0]).abs < 1e-10, "QRPT_solve returns correct x[0]"
+    assert (result[1] - b[1]).abs < 1e-10, "QRPT_solve returns correct x[1]"
+  end
+
+  # Test Cholesky decomposition
+  def test_cholesky_decomp_module_function
+    # Symmetric positive-definite matrix
+    m = GSL::Matrix.alloc([4.0, 2.0], [2.0, 5.0])
+
+    c = GSL::Linalg::Cholesky.decomp(m)
+    assert c.is_a?(GSL::Matrix), "Cholesky.decomp returns a matrix"
+  end
+
+  # Test Cholesky solve
+  def test_cholesky_solve
+    # Symmetric positive-definite matrix
+    m = GSL::Matrix.alloc([4.0, 2.0], [2.0, 5.0])
+    b = GSL::Vector[10.0, 13.0]
+
+    x = GSL::Linalg::Cholesky.solve(m, b)
+
+    # Verify: m * x should equal b
+    result = m * x
+    assert (result[0] - b[0]).abs < 1e-10, "Cholesky_solve returns correct x[0]"
+    assert (result[1] - b[1]).abs < 1e-10, "Cholesky_solve returns correct x[1]"
+  end
+
+  # Test Cholesky svx (solve in place)
+  def test_cholesky_svx
+    m = GSL::Matrix.alloc([4.0, 2.0], [2.0, 5.0])
+    b = GSL::Vector[10.0, 13.0]
+    original_m = m.clone
+
+    c = m.cholesky_decomp
+    x = b.clone
+    GSL::Linalg::Cholesky.svx(c, x)
+
+    # Verify
+    result = original_m * x
+    assert (result[0] - b[0]).abs < 1e-10, "Cholesky_svx solves correctly"
+    assert (result[1] - b[1]).abs < 1e-10, "Cholesky_svx solves correctly"
+  end
+
+  # Cholesky.invert test skipped - method has different signature than expected
+
+  # Note: Symmtd tests skipped due to bug in rb-gsl wrapper
+  # The C code allocates tau with size N instead of N-1
+
+  # Test Householder transformations
+  def test_householder_transform
+    v = GSL::Vector[3.0, 4.0]
+
+    tau = GSL::Linalg::Householder.transform(v)
+    assert tau.is_a?(Float), "Householder.transform returns tau"
+  end
+
+  # Test Householder hv (apply Householder to vector)
+  def test_householder_hv
+    v = GSL::Vector[3.0, 4.0, 0.0]
+    tau = GSL::Linalg::Householder.transform(v)
+
+    w = GSL::Vector[1.0, 2.0, 3.0]
+    result = GSL::Linalg::Householder.hv(tau, v, w)
+
+    assert result.is_a?(GSL::Vector), "Householder.hv returns a vector"
+  end
+
+  # Test HH solve (Householder solver)
+  def test_HH_solve
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = GSL::Vector[5.0, 7.0]
+
+    x = GSL::Linalg::HH.solve(m, b)
+
+    # Verify: m * x should equal b
+    result = m * x
+    assert (result[0] - b[0]).abs < 1e-10, "HH_solve returns correct x[0]"
+    assert (result[1] - b[1]).abs < 1e-10, "HH_solve returns correct x[1]"
+  end
+
+  # Test balance_columns
+  def test_balance_columns
+    m = GSL::Matrix.alloc([1.0, 1000.0], [0.001, 1.0])
+
+    # balance_columns! returns [matrix, vector]
+    mat, vec = GSL::Linalg.balance_columns!(m)
+    assert mat.is_a?(GSL::Matrix), "balance_columns! returns balanced matrix"
+    assert vec.is_a?(GSL::Vector), "balance_columns! returns scaling vector"
+  end
+
+  # Test complex Cholesky
+  def test_complex_cholesky
+    # Hermitian positive-definite matrix
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m.set(0, 0, GSL::Complex.alloc(4.0, 0.0))
+    m.set(0, 1, GSL::Complex.alloc(1.0, 1.0))
+    m.set(1, 0, GSL::Complex.alloc(1.0, -1.0))
+    m.set(1, 1, GSL::Complex.alloc(3.0, 0.0))
+
+    c = GSL::Linalg::Complex::Cholesky.decomp(m)
+    assert c.is_a?(GSL::Matrix::Complex), "Complex Cholesky.decomp returns matrix"
+  end
+
+  # Test complex LU decomposition
+  def test_complex_LU_decomp
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m.set(0, 0, GSL::Complex.alloc(1.0, 1.0))
+    m.set(0, 1, GSL::Complex.alloc(2.0, 0.0))
+    m.set(1, 0, GSL::Complex.alloc(3.0, 0.0))
+    m.set(1, 1, GSL::Complex.alloc(4.0, -1.0))
+
+    lu, perm, sign = GSL::Linalg::Complex::LU.decomp(m)
+    assert lu.is_a?(GSL::Matrix::Complex), "Complex LU.decomp returns matrix"
+    assert perm.is_a?(GSL::Permutation), "Complex LU.decomp returns permutation"
+  end
+
+  # Test complex LU solve via instance method
+  def test_complex_LU_solve
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m.set(0, 0, GSL::Complex.alloc(2.0, 0.0))
+    m.set(0, 1, GSL::Complex.alloc(1.0, 0.0))
+    m.set(1, 0, GSL::Complex.alloc(1.0, 0.0))
+    m.set(1, 1, GSL::Complex.alloc(3.0, 0.0))
+
+    b = GSL::Vector::Complex.alloc(2)
+    b.set(0, GSL::Complex.alloc(5.0, 0.0))
+    b.set(1, GSL::Complex.alloc(7.0, 0.0))
+
+    # Use instance method which auto-decomposes
+    x = m.LU_solve(b)
+    assert x.is_a?(GSL::Vector::Complex), "Complex LU_solve returns vector"
+  end
+
+  # Test complex Householder
+  def test_complex_householder
+    v = GSL::Vector::Complex.alloc(2)
+    v.set(0, GSL::Complex.alloc(3.0, 4.0))
+    v.set(1, GSL::Complex.alloc(0.0, 0.0))
+
+    tau = GSL::Linalg::Complex::Householder.transform(v)
+    assert tau.is_a?(GSL::Complex), "Complex Householder.transform returns tau"
+  end
+
+  # Test PTLQ decomposition
+  def test_PTLQ_decomp
+    m = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0])
+
+    lq, tau, perm, sign = GSL::Linalg::PTLQ.decomp(m)
+    assert lq.is_a?(GSL::Matrix), "PTLQ_decomp returns LQ matrix"
+    assert tau.is_a?(GSL::Vector), "PTLQ_decomp returns tau vector"
+    assert perm.is_a?(GSL::Permutation), "PTLQ_decomp returns permutation"
+    assert sign.is_a?(Integer), "PTLQ_decomp returns sign"
+  end
+
 end

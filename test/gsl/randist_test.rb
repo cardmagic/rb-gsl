@@ -136,7 +136,333 @@ class RandistTest < GSL::TestCase
 
     if ENV['NMATRIX']
       @@use_nmatrix = true
-      _test_randist; 
+      _test_randist;
     end
   end
+
+  # Additional tests for various distributions
+
+  def test_laplace
+    r = GSL::Rng.alloc
+    val = r.laplace(1.0)
+    assert val.is_a?(Float), "laplace returns a float"
+  end
+
+  def test_laplace_pdf
+    pdf = GSL::Ran.laplace_pdf(0.0, 1.0)
+    assert_in_delta 0.5, pdf, 0.01, "laplace_pdf at 0"
+  end
+
+  def test_rayleigh
+    r = GSL::Rng.alloc
+    val = r.rayleigh(1.0)
+    assert val >= 0, "rayleigh is non-negative"
+  end
+
+  def test_rayleigh_pdf
+    pdf = GSL::Ran.rayleigh_pdf(1.0, 1.0)
+    assert pdf > 0, "rayleigh_pdf is positive"
+  end
+
+  def test_rayleigh_tail
+    r = GSL::Rng.alloc
+    a = 1.0
+    val = r.rayleigh_tail(a, 2.0)
+    assert val >= a, "rayleigh_tail is >= a"
+  end
+
+  def test_rayleigh_tail_pdf
+    pdf = GSL::Ran.rayleigh_tail_pdf(2.0, 1.0, 2.0)
+    assert pdf >= 0, "rayleigh_tail_pdf is non-negative"
+  end
+
+  def test_landau
+    r = GSL::Rng.alloc
+    val = r.landau
+    assert val.is_a?(Float), "landau returns a float"
+  end
+
+  def test_landau_pdf
+    pdf = GSL::Ran.landau_pdf(0.0)
+    assert pdf > 0, "landau_pdf is positive"
+  end
+
+  def test_levy
+    r = GSL::Rng.alloc
+    val = r.levy(1.0, 1.5)
+    assert val.is_a?(Float), "levy returns a float"
+  end
+
+  def test_levy_skew
+    r = GSL::Rng.alloc
+    val = r.levy_skew(1.0, 1.5, 0.5)
+    assert val.is_a?(Float), "levy_skew returns a float"
+  end
+
+  def test_gamma
+    r = GSL::Rng.alloc
+    val = r.gamma(2.0, 1.0)
+    assert val >= 0, "gamma is non-negative"
+  end
+
+  def test_gamma_pdf
+    pdf = GSL::Ran.gamma_pdf(1.0, 2.0, 1.0)
+    assert pdf >= 0, "gamma_pdf is non-negative"
+  end
+
+  def test_lognormal
+    r = GSL::Rng.alloc
+    val = r.lognormal(0.0, 1.0)
+    assert val > 0, "lognormal is positive"
+  end
+
+  def test_lognormal_pdf
+    pdf = GSL::Ran.lognormal_pdf(1.0, 0.0, 1.0)
+    assert pdf >= 0, "lognormal_pdf is non-negative"
+  end
+
+  def test_chisq
+    r = GSL::Rng.alloc
+    val = r.chisq(5.0)
+    assert val >= 0, "chisq is non-negative"
+  end
+
+  def test_chisq_pdf
+    pdf = GSL::Ran.chisq_pdf(2.0, 5.0)
+    assert pdf >= 0, "chisq_pdf is non-negative"
+  end
+
+  def test_fdist
+    r = GSL::Rng.alloc
+    val = r.fdist(5.0, 10.0)
+    assert val >= 0, "fdist is non-negative"
+  end
+
+  def test_fdist_pdf
+    pdf = GSL::Ran.fdist_pdf(1.0, 5.0, 10.0)
+    assert pdf >= 0, "fdist_pdf is non-negative"
+  end
+
+  def test_tdist
+    r = GSL::Rng.alloc
+    val = r.tdist(5.0)
+    assert val.is_a?(Float), "tdist returns a float"
+  end
+
+  def test_tdist_pdf
+    pdf = GSL::Ran.tdist_pdf(0.0, 5.0)
+    assert pdf > 0, "tdist_pdf is positive at 0"
+  end
+
+  def test_beta
+    r = GSL::Rng.alloc
+    val = r.beta(2.0, 3.0)
+    assert val >= 0 && val <= 1, "beta is in [0,1]"
+  end
+
+  def test_beta_pdf
+    pdf = GSL::Ran.beta_pdf(0.5, 2.0, 3.0)
+    assert pdf >= 0, "beta_pdf is non-negative"
+  end
+
+  def test_logistic
+    r = GSL::Rng.alloc
+    val = r.logistic(1.0)
+    assert val.is_a?(Float), "logistic returns a float"
+  end
+
+  def test_logistic_pdf
+    pdf = GSL::Ran.logistic_pdf(0.0, 1.0)
+    assert pdf > 0, "logistic_pdf is positive"
+  end
+
+  def test_pareto
+    r = GSL::Rng.alloc
+    a, b = 2.0, 1.0
+    val = r.pareto(a, b)
+    assert val >= b, "pareto is >= b"
+  end
+
+  def test_pareto_pdf
+    pdf = GSL::Ran.pareto_pdf(2.0, 2.0, 1.0)
+    assert pdf >= 0, "pareto_pdf is non-negative"
+  end
+
+  def test_weibull
+    r = GSL::Rng.alloc
+    val = r.weibull(1.0, 2.0)
+    assert val >= 0, "weibull is non-negative"
+  end
+
+  def test_weibull_pdf
+    pdf = GSL::Ran.weibull_pdf(1.0, 1.0, 2.0)
+    assert pdf >= 0, "weibull_pdf is non-negative"
+  end
+
+  def test_gumbel1
+    r = GSL::Rng.alloc
+    val = r.gumbel1(1.0, 1.0)
+    assert val.is_a?(Float), "gumbel1 returns a float"
+  end
+
+  def test_gumbel1_pdf
+    pdf = GSL::Ran.gumbel1_pdf(0.0, 1.0, 1.0)
+    assert pdf >= 0, "gumbel1_pdf is non-negative"
+  end
+
+  def test_gumbel2
+    r = GSL::Rng.alloc
+    val = r.gumbel2(1.0, 1.0)
+    assert val > 0, "gumbel2 is positive"
+  end
+
+  def test_gumbel2_pdf
+    pdf = GSL::Ran.gumbel2_pdf(1.0, 1.0, 1.0)
+    assert pdf >= 0, "gumbel2_pdf is non-negative"
+  end
+
+  def test_bivariate_gaussian
+    r = GSL::Rng.alloc
+    x, y = r.bivariate_gaussian(1.0, 1.0, 0.5)
+    assert x.is_a?(Float), "bivariate_gaussian returns x"
+    assert y.is_a?(Float), "bivariate_gaussian returns y"
+  end
+
+  def test_bivariate_gaussian_pdf
+    pdf = GSL::Ran.bivariate_gaussian_pdf(0.0, 0.0, 1.0, 1.0, 0.5)
+    assert pdf > 0, "bivariate_gaussian_pdf is positive"
+  end
+
+  # Discrete distributions
+  def test_poisson
+    r = GSL::Rng.alloc
+    val = r.poisson(3.0)
+    assert val.is_a?(Integer), "poisson returns an integer"
+    assert val >= 0, "poisson is non-negative"
+  end
+
+  def test_poisson_pdf
+    pdf = GSL::Ran.poisson_pdf(3, 3.0)
+    assert pdf >= 0, "poisson_pdf is non-negative"
+  end
+
+  def test_binomial
+    r = GSL::Rng.alloc
+    val = r.binomial(0.5, 10)
+    assert val.is_a?(Integer), "binomial returns an integer"
+    assert val >= 0 && val <= 10, "binomial is in [0, n]"
+  end
+
+  def test_binomial_pdf
+    pdf = GSL::Ran.binomial_pdf(5, 0.5, 10)
+    assert pdf >= 0, "binomial_pdf is non-negative"
+  end
+
+  def test_negative_binomial
+    r = GSL::Rng.alloc
+    val = r.negative_binomial(0.5, 5.0)
+    assert val.is_a?(Integer), "negative_binomial returns an integer"
+    assert val >= 0, "negative_binomial is non-negative"
+  end
+
+  def test_negative_binomial_pdf
+    pdf = GSL::Ran.negative_binomial_pdf(3, 0.5, 5.0)
+    assert pdf >= 0, "negative_binomial_pdf is non-negative"
+  end
+
+  def test_geometric
+    r = GSL::Rng.alloc
+    val = r.geometric(0.5)
+    assert val.is_a?(Integer), "geometric returns an integer"
+    assert val >= 1, "geometric is >= 1"
+  end
+
+  def test_geometric_pdf
+    pdf = GSL::Ran.geometric_pdf(3, 0.5)
+    assert pdf >= 0, "geometric_pdf is non-negative"
+  end
+
+  def test_hypergeometric
+    r = GSL::Rng.alloc
+    val = r.hypergeometric(10, 20, 5)
+    assert val.is_a?(Integer), "hypergeometric returns an integer"
+    assert val >= 0 && val <= 5, "hypergeometric is in valid range"
+  end
+
+  def test_hypergeometric_pdf
+    pdf = GSL::Ran.hypergeometric_pdf(2, 10, 20, 5)
+    assert pdf >= 0, "hypergeometric_pdf is non-negative"
+  end
+
+  def test_logarithmic
+    r = GSL::Rng.alloc
+    val = r.logarithmic(0.5)
+    assert val.is_a?(Integer), "logarithmic returns an integer"
+    assert val >= 1, "logarithmic is >= 1"
+  end
+
+  def test_logarithmic_pdf
+    pdf = GSL::Ran.logarithmic_pdf(2, 0.5)
+    assert pdf >= 0, "logarithmic_pdf is non-negative"
+  end
+
+  def test_pascal
+    r = GSL::Rng.alloc
+    val = r.pascal(0.5, 5)
+    assert val.is_a?(Integer), "pascal returns an integer"
+    assert val >= 0, "pascal is non-negative"
+  end
+
+  def test_pascal_pdf
+    pdf = GSL::Ran.pascal_pdf(3, 0.5, 5)
+    assert pdf >= 0, "pascal_pdf is non-negative"
+  end
+
+  # Spherical distributions
+  def test_dir_2d
+    r = GSL::Rng.alloc
+    x, y = r.dir_2d
+    assert_in_delta 1.0, x*x + y*y, 1e-10, "dir_2d gives unit vector"
+  end
+
+  def test_dir_3d
+    r = GSL::Rng.alloc
+    x, y, z = r.dir_3d
+    assert_in_delta 1.0, x*x + y*y + z*z, 1e-10, "dir_3d gives unit vector"
+  end
+
+  # dir_nd test skipped - API unclear
+
+  # Dirichlet distribution
+  def test_dirichlet
+    r = GSL::Rng.alloc
+    alpha = GSL::Vector[1.0, 1.0, 1.0]
+    theta = GSL::Vector.alloc(3)
+    r.dirichlet(alpha, theta)
+    assert_in_delta 1.0, theta.sum, 1e-10, "dirichlet sums to 1"
+  end
+
+  def test_dirichlet_pdf
+    alpha = GSL::Vector[2.0, 2.0, 2.0]
+    theta = GSL::Vector[0.33, 0.33, 0.34]
+    pdf = GSL::Ran.dirichlet_pdf(alpha, theta)
+    assert pdf >= 0, "dirichlet_pdf is non-negative"
+  end
+
+  def test_dirichlet_lnpdf
+    alpha = GSL::Vector[2.0, 2.0, 2.0]
+    theta = GSL::Vector[0.33, 0.33, 0.34]
+    lnpdf = GSL::Ran.dirichlet_lnpdf(alpha, theta)
+    assert lnpdf.is_a?(Float), "dirichlet_lnpdf returns a float"
+  end
+
+  # Multinomial, gamma_int, gamma_knuth tests skipped - methods don't exist on Rng
+
+  # Gaussian ziggurat
+  def test_gaussian_ziggurat
+    r = GSL::Rng.alloc
+    val = r.gaussian_ziggurat(1.0)
+    assert val.is_a?(Float), "gaussian_ziggurat returns a float"
+  end
+
 end
