@@ -1660,4 +1660,215 @@ class LinalgTest < GSL::TestCase
     assert result.is_a?(GSL::Matrix::Complex), "Complex Householder.hm returns matrix"
   end
 
+  # Test LU det via module function
+  def test_LU_det_module_function
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+    det = GSL::Linalg::LU.det(m)
+    expected = 1.0 * 4.0 - 2.0 * 3.0  # -2
+    assert (det - expected).abs < 1e-10, "LU.det computes determinant via module"
+  end
+
+  # Test LU lndet via module function
+  def test_LU_lndet_module_function
+    m = GSL::Matrix.alloc([2.0, 0.0], [0.0, 3.0])
+    lndet = GSL::Linalg::LU.lndet(m)
+    expected = Math.log(6.0)
+    assert (lndet - expected).abs < 1e-10, "LU.lndet computes log det via module"
+  end
+
+  # Test LU sgndet via module function
+  def test_LU_sgndet_module_function
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+    lu, perm, sign = m.LU_decomp
+    sgndet = GSL::Linalg::LU.sgndet(lu, sign)
+    assert sgndet == -1, "LU.sgndet returns sign via module"
+  end
+
+  # Test LU solve with Ruby array as b
+  def test_LU_solve_with_array
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = [5.0, 7.0]  # Ruby array instead of GSL::Vector
+
+    x = GSL::Linalg::LU.solve(m, b)
+    assert x.is_a?(GSL::Vector), "LU.solve with array returns vector"
+  end
+
+  # Test LU refine with Ruby array as b
+  def test_LU_refine_with_array
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = [5.0, 7.0]  # Ruby array
+
+    lu, perm, _sign = m.LU_decomp
+    x = GSL::Linalg::LU.solve(lu, perm, b)
+
+    # Refine the solution
+    x_refined, residual = GSL::Linalg::LU.refine(m, lu, perm, b, x)
+
+    assert x_refined.is_a?(GSL::Vector), "LU.refine with array works"
+    assert residual.is_a?(GSL::Vector), "LU.refine returns residual"
+  end
+
+  # Test LU invert with pre-allocated output matrix
+  def test_LU_invert_with_output_matrix
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    lu, perm, _sign = m.LU_decomp
+    inv = GSL::Matrix.alloc(2, 2)
+
+    result = GSL::Linalg::LU.invert(lu, perm, inv)
+    assert_equal inv.object_id, result.object_id, "LU.invert uses provided output matrix"
+  end
+
+  # Test LU det on already decomposed matrix with sign
+  def test_LU_det_decomposed_with_sign
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+    lu, perm, sign = m.LU_decomp
+    det = GSL::Linalg::LU.det(lu, sign)
+    expected = -2.0
+    assert (det - expected).abs < 1e-10, "LU.det on decomposed matrix with sign"
+  end
+
+  # Test QR decomp via instance method returns array
+  def test_QR_decomp_returns_array
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+    result = m.QR_decomp
+    assert result.is_a?(Array), "QR_decomp returns array"
+    assert_equal 2, result.size, "QR_decomp returns [qr, tau]"
+  end
+
+  # Test LU solve instance method wrong args
+  def test_LU_solve_instance_wrong_args
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    lu, perm, _sign = m.LU_decomp
+
+    assert_raises(ArgumentError) do
+      lu.solve  # No args
+    end
+  end
+
+  # Test QR decomp! via module function
+  def test_QR_decomp_bang_module
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+    original = m.clone
+    tau = GSL::Linalg::QR.decomp!(m)
+    refute m == original, "QR.decomp! modifies matrix"
+    assert tau.is_a?(GSL::Vector), "QR.decomp! returns tau"
+  end
+
+  # Test LQ decomp! via module function
+  def test_LQ_decomp_bang_module
+    m = GSL::Matrix.alloc([1.0, 2.0], [3.0, 4.0])
+    original = m.clone
+    tau = GSL::Linalg::LQ.decomp!(m)
+    refute m == original, "LQ.decomp! modifies matrix"
+    assert tau.is_a?(GSL::Vector), "LQ.decomp! returns tau"
+  end
+
+  # Test hesstri_decomp! with U, V matrices
+  def test_hesstri_decomp_bang_with_uv
+    a = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0])
+    b = GSL::Matrix.alloc([9.0, 8.0, 7.0], [6.0, 5.0, 4.0], [3.0, 2.0, 1.0])
+    u = GSL::Matrix.identity(3)
+    v = GSL::Matrix.identity(3)
+
+    h, r, u_out, v_out = GSL::Linalg.hesstri_decomp!(a, b, u, v)
+    assert h.is_a?(GSL::Matrix), "hesstri_decomp! with UV returns H"
+    assert r.is_a?(GSL::Matrix), "hesstri_decomp! with UV returns R"
+    assert u_out.is_a?(GSL::Matrix), "hesstri_decomp! with UV returns U"
+    assert v_out.is_a?(GSL::Matrix), "hesstri_decomp! with UV returns V"
+  end
+
+  # Test hesstri_decomp! with work vector
+  def test_hesstri_decomp_bang_with_work
+    a = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0])
+    b = GSL::Matrix.alloc([9.0, 8.0, 7.0], [6.0, 5.0, 4.0], [3.0, 2.0, 1.0])
+    work = GSL::Vector.alloc(3)
+
+    h, r = GSL::Linalg.hesstri_decomp!(a, b, work)
+    assert h.is_a?(GSL::Matrix), "hesstri_decomp! with work returns H"
+    assert r.is_a?(GSL::Matrix), "hesstri_decomp! with work returns R"
+  end
+
+  # Test hesstri_decomp with 5 arguments
+  def test_hesstri_decomp_with_uv_and_work
+    a = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0])
+    b = GSL::Matrix.alloc([9.0, 8.0, 7.0], [6.0, 5.0, 4.0], [3.0, 2.0, 1.0])
+    u = GSL::Matrix.identity(3)
+    v = GSL::Matrix.identity(3)
+    work = GSL::Vector.alloc(3)
+
+    h, r, u_out, v_out = GSL::Linalg.hesstri_decomp(a, b, u, v, work)
+    assert h.is_a?(GSL::Matrix), "hesstri_decomp with 5 args returns H"
+  end
+
+  # Test hesstri_decomp! with 5 arguments
+  def test_hesstri_decomp_bang_with_uv_and_work
+    a = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0])
+    b = GSL::Matrix.alloc([9.0, 8.0, 7.0], [6.0, 5.0, 4.0], [3.0, 2.0, 1.0])
+    u = GSL::Matrix.identity(3)
+    v = GSL::Matrix.identity(3)
+    work = GSL::Vector.alloc(3)
+
+    h, r, u_out, v_out = GSL::Linalg.hesstri_decomp!(a, b, u, v, work)
+    assert h.is_a?(GSL::Matrix), "hesstri_decomp! with 5 args returns H"
+  end
+
+  # Test balance_matrix! with pre-allocated D vector
+  def test_balance_matrix_bang_with_d
+    m = GSL::Matrix.alloc([1.0, 1000.0, 0.0], [0.001, 1.0, 0.0], [0.0, 0.0, 1.0])
+    d = GSL::Vector.alloc(3)
+
+    result = GSL::Linalg.balance_matrix!(m, d)
+    assert result == 0, "balance_matrix! with D returns status"
+  end
+
+
+  # Test bidiag_decomp via instance method
+  def test_bidiag_decomp_instance
+    m = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0])
+    result = m.bidiag_decomp
+
+    assert result.is_a?(Array), "bidiag_decomp instance returns array"
+    assert_equal 3, result.size, "bidiag_decomp returns [A, tau_U, tau_V]"
+  end
+
+  # Test bidiag_unpack via instance method
+  def test_bidiag_unpack_instance
+    m = GSL::Matrix.alloc([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0], [10.0, 11.0, 12.0])
+    a, tau_u, tau_v = m.bidiag_decomp
+
+    u, v, d, sd = a.bidiag_unpack(tau_u, tau_v)
+    assert u.is_a?(GSL::Matrix), "bidiag_unpack instance returns U"
+    assert v.is_a?(GSL::Matrix), "bidiag_unpack instance returns V"
+    assert d.is_a?(GSL::Vector), "bidiag_unpack instance returns d"
+    assert sd.is_a?(GSL::Vector), "bidiag_unpack instance returns sd"
+  end
+
+  # Test complex matrix LU decomp via instance method
+  def test_complex_matrix_LU_decomp_instance
+    m = GSL::Matrix::Complex.alloc(2, 2)
+    m.set(0, 0, GSL::Complex.alloc(1.0, 1.0))
+    m.set(0, 1, GSL::Complex.alloc(2.0, 0.0))
+    m.set(1, 0, GSL::Complex.alloc(3.0, 0.0))
+    m.set(1, 1, GSL::Complex.alloc(4.0, -1.0))
+
+    result = m.LU_decomp
+    assert result.is_a?(Array), "Complex LU_decomp returns array"
+    lu, perm, sign = result
+    assert lu.is_a?(GSL::Matrix::Complex), "Complex LU returns matrix"
+    assert perm.is_a?(GSL::Permutation), "Complex LU returns permutation"
+  end
+
+  # Test SV solve via module function
+  def test_SV_solve_module
+    m = GSL::Matrix.alloc([2.0, 1.0], [1.0, 3.0])
+    b = GSL::Vector[5.0, 7.0]
+
+    u, v, s = GSL::Linalg::SV.decomp(m)
+    x = GSL::Linalg::SV.solve(u, v, s, b)
+
+    result = m * x
+    assert (result[0] - b[0]).abs < 1e-10, "SV.solve correct"
+    assert (result[1] - b[1]).abs < 1e-10, "SV.solve correct"
+  end
+
 end
