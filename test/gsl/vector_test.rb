@@ -2662,4 +2662,347 @@ class VectorTest < GSL::TestCase
     assert_raises(ArgumentError) { v.subvector(0..3, 0) }
   end
 
+  # Additional tests for vector_source.h coverage
+
+  # Test histogram with additional variations (extends existing test_histogram)
+  def test_histogram_with_range_bounds
+    v = GSL::Vector.alloc(0.5, 1.5, 2.5, 3.5, 4.5)
+    h = v.histogram(5, [0, 5])
+    assert_kind_of GSL::Histogram, h
+    assert_equal 5, h.bins
+  end
+
+  def test_histogram_with_explicit_min_max
+    v = GSL::Vector.alloc(0.5, 1.5, 2.5, 3.5, 4.5)
+    h = v.histogram(5, 0.0, 5.0)
+    assert_kind_of GSL::Histogram, h
+    assert_equal 5, h.bins
+  end
+
+  def test_histogram_with_array_ranges
+    v = GSL::Vector.alloc(0.5, 1.5, 2.5, 3.5, 4.5)
+    h = v.histogram([0.0, 1.0, 2.0, 3.0, 4.0, 5.0])
+    assert_kind_of GSL::Histogram, h
+    assert_equal 5, h.bins
+  end
+
+  def test_histogram_with_vector_ranges
+    v = GSL::Vector.alloc(0.5, 1.5, 2.5, 3.5, 4.5)
+    ranges = GSL::Vector.alloc(0.0, 1.0, 2.0, 3.0, 4.0, 5.0)
+    h = v.histogram(ranges)
+    assert_kind_of GSL::Histogram, h
+    assert_equal 5, h.bins
+  end
+
+  # Test where with block
+  def test_where_block
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0, 5.0)
+    indices = v.where { |x| x > 3 }
+    assert_kind_of GSL::Permutation, indices
+    assert_equal [3, 4], indices.to_a
+  end
+
+  def test_where_no_matches
+    v = GSL::Vector.alloc(0.0, 0.0, 0.0)
+    indices = v.where
+    assert_nil indices
+  end
+
+  def test_where2_all_true_condition
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    true_indices, false_indices = v.where2
+    assert_equal [0, 1, 2], true_indices.to_a
+    assert_nil false_indices
+  end
+
+  def test_where2_all_false_condition
+    v = GSL::Vector.alloc(0.0, 0.0, 0.0)
+    true_indices, false_indices = v.where2
+    assert_nil true_indices
+    assert_equal [0, 1, 2], false_indices.to_a
+  end
+
+  def test_where2_with_block
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0, 5.0)
+    true_indices, false_indices = v.where2 { |x| x > 3 }
+    assert_equal [3, 4], true_indices.to_a
+    assert_equal [0, 1, 2], false_indices.to_a
+  end
+
+  # Test any with block (extends existing test_any)
+  def test_any_block
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    result = v.any { |x| x > 2 }
+    assert_equal 1, result
+  end
+
+  def test_any_predicate_block
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    assert v.any? { |x| x > 2 }
+    refute v.any? { |x| x > 5 }
+  end
+
+  # Test all? with block (extends existing test_all)
+  def test_all_predicate_block
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    assert v.all? { |x| x > 0 }
+    refute v.all? { |x| x > 1 }
+  end
+
+  # Test none? with block (extends existing test_none)
+  def test_none_predicate_block
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    assert v.none? { |x| x > 5 }
+    refute v.none? { |x| x > 2 }
+  end
+
+  # Test logical operations with scalars
+  def test_and_with_scalar
+    v = GSL::Vector.alloc(1.0, 0.0, 2.0)
+    result = v.and(1.0)
+    assert_equal [1, 0, 1], block_to_array(result)
+  end
+
+  def test_or_with_scalar
+    v = GSL::Vector.alloc(1.0, 0.0, 0.0)
+    result = v.or(0.0)
+    assert_equal [1, 0, 0], block_to_array(result)
+  end
+
+  def test_xor_with_scalar
+    v = GSL::Vector.alloc(1.0, 0.0, 2.0)
+    result = v.xor(1.0)
+    assert_equal [0, 1, 0], block_to_array(result)
+  end
+
+  # Test zip singleton method
+  def test_zip_as_singleton
+    v1 = GSL::Vector.alloc(1.0, 2.0)
+    v2 = GSL::Vector.alloc(3.0, 4.0)
+    result = GSL::Vector.zip(v1, v2)
+    assert_kind_of Array, result
+    assert_equal 2, result.size
+  end
+
+  # Test to_gplot
+  def test_to_gplot_basic
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    s = v.to_gplot
+    assert_kind_of String, s
+  end
+
+  def test_to_gplot_with_multiple_vectors
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v2 = GSL::Vector.alloc(4.0, 5.0, 6.0)
+    s = GSL::Vector.to_gplot(v1, v2)
+    assert_kind_of String, s
+  end
+
+  # Test subvector_with_stride edge cases
+  def test_subvector_with_stride_one_arg
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+    sv = v.subvector_with_stride(2)
+    assert_equal [1.0, 3.0, 5.0], sv.to_a
+  end
+
+  def test_subvector_with_stride_two_args
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+    sv = v.subvector_with_stride(1, 2)
+    assert_equal [2.0, 4.0, 6.0], sv.to_a
+  end
+
+  def test_subvector_with_stride_three_args
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+    sv = v.subvector_with_stride(0, 2, 3)
+    assert_equal [1.0, 3.0, 5.0], sv.to_a
+  end
+
+  def test_subvector_with_stride_negative_offset
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+    sv = v.subvector_with_stride(-3, 1)
+    assert_equal [4.0, 5.0, 6.0], sv.to_a
+  end
+
+  def test_subvector_with_stride_zero_stride_error
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    assert_raises(ArgumentError) { v.subvector_with_stride(0) }
+  end
+
+  def test_subvector_with_stride_offset_too_large
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    assert_raises(RangeError) { v.subvector_with_stride(10, 1) }
+  end
+
+  def test_subvector_with_stride_negative_length
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    assert_raises(ArgumentError) { v.subvector_with_stride(0, 1, -1) }
+  end
+
+  # Test matrix_view_with_tda
+  def test_matrix_view_with_tda_basic
+    v = GSL::Vector.indgen(12)
+    m = v.matrix_view_with_tda(2, 3, 4)
+    assert_kind_of GSL::Matrix::View, m
+    assert_equal 2, m.size1
+    assert_equal 3, m.size2
+    assert_in_delta 0.0, m[0, 0], 1e-10
+    assert_in_delta 1.0, m[0, 1], 1e-10
+    assert_in_delta 4.0, m[1, 0], 1e-10
+  end
+
+  # Test concat with various types (extends existing test_concat)
+  def test_concat_with_scalar
+    v = GSL::Vector.alloc(1.0, 2.0)
+    result = v.concat(3.0)
+    assert_equal [1.0, 2.0, 3.0], result.to_a
+  end
+
+  def test_concat_with_array
+    v = GSL::Vector.alloc(1.0, 2.0)
+    result = v.concat([3.0, 4.0])
+    assert_equal [1.0, 2.0, 3.0, 4.0], result.to_a
+  end
+
+  def test_concat_with_range
+    v = GSL::Vector.alloc(1.0, 2.0)
+    result = v.concat(3..5)
+    assert_equal [1.0, 2.0, 3.0, 4.0, 5.0], result.to_a
+  end
+
+  # Test inplace arithmetic with scalars
+  def test_add_inplace_with_scalar
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v.add!(5.0)
+    assert_equal [6.0, 7.0, 8.0], v.to_a
+  end
+
+  def test_sub_inplace_with_scalar
+    v = GSL::Vector.alloc(10.0, 20.0, 30.0)
+    v.sub!(5.0)
+    assert_equal [5.0, 15.0, 25.0], v.to_a
+  end
+
+  def test_mul_inplace_with_scalar
+    v = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v.mul!(2.0)
+    assert_equal [2.0, 4.0, 6.0], v.to_a
+  end
+
+  def test_div_inplace_with_scalar
+    v = GSL::Vector.alloc(10.0, 20.0, 30.0)
+    v.div!(2.0)
+    assert_equal [5.0, 10.0, 15.0], v.to_a
+  end
+
+  # Test Vector::Int specific methods
+  def test_int_where_basic
+    v = GSL::Vector::Int.alloc(0, 1, 0, 3, 0)
+    indices = v.where
+    assert_kind_of GSL::Permutation, indices
+    assert_equal [1, 3], indices.to_a
+  end
+
+  def test_int_any_predicate
+    v = GSL::Vector::Int.alloc(0, 0, 1)
+    assert v.any?
+  end
+
+  def test_int_all_predicate
+    v = GSL::Vector::Int.alloc(1, 2, 3)
+    assert v.all?
+  end
+
+  def test_int_none_predicate
+    v = GSL::Vector::Int.alloc(0, 0, 0)
+    assert v.none?
+  end
+
+  def test_int_histogram_basic
+    v = GSL::Vector::Int.alloc(0, 1, 2, 3, 4)
+    h = v.histogram(5)
+    assert_kind_of GSL::Histogram, h
+  end
+
+  def test_int_join_with_sep
+    v = GSL::Vector::Int.alloc(1, 2, 3)
+    result = v.join(", ")
+    assert_kind_of String, result
+    assert result.include?('1')
+  end
+
+  def test_int_zip_basic
+    v1 = GSL::Vector::Int.alloc(1, 2, 3)
+    v2 = GSL::Vector::Int.alloc(4, 5, 6)
+    result = v1.zip(v2)
+    assert_kind_of Array, result
+    assert_equal 3, result.size
+  end
+
+  def test_int_indgen_bang_basic
+    v = GSL::Vector::Int.alloc(5)
+    v.indgen!
+    assert_equal [0, 1, 2, 3, 4], v.to_a
+  end
+
+  def test_int_to_m_basic
+    v = GSL::Vector::Int.alloc(1, 2, 3, 4, 5, 6)
+    m = v.to_m(2, 3)
+    assert_kind_of GSL::Matrix::Int, m
+    assert_equal 2, m.size1
+    assert_equal 3, m.size2
+  end
+
+  def test_int_inplace_add
+    v1 = GSL::Vector::Int.alloc(1, 2, 3)
+    v2 = GSL::Vector::Int.alloc(10, 20, 30)
+    v1.add!(v2)
+    assert_equal [11, 22, 33], v1.to_a
+  end
+
+  def test_int_concat_with_scalar
+    v = GSL::Vector::Int.alloc(1, 2)
+    result = v.concat(3)
+    assert_equal [1, 2, 3], result.to_a
+  end
+
+  def test_int_to_s_for_col
+    v = GSL::Vector::Int.alloc(1, 2, 3).col
+    s = v.to_s
+    assert_kind_of String, s
+  end
+
+  def test_int_subvector_with_stride_basic
+    v = GSL::Vector::Int.alloc(1, 2, 3, 4, 5, 6)
+    sv = v.subvector_with_stride(2)
+    assert_equal [1, 3, 5], sv.to_a
+  end
+
+  def test_int_block_accessor
+    v = GSL::Vector::Int.alloc(1, 2, 3)
+    b = v.block
+    assert_kind_of GSL::Block::Int, b
+  end
+
+  # Test singleton methods
+  def test_inner_product_as_singleton
+    v1 = GSL::Vector.alloc(1.0, 2.0, 3.0)
+    v2 = GSL::Vector.alloc(4.0, 5.0, 6.0)
+    result = GSL::Vector.inner_product(v1, v2)
+    assert_in_delta 32.0, result, 1e-10
+  end
+
+  def test_inner_product_int_as_singleton
+    v1 = GSL::Vector::Int.alloc(1, 2, 3)
+    v2 = GSL::Vector::Int.alloc(4, 5, 6)
+    result = GSL::Vector::Int.inner_product(v1, v2)
+    assert_equal 32, result
+  end
+
+  def test_connect_as_singleton
+    v1 = GSL::Vector.alloc(1.0, 2.0)
+    v2 = GSL::Vector.alloc(3.0, 4.0)
+    result = GSL::Vector.connect(v1, v2)
+    assert_equal [1.0, 2.0, 3.0, 4.0], result.to_a
+  end
+
 end

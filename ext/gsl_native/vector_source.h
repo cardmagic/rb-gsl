@@ -1643,15 +1643,29 @@ static VALUE FUNCTION(rb_gsl_vector,to_gplot)(int argc, VALUE *argv, VALUE obj)
     istart = 1;
     break;
   }
-  for (i = 0; (int) i < argc; i++) {
-    if (TYPE(argv[0]) == T_ARRAY) tmp = rb_ary_entry(argv[0], i);
-    else tmp = argv[i];
-    CHECK_VEC(tmp);
-    Data_Get_Vec(tmp, v);
-    if (len == 0) len = v->size;
-    if (len != v->size)
-      rb_raise(rb_eRuntimeError, "vectors must have equal lengths");
-    vp[i+istart] = v;
+  if (TYPE(argv[0]) == T_ARRAY) {
+    /* When an array is passed, iterate over the array elements */
+    size_t array_len = RARRAY_LEN(argv[0]);
+    for (i = 0; i < array_len; i++) {
+      tmp = rb_ary_entry(argv[0], i);
+      CHECK_VEC(tmp);
+      Data_Get_Vec(tmp, v);
+      if (len == 0) len = v->size;
+      if (len != v->size)
+        rb_raise(rb_eRuntimeError, "vectors must have equal lengths");
+      vp[i+istart] = v;
+    }
+  } else {
+    /* When vectors are passed directly as arguments */
+    for (i = 0; (int) i < argc; i++) {
+      tmp = argv[i];
+      CHECK_VEC(tmp);
+      Data_Get_Vec(tmp, v);
+      if (len == 0) len = v->size;
+      if (len != v->size)
+        rb_raise(rb_eRuntimeError, "vectors must have equal lengths");
+      vp[i+istart] = v;
+    }
   }
   str = rb_str_new2(buf);
   for (j = 0; j < len; j++) {
